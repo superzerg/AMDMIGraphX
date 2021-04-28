@@ -121,13 +121,13 @@ __device__ __host__ tensor_view<device_type<T>> device_cast(tensor_view<T> x)
 }
 
 template <class T>
-__device__ __host__ T to_hip_type(T x)
+inline __device__ __host__ T to_hip_type(T x)
 {
     return x;
 }
 
-// Hip doens't support __fp16
-inline __device__ __host__ float to_hip_type(gpu_half x) { return x; }
+// // Hip doens't support __fp16
+// inline __device__ __host__ float to_hip_type(gpu_half x) { return x; }
 
 } // namespace device
 } // namespace gpu
