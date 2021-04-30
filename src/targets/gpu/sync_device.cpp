@@ -18,7 +18,7 @@ void sync_device::apply(module& p) const
                return (i->name() == "hip::copy_from_gpu");
            }))
         {
-            auto sync_in = p.insert_instruction(last, hip_sync_device{}, inputs);
+            auto sync_in = p.insert_instruction(last, hip_sync_stream{}, inputs);
             if(not inputs.empty())
             {
                 p.replace_instruction(inputs.front(), sync_in);

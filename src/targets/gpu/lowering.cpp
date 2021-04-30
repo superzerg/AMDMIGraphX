@@ -414,7 +414,7 @@ struct miopen_apply
         apply_map.emplace("if", [=](instruction_ref ins) {
             std::vector<instruction_ref> inputs = ins->inputs();
             auto cpu_cond  = mod->insert_instruction(ins, hip_copy_from_gpu{}, inputs.front());
-            auto sync_cond = mod->insert_instruction(ins, hip_sync_device{}, cpu_cond);
+            auto sync_cond = mod->insert_instruction(ins, hip_sync_stream{}, cpu_cond);
             inputs.front() = sync_cond;
 
             std::vector<module_ref> mod_args = ins->module_inputs();
