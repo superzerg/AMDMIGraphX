@@ -22,7 +22,7 @@ struct quantizelinear
     shape normalize_compute_shape(std::vector<shape> inputs) const
     {
         auto type = shape::uint8_type;
-        if (inputs.size() == 3)
+        if(inputs.size() == 3)
         {
             type = inputs.at(2).type();
         }
