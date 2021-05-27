@@ -101,9 +101,9 @@ struct parse_reduce_mean : op_parser<parse_reduce_mean>
         auto s = args[0]->get_shape();
         std::vector<float> data1(s.elements(), 0.01f);
         auto scale_down = info.add_literal(literal(s, data1));
-        auto sd_ins = info.add_instruction(make_op("mul"), args[0], scale_down);
-        auto rm = parse_reduce_oper("reduce_mean", parser, std::move(info), {sd_ins});
-        auto s1 = rm->get_shape();
+        auto sd_ins     = info.add_instruction(make_op("mul"), args[0], scale_down);
+        auto rm         = parse_reduce_oper("reduce_mean", parser, std::move(info), {sd_ins});
+        auto s1         = rm->get_shape();
         std::vector<float> data2(s1.elements(), 100.0f);
         auto scale_up = info.add_literal(literal(s1, data2));
         return info.add_instruction(make_op("mul"), rm, scale_up);
