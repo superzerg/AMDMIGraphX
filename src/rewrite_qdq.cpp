@@ -33,15 +33,15 @@ void rewrite_qdq::apply_quantizelinear(module& m, instruction_ref ins) const
 
     int max_val = 255;
     int min_val = 0;
-    if (type == shape::int8_type)
+    if(type == shape::int8_type)
     {
         max_val -= 128;
         min_val -= 128;
     }
 
-    auto inputs = ins->inputs();
+    auto inputs  = ins->inputs();
     auto in_lens = inputs[0]->get_shape().lens();
-    int n_dim       = static_cast<int>(in_lens.size());
+    int n_dim    = static_cast<int>(in_lens.size());
 
     auto val = ins->get_operator().to_value();
     assert(val.contains("axis"));
@@ -60,19 +60,22 @@ void rewrite_qdq::apply_quantizelinear(module& m, instruction_ref ins) const
     auto div            = m.insert_instruction(ins, make_op("div"), inputs[0], scale);
     auto div_round      = m.insert_instruction(ins, make_op("round"), div);
     auto add_zero_point = div_round;
-    auto s           = add_zero_point->get_shape();
+    auto s              = add_zero_point->get_shape();
 
     if(inputs.size() == 3)
     {
         auto zero_point = inputs[2];
         if(not(zero_point->get_shape().elements() == 1))
         {
-            zero_point = m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), zero_point);
+            zero_point =
+                m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), zero_point);
         }
-        zero_point = m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", in_lens}}), zero_point);
-        if (s.type() != add_zero_point->get_shape().type())
+        zero_point = m.insert_instruction(
+            ins, make_op("multibroadcast", {{"output_lens", in_lens}}), zero_point);
+        if(s.type() != add_zero_point->get_shape().type())
         {
-            zero_point = m.insert_instruction(ins, make_op("convert", {{"target_type", s.type()}}), zero_point);
+            zero_point = m.insert_instruction(
+                ins, make_op("convert", {{"target_type", s.type()}}), zero_point);
         }
         add_zero_point = m.insert_instruction(ins, make_op("add"), add_zero_point, zero_point);
     }
@@ -94,7 +97,7 @@ void rewrite_qdq::apply_dequantizelinear(module& m, instruction_ref ins) const
     auto inputs  = ins->inputs();
     auto in_lens = inputs[0]->get_shape().lens();
     int n_dim    = static_cast<int>(in_lens.size());
-    auto type = ins->get_shape().type();
+    auto type    = ins->get_shape().type();
 
     auto val = ins->get_operator().to_value();
     assert(val.contains("axis"));
@@ -105,39 +108,42 @@ void rewrite_qdq::apply_dequantizelinear(module& m, instruction_ref ins) const
     dims[axis] = in_lens[axis];
 
     auto sub_zero_point = inputs[0];
-    if (sub_zero_point->get_shape().type() != type)
+    if(sub_zero_point->get_shape().type() != type)
     {
-        sub_zero_point = m.insert_instruction(ins, make_op("convert", {{"target_type", type}}), sub_zero_point);
+        sub_zero_point =
+            m.insert_instruction(ins, make_op("convert", {{"target_type", type}}), sub_zero_point);
     }
-    if (inputs.size() == 3)
+    if(inputs.size() == 3)
     {
         auto zero_point = inputs[2];
-        if (not(zero_point->get_shape().elements() == 1))
+        if(not(zero_point->get_shape().elements() == 1))
         {
-            zero_point = m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), zero_point);
+            zero_point =
+                m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), zero_point);
         }
-        zero_point = m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", in_lens}}), zero_point);
-        if (zero_point->get_shape().type() != type)
+        zero_point = m.insert_instruction(
+            ins, make_op("multibroadcast", {{"output_lens", in_lens}}), zero_point);
+        if(zero_point->get_shape().type() != type)
         {
-            zero_point = m.insert_instruction(ins, make_op("convert", {{"target_type", type}}), zero_point);
+            zero_point =
+                m.insert_instruction(ins, make_op("convert", {{"target_type", type}}), zero_point);
         }
         sub_zero_point = m.insert_instruction(ins, make_op("sub"), sub_zero_point, sub_zero_point);
     }
 
     auto scale = inputs[1];
-    if (not(scale->get_shape().elements() == 1))
+    if(not(scale->get_shape().elements() == 1))
     {
         scale = m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), scale);
     }
     scale = m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", in_lens}}), scale);
-    if (scale->get_shape().type() != type)
+    if(scale->get_shape().type() != type)
     {
         scale = m.insert_instruction(ins, make_op("convert", {{"target_type", type}}), scale);
     }
 
     m.replace_instruction(ins, make_op("mul"), sub_zero_point, scale);
 }
-
 
 } // namespace MIGRAPHX_INLINE_NS
 } // namespace migraphx
