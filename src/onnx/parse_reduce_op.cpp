@@ -1,3 +1,4 @@
+#include "migraphx/literal.hpp"
 #include <migraphx/onnx/op_parser.hpp>
 #include <migraphx/ranges.hpp>
 #include <migraphx/instruction.hpp>
@@ -73,7 +74,7 @@ struct parse_reduce_op : op_parser<parse_reduce_op>
     std::vector<op_desc> operators() const
     {
         return {{"ReduceMax", "reduce_max"},
-                {"ReduceMean", "reduce_mean"},
+                // {"ReduceMean", "reduce_mean"},
                 {"ReduceMin", "reduce_min"},
                 {"ReduceProd", "reduce_prod"},
                 {"ReduceSum", "reduce_sum"}};
@@ -85,6 +86,27 @@ struct parse_reduce_op : op_parser<parse_reduce_op>
                           std::vector<instruction_ref> args) const
     {
         return parse_reduce_oper(opd.op_name, parser, std::move(info), std::move(args));
+    }
+};
+
+struct parse_reduce_mean : op_parser<parse_reduce_mean>
+{
+    std::vector<op_desc> operators() const { return {{"ReduceMean"}}; }
+
+    instruction_ref parse(const op_desc& /*opd*/,
+                          const onnx_parser& parser,
+                          onnx_parser::node_info info,
+                          std::vector<instruction_ref> args) const
+    {
+        auto s = args[0]->get_shape();
+        std::vector<float> data1(s.elements(), 0.01f);
+        auto scale_down = info.add_literal(literal(s, data1));
+        auto sd_ins = info.add_instruction(make_op("mul"), args[0], scale_down);
+        auto rm = parse_reduce_oper("reduce_mean", parser, std::move(info), {sd_ins});
+        auto s1 = rm->get_shape();
+        std::vector<float> data2(s1.elements(), 100.0f);
+        auto scale_up = info.add_literal(literal(s1, data2));
+        return info.add_instruction(make_op("mul"), rm, scale_up);
     }
 };
 
