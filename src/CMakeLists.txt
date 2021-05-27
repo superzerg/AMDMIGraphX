@@ -90,6 +90,7 @@ register_migraphx_ops(
     cosh
     cos
     deconvolution
+    dequantizelinear
     div
     dot
     elu
@@ -127,6 +128,7 @@ register_migraphx_ops(
     prelu
     quant_convolution
     quant_dot
+    quantizelinear
     recip
     reduce_max
     reduce_mean
