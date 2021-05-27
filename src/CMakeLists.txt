@@ -27,6 +27,7 @@ add_library(migraphx
     rewrite_batchnorm.cpp
     rewrite_rnn.cpp
     rewrite_pooling.cpp
+    rewrite_qdq.cpp
     env.cpp
     generate.cpp
     instruction.cpp
