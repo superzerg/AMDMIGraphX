@@ -915,11 +915,12 @@ migraphx::program make_dequantizelinear_axis_prog(int axis)
 {
     migraphx::program p;
     std::vector<size_t> input_lens{1, 1, 5, 1};
-    auto* mm      = p.get_main_module();
-    auto l0       = mm->add_parameter("0", {migraphx::shape::int8_type, input_lens});
-    auto l1       = mm->add_parameter("1", {migraphx::shape::float_type, {5}});
-    auto l2       = mm->add_parameter("2", {migraphx::shape::int8_type, {5}});
-    auto r = mm->add_instruction(migraphx::make_op("dequantizelinear", {{"axis", axis}}), l0, l1, l2);
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", {migraphx::shape::int8_type, input_lens});
+    auto l1  = mm->add_parameter("1", {migraphx::shape::float_type, {5}});
+    auto l2  = mm->add_parameter("2", {migraphx::shape::int8_type, {5}});
+    auto r =
+        mm->add_instruction(migraphx::make_op("dequantizelinear", {{"axis", axis}}), l0, l1, l2);
     mm->add_return({r});
 
     return p;
@@ -928,14 +929,14 @@ migraphx::program make_dequantizelinear_axis_prog(int axis)
 TEST_CASE(dequantizelinear_axis_test)
 {
     migraphx::program p = make_dequantizelinear_axis_prog(2);
-    auto prog = migraphx::parse_onnx("dequantizelinear_axis_test.onnx");
+    auto prog           = migraphx::parse_onnx("dequantizelinear_axis_test.onnx");
     EXPECT(p.sort() == prog.sort());
 }
 
 TEST_CASE(dequantizelinear_neg_axis_test)
 {
     migraphx::program p = make_dequantizelinear_axis_prog(-2);
-    auto prog = migraphx::parse_onnx("dequantizelinear_neg_axis_test.onnx");
+    auto prog           = migraphx::parse_onnx("dequantizelinear_neg_axis_test.onnx");
     EXPECT(p.sort() == prog.sort());
 }
 
@@ -2275,11 +2276,11 @@ TEST_CASE(prelu_brcst_test)
 TEST_CASE(quantizelinear_test)
 {
     migraphx::program p;
-    auto* mm     = p.get_main_module();
-    auto l0      = mm->add_parameter("0", {migraphx::shape::float_type, {5}});
-    auto l1      = mm->add_parameter("1", {migraphx::shape::float_type, {1}});
-    auto l2      = mm->add_parameter("2", {migraphx::shape::int8_type, {1}});
-    auto r = mm->add_instruction(migraphx::make_op("quantizelinear", {{"axis", 1}}), l0, l1, l2);
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", {migraphx::shape::float_type, {5}});
+    auto l1  = mm->add_parameter("1", {migraphx::shape::float_type, {1}});
+    auto l2  = mm->add_parameter("2", {migraphx::shape::int8_type, {1}});
+    auto r   = mm->add_instruction(migraphx::make_op("quantizelinear", {{"axis", 1}}), l0, l1, l2);
     mm->add_return({r});
 
     auto prog = migraphx::parse_onnx("quantizelinear_test.onnx");
@@ -2292,9 +2293,9 @@ migraphx::program make_quantizelinear_axis_prog(int axis)
     std::vector<size_t> input_lens{1, 1, 5, 1};
     auto* mm = p.get_main_module();
 
-    auto l0      = mm->add_parameter("0", {migraphx::shape::float_type, input_lens});
-    auto l1      = mm->add_parameter("1", {migraphx::shape::float_type, {5}});
-    auto l2      = mm->add_parameter("2", {migraphx::shape::int8_type, {5}});
+    auto l0 = mm->add_parameter("0", {migraphx::shape::float_type, input_lens});
+    auto l1 = mm->add_parameter("1", {migraphx::shape::float_type, {5}});
+    auto l2 = mm->add_parameter("2", {migraphx::shape::int8_type, {5}});
     auto r = mm->add_instruction(migraphx::make_op("quantizelinear", {{"axis", axis}}), l0, l1, l2);
     mm->add_return({r});
 

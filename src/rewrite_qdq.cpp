@@ -51,16 +51,17 @@ void rewrite_qdq::apply_quantizelinear(module& m, instruction_ref ins) const
     auto scale = inputs[1];
     if(not(scale->get_shape().elements() == 1))
     {
-        axis     = tune_axis(n_dim, axis, ins->name());
+        axis       = tune_axis(n_dim, axis, ins->name());
         dims[axis] = in_lens[axis];
-        scale = m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), scale);
+        scale      = m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), scale);
     }
 
     scale = m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", in_lens}}), scale);
     auto scale_type = scale->get_shape().type();
-    if (inputs[0]->get_shape().type() != scale_type)
+    if(inputs[0]->get_shape().type() != scale_type)
     {
-        inputs[0] = m.insert_instruction(ins, make_op("convert", {{"target_type", scale_type}}), inputs[0]);
+        inputs[0] =
+            m.insert_instruction(ins, make_op("convert", {{"target_type", scale_type}}), inputs[0]);
     }
     auto div            = m.insert_instruction(ins, make_op("div"), inputs[0], scale);
     auto div_round      = m.insert_instruction(ins, make_op("round"), div);
@@ -72,7 +73,7 @@ void rewrite_qdq::apply_quantizelinear(module& m, instruction_ref ins) const
         auto zero_point = inputs[2];
         if(not(zero_point->get_shape().elements() == 1))
         {
-            axis     = tune_axis(n_dim, axis, ins->name());
+            axis       = tune_axis(n_dim, axis, ins->name());
             dims[axis] = in_lens[axis];
             zero_point =
                 m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), zero_point);
@@ -122,7 +123,7 @@ void rewrite_qdq::apply_dequantizelinear(module& m, instruction_ref ins) const
         auto zero_point = inputs[2];
         if(not(zero_point->get_shape().elements() == 1))
         {
-            axis     = tune_axis(n_dim, axis, ins->name());
+            axis       = tune_axis(n_dim, axis, ins->name());
             dims[axis] = in_lens[axis];
 
             zero_point =
@@ -141,9 +142,9 @@ void rewrite_qdq::apply_dequantizelinear(module& m, instruction_ref ins) const
     auto scale = inputs[1];
     if(not(scale->get_shape().elements() == 1))
     {
-        axis     = tune_axis(n_dim, axis, ins->name());
+        axis       = tune_axis(n_dim, axis, ins->name());
         dims[axis] = in_lens[axis];
-        scale = m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), scale);
+        scale      = m.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), scale);
     }
     scale = m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", in_lens}}), scale);
     if(scale->get_shape().type() != type)
