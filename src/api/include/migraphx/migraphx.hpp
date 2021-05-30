@@ -525,7 +525,7 @@ struct program : MIGRAPHX_HANDLE_BASE(program)
     }
 
     /// Return the name of the input parameters in order
-    std::vector<const char *> get_parameter_names() const
+    std::vector<const char*> get_parameter_names() const
     {
         std::size_t param_num;
         call(&migraphx_program_get_parameter_number, &param_num, this->get_handle_ptr());
