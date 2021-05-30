@@ -205,6 +205,10 @@ migraphx_status migraphx_program_compile(migraphx_program_t program,
 migraphx_status migraphx_program_get_parameter_shapes(migraphx_program_parameter_shapes_t* out,
                                                       migraphx_program_t program);
 
+migraphx_status migraphx_program_get_parameter_number(std::size_t* out, migraphx_program_t program);
+
+migraphx_status migraphx_program_get_parameter_names(const char** out, migraphx_program_t program);
+
 migraphx_status migraphx_program_get_output_shapes(migraphx_shapes_t* out,
                                                    migraphx_program_t program);
 

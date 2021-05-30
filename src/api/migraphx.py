@@ -192,6 +192,12 @@ def program(h):
                    options='migraphx::compile_options'))
     h.method('get_parameter_shapes',
              returns='std::unordered_map<std::string, migraphx::shape>')
+    h.method('get_parameter_number',
+             invoke='migraphx::get_parameter_number($@)',
+             returns='std::size_t')
+    h.method('get_parameter_names',
+             invoke='migraphx::get_parameter_names($@)',
+             returns='std::vector<const char*>')
     h.method('get_output_shapes',
              invoke='migraphx::get_output_shapes($@)',
              returns='std::vector<migraphx::shape>')

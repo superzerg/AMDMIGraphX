@@ -171,6 +171,20 @@ operation create_op(const char* name, const char* attributes)
     return op;
 }
 
+std::size_t get_parameter_number(program& p)
+{
+    return p.get_parameter_names().size();
+}
+
+std::vector<const char*> get_parameter_names(program& p)
+{
+    auto names = p.get_parameter_names();
+    std::vector<const char*> result;
+    std::transform(
+        names.begin(), names.end(), std::back_inserter(result), [](auto&& name) { return name.c_str(); });
+    return result;
+}
+
 template <class T>
 bool equal(const T& x, const T& y)
 {
