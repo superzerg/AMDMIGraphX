@@ -1,10 +1,12 @@
-import migraphx
 import sys, os
 import numpy as np
 import argparse
 import onnx
 from onnx import numpy_helper
 
+# add the lib folder (containing migraphx) to sys.path
+sys.path.append(os.getcwd() + "/lib")
+import migraphx
 
 def parse_args():
     parser = argparse.ArgumentParser(description="MIGraphX test runner")
