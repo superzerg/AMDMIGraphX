@@ -1,5 +1,5 @@
-#ifndef __CMDLINE_OPTIONS_HPP__
-#define __CMDLINE_OPTIONS_HPP__
+#ifndef MIGRAPHX_GUARD_TEST_RUNNER_CMDLINE_OPTIONS_HPP
+#define MIGRAPHX_GUARD_TEST_RUNNER_CMDLINE_OPTIONS_HPP
 #include <string>
 
 bool cmdOptionExists(char** begin, char** end, const std::string& option);

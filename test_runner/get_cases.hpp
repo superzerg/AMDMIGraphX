@@ -1,5 +1,5 @@
-#ifndef __GET_CASES_HPP__
-#define __GET_CASES_HPP__
+#ifndef MIGRAPHX_GUARD_TEST_RUNNER_GET_CASES_HPP
+#define MIGRAPHX_GUARD_TEST_RUNNER_GET_CASES_HPP
 
 #include <string>
 #include <vector>

@@ -6,24 +6,11 @@
 #include <iostream>
 #include <iomanip>
 #include <unordered_map>
-#include <hip/hip_fp16.h>
 #include <cassert>
+#include <half.hpp>
 #include "parse_tensor.hpp"
 
 using node_map = std::unordered_map<std::string, onnx::NodeProto>;
-
-template <class T>
-static void print(std::ostream& os, const std::vector<T>& dims)
-{
-    os << "{";
-    for(std::size_t i = 0; i < dims.size(); ++i)
-    {
-        if(i != 0)
-            os << ", ";
-        os << dims[i];
-    }
-    os << "}";
-}
 
 template <class T>
 static std::ostream& operator<<(std::ostream& os, const std::vector<T>& dims)
@@ -89,6 +76,7 @@ migraphx_shape_datatype_t get_type(int dtype)
     {
         std::cout << "Prototensor data type " << std::to_string(dtype) << " not supported"
                   << std::endl;
+        std::abort();
     }
     }
 }
@@ -164,11 +152,11 @@ migraphx::argument parse_tensor(const onnx::TensorProto& t, std::vector<std::str
     case onnx::TensorProto::FLOAT16:
     {
         std::vector<uint16_t> data_uint16(t.int32_data().begin(), t.int32_data().end());
-        std::vector<half> data_half;
+        std::vector<half_float::half> data_half;
         std::transform(data_uint16.begin(),
                        data_uint16.end(),
                        std::back_inserter(data_half),
-                       [](uint16_t raw_val) { return *reinterpret_cast<half*>(&raw_val); });
+                       [](uint16_t raw_val) { return *reinterpret_cast<half_float::half*>(&raw_val); });
         return create_argument(migraphx_shape_half_type, dims, data_half);
     }
     case onnx::TensorProto::DOUBLE:

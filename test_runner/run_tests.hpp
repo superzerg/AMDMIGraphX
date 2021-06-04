@@ -1,5 +1,5 @@
-#ifndef __RUN_TESTS_HPP__
-#define __RUN_TESTS_HPP__
+#ifndef MIGRAPHX_GUARD_TEST_RUNNER_RUN_TESTS_HPP
+#define MIGRAPHX_GUARD_TEST_RUNNER_RUN_TESTS_HPP
 
 #include <iostream>
 #include <fstream>
@@ -7,8 +7,8 @@
 #include <vector>
 #include <numeric>
 #include <cmath>
+#include <half.hpp>
 #include <unordered_map>
-#include <hip/hip_fp16.h>
 #include <migraphx/migraphx.hpp>
 
 template <class T>
@@ -108,8 +108,8 @@ void print_argument(std::ostream& os, const migraphx::argument& arg)
     }
     else if(type == migraphx_shape_half_type)
     {
-        half* ptr = reinterpret_cast<half*>(arg.data());
-        std::vector<half> data(ptr, ptr + elem_num);
+        half_float::half* ptr = reinterpret_cast<half_float::half*>(arg.data());
+        std::vector<half_float::half> data(ptr, ptr + elem_num);
         os << data;
     }
     else if(type == migraphx_shape_double_type)
@@ -324,8 +324,9 @@ bool compare_results(const migraphx::argument& arg1,
     }
 
     auto type = arg1.get_shape().type();
-    if(type == migraphx_shape_double_type or type == migraphx_shape_float_type or
-       migraphx_shape_half_type)
+    if(type == migraphx_shape_double_type or 
+       type == migraphx_shape_float_type or
+       type == migraphx_shape_half_type)
     {
         std::vector<double> res1, res2;
         retrieve_argument_data(arg1, res1);
