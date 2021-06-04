@@ -12,6 +12,7 @@ namespace gpu {
 static const char* pointwise_kernel = R"__migraphx__(
 #include <migraphx/kernels/index.hpp>
 #include <migraphx/kernels/pointwise.hpp>
+#include <migraphx/kernels/math.hpp>
 #include <args.hpp>
 
 using namespace migraphx;
