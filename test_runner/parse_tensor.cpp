@@ -13,19 +13,12 @@
 using node_map = std::unordered_map<std::string, onnx::NodeProto>;
 
 template <class T>
-static std::ostream& operator<<(std::ostream& os, const std::vector<T>& dims)
-{
-    print(os, dims);
-    return os;
-}
-
-template <class T>
 migraphx::argument create_argument(migraphx_shape_datatype_t type,
                                    const std::vector<std::size_t>& dims,
                                    const std::vector<T>& data)
 {
     migraphx::shape s(type, dims);
-    return {s, (void*)data.data()};
+    return {s, const_cast<T*>(data.data())};
 }
 
 migraphx::argument create_argument(migraphx_shape_datatype_t type,
@@ -33,7 +26,7 @@ migraphx::argument create_argument(migraphx_shape_datatype_t type,
                                    const char* data)
 {
     migraphx::shape s(type, dims);
-    return {s, (void*)data};
+    return {s, const_cast<char*>(data)};
 }
 
 std::vector<char> read_pb_file(const std::string& filename)
