@@ -5,10 +5,17 @@ import argparse
 import onnx
 from onnx import numpy_helper
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="MIGraphX test runner")
-    parser.add_argument('test_dir', type=str, metavar='test_loc', help='folder where the test is stored')
-    parser.add_argument('--target', type=str, default='gpu', help='Specify where the tests execute (ref, gpu)')
+    parser.add_argument('test_dir',
+                        type=str,
+                        metavar='test_loc',
+                        help='folder where the test is stored')
+    parser.add_argument('--target',
+                        type=str,
+                        default='gpu',
+                        help='Specify where the tests execute (ref, gpu)')
     args = parser.parse_args()
 
     return args
@@ -66,6 +73,7 @@ def wrapup_inputs(io_folder, parameter_names):
 
     return param_map
 
+
 def read_outputs(io_folder, out_num):
     outputs = []
     for i in range(out_num):
@@ -93,9 +101,11 @@ def run_one_case(model, param_map):
 
     return outputs
 
+
 def check_correctness(gold_outputs, outputs, rtol=1e-3, atol=1e-3):
     if len(gold_outputs) != len(outputs):
-        print("Number of outputs {} is not equal to expected number {}".format(len(outputs), len(gold_outputs)))
+        print("Number of outputs {} is not equal to expected number {}".format(
+            len(outputs), len(gold_outputs)))
         return False
 
     out_num = len(gold_outputs)
@@ -132,7 +142,8 @@ def main():
 
     test_name = os.path.basename(os.path.normpath(test_loc))
 
-    print("Running test \"{}\" on target \"{}\" ...\n".format(test_name, target))
+    print("Running test \"{}\" on target \"{}\" ...\n".format(
+        test_name, target))
 
     # get model full path
     model_name = get_model_name(test_loc)
@@ -152,17 +163,18 @@ def main():
         io_folder = test_loc + '/' + case_name
         input_data = wrapup_inputs(io_folder, param_names)
         gold_output_data = read_outputs(io_folder, len(output_shapes))
-        
+
         # if input shape is different from model shape, reload and recompile
         # model
         input_shapes = tune_input_shape(model, input_data)
         if not len(input_shapes) == 0:
-            model = migraphx.parse_onnx(model_path_name, map_input_dims=input_shapes)
+            model = migraphx.parse_onnx(model_path_name,
+                                        map_input_dims=input_shapes)
             model.compile(migraphx.get_target(target))
 
         # run the model and return outputs
         output_data = run_one_case(model, input_data)
-    
+
         # check output correctness
         ret = check_correctness(gold_output_data, output_data)
         if ret:
@@ -170,7 +182,7 @@ def main():
 
         output_str = "PASSED" if ret else "FAILED"
         print("\tCase {}: {}".format(case_name, output_str))
-       
+
     print("\nTest \"{}\" has {} cases:".format(test_name, case_num))
     print("\t Passed: {}".format(correct_num))
     print("\t Failed: {}".format(case_num - correct_num))
@@ -178,4 +190,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

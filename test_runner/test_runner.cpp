@@ -6,25 +6,28 @@
 #include <string>
 #include <unordered_map>
 
-static std::unordered_map<std::string, migraphx::argument> get_input_from_files(const std::string& test_case,
-        std::vector<std::string> param_names,
-        std::vector<std::string>& input_data)
+static std::unordered_map<std::string, migraphx::argument>
+get_input_from_files(const std::string& test_case,
+                     std::vector<std::string> param_names,
+                     std::vector<std::string>& input_data)
 {
     std::unordered_map<std::string, migraphx::argument> results;
     std::size_t i = 0;
-    for (auto name : param_names)
+    for(auto name : param_names)
     {
         std::string pb_file_name = test_case + "/input_" + std::to_string(i++) + ".pb";
-        results[name] = parse_pb_file(pb_file_name, input_data);
+        results[name]            = parse_pb_file(pb_file_name, input_data);
     }
 
     return results;
 }
 
-static std::vector<migraphx::argument> get_outputs(const std::string& test_case, const std::size_t out_num, std::vector<std::string>& out_data)
+static std::vector<migraphx::argument> get_outputs(const std::string& test_case,
+                                                   const std::size_t out_num,
+                                                   std::vector<std::string>& out_data)
 {
     std::vector<migraphx::argument> results;
-    for (std::size_t i = 0; i < out_num; ++i)
+    for(std::size_t i = 0; i < out_num; ++i)
     {
         std::string pb_file_name = test_case + "/output_" + std::to_string(i) + ".pb";
         results.push_back(parse_pb_file(pb_file_name, out_data));
@@ -33,13 +36,15 @@ static std::vector<migraphx::argument> get_outputs(const std::string& test_case,
     return results;
 }
 
-static migraphx::arguments run_one_case(const std::unordered_map<std::string, migraphx::argument>& inputs, migraphx::program& p)
+static migraphx::arguments
+run_one_case(const std::unordered_map<std::string, migraphx::argument>& inputs,
+             migraphx::program& p)
 {
     auto param_shapes = p.get_parameter_shapes();
     migraphx::program_parameters m;
-    for (auto&& name : param_shapes.names())
+    for(auto&& name : param_shapes.names())
     {
-        if (inputs.count(std::string(name)) > 0)
+        if(inputs.count(std::string(name)) > 0)
         {
             m.add(name, inputs.at(name));
         }
@@ -53,19 +58,20 @@ static migraphx::arguments run_one_case(const std::unordered_map<std::string, mi
     return p.eval(m);
 }
 
-static bool tune_param_shape(const migraphx::program& p, const std::unordered_map<std::string, migraphx::argument>& inputs, 
-                                                migraphx::onnx_options& options)
+static bool tune_param_shape(const migraphx::program& p,
+                             const std::unordered_map<std::string, migraphx::argument>& inputs,
+                             migraphx::onnx_options& options)
 {
-    bool ret = false;
+    bool ret          = false;
     auto param_shapes = p.get_parameter_shapes();
     for(const auto& name : param_shapes.names())
     {
         std::string nm(name);
-        if (inputs.count(nm) > 0)
+        if(inputs.count(nm) > 0)
         {
             auto param_s = param_shapes[name];
-            auto data_s = inputs.at(nm).get_shape();
-            if (not compare_shapes(param_s, data_s))
+            auto data_s  = inputs.at(nm).get_shape();
+            if(not compare_shapes(param_s, data_s))
             {
                 options.set_input_parameter_shape(nm, data_s.lengths());
                 ret = true;
@@ -76,9 +82,9 @@ static bool tune_param_shape(const migraphx::program& p, const std::unordered_ma
     return ret;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    if (argc < 2)
+    if(argc < 2)
     {
         std::cout << "Usage: " << argv[0] << " test_loc" << std::endl;
         std::cout << "       -t target: ref/gpu, default: gpu" << std::endl;
@@ -87,21 +93,23 @@ int main(int argc, char **argv)
     }
 
     std::string target = "gpu";
-    char *target_str = getCmdOption(argv + 2, argv + argc, "-t");
-    if (target_str)
+    char* target_str   = getCmdOption(argv + 2, argv + argc, "-t");
+    if(target_str)
     {
         target = std::string(target_str);
     }
 
-    std::cout << "Run test \"" << argv[1] << "\" on \"" << target << "\":" << std::endl << std::endl;
+    std::cout << "Run test \"" << argv[1] << "\" on \"" << target << "\":" << std::endl
+              << std::endl;
 
     auto model_path_name = get_model_name(argv[1]);
-    migraphx::program p = migraphx::parse_onnx(model_path_name.c_str());
-    auto param_names = p.get_parameter_names();
+    migraphx::program p  = migraphx::parse_onnx(model_path_name.c_str());
+    auto param_names     = p.get_parameter_names();
     std::vector<std::string> pnames;
-    std::transform(param_names.begin(), param_names.end(), std::back_inserter(pnames), [](auto str) {
-            return std::string(str);
-            });
+    std::transform(param_names.begin(),
+                   param_names.end(),
+                   std::back_inserter(pnames),
+                   [](auto str) { return std::string(str); });
 
     auto out_shapes = p.get_output_shapes();
     migraphx_compile_options options;
@@ -118,7 +126,7 @@ int main(int argc, char **argv)
         std::vector<std::string> input_data;
         auto inputs = get_input_from_files(test_case, pnames, input_data);
         migraphx::onnx_options parse_options;
-        if (tune_param_shape(p, inputs, parse_options))
+        if(tune_param_shape(p, inputs, parse_options))
         {
             p = migraphx::parse_onnx(model_path_name.c_str(), parse_options);
             p.compile(migraphx::target(target.c_str()), options);
@@ -130,12 +138,12 @@ int main(int argc, char **argv)
 
         auto out_num = outputs.size();
         bool correct = true;
-        for (std::size_t i = 0; i < out_num; ++i)
+        for(std::size_t i = 0; i < out_num; ++i)
         {
-            auto gold = gold_outputs.at(i);
+            auto gold   = gold_outputs.at(i);
             auto output = outputs[i];
 
-            if (not compare_results(gold, output))
+            if(not compare_results(gold, output))
             {
                 std::cout << "Expected output:" << std::endl;
                 std::cout << gold << std::endl;
@@ -145,7 +153,8 @@ int main(int argc, char **argv)
                 correct = false;
             }
         }
-        std::cout << "\tTest case \"" << case_name << "\": " << (correct ? "PASSED" : "FAILED") << std::endl;
+        std::cout << "\tTest case \"" << case_name << "\": " << (correct ? "PASSED" : "FAILED")
+                  << std::endl;
         correct_num += static_cast<int>(correct);
     }
 

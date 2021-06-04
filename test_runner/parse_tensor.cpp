@@ -12,36 +12,37 @@
 
 using node_map = std::unordered_map<std::string, onnx::NodeProto>;
 
-template<class T>
+template <class T>
 static void print(std::ostream& os, const std::vector<T>& dims)
 {
     os << "{";
-    for (std::size_t i = 0; i < dims.size(); ++i)
+    for(std::size_t i = 0; i < dims.size(); ++i)
     {
-        if (i != 0) os << ", ";
+        if(i != 0)
+            os << ", ";
         os << dims[i];
     }
     os << "}";
 }
 
-template<class T>
-static std::ostream& operator << (std::ostream& os, const std::vector<T>& dims)
+template <class T>
+static std::ostream& operator<<(std::ostream& os, const std::vector<T>& dims)
 {
     print(os, dims);
     return os;
 }
 
-template<class T>
-migraphx::argument create_argument(migraphx_shape_datatype_t type, 
-                                   const std::vector<std::size_t>& dims, 
+template <class T>
+migraphx::argument create_argument(migraphx_shape_datatype_t type,
+                                   const std::vector<std::size_t>& dims,
                                    const std::vector<T>& data)
 {
     migraphx::shape s(type, dims);
     return {s, (void*)data.data()};
 }
 
-migraphx::argument create_argument(migraphx_shape_datatype_t type, 
-                                   const std::vector<std::size_t>& dims, 
+migraphx::argument create_argument(migraphx_shape_datatype_t type,
+                                   const std::vector<std::size_t>& dims,
                                    const char* data)
 {
     migraphx::shape s(type, dims);
@@ -68,7 +69,6 @@ std::vector<char> read_pb_file(const std::string& filename)
     return buffer;
 }
 
-
 migraphx_shape_datatype_t get_type(int dtype)
 {
     switch(dtype)
@@ -85,8 +85,10 @@ migraphx_shape_datatype_t get_type(int dtype)
     case 11: return migraphx_shape_double_type;
     case 12: return migraphx_shape_uint32_type;
     case 13: return migraphx_shape_uint64_type;
-    default: { 
-		std::cout << "Prototensor data type " << std::to_string(dtype) << " not supported" << std::endl;
+    default:
+    {
+        std::cout << "Prototensor data type " << std::to_string(dtype) << " not supported"
+                  << std::endl;
     }
     }
 }
@@ -97,7 +99,7 @@ migraphx::argument parse_tensor(const onnx::TensorProto& t, std::vector<std::str
     if(not t.external_data().empty())
     {
         const std::string& data_file = t.external_data().at(0).value();
-        std::string path = ".";
+        std::string path             = ".";
         auto raw_buffer              = read_pb_file(path + "/" + data_file);
         std::string s(raw_buffer.begin(), raw_buffer.end());
         input_data.push_back(s);
@@ -108,7 +110,7 @@ migraphx::argument parse_tensor(const onnx::TensorProto& t, std::vector<std::str
     {
         const std::string& s = t.raw_data();
         input_data.push_back(s);
-        auto type            = get_type(t.data_type());
+        auto type = get_type(t.data_type());
         return create_argument(type, dims, input_data.back().data());
     }
 
@@ -117,29 +119,29 @@ migraphx::argument parse_tensor(const onnx::TensorProto& t, std::vector<std::str
     case onnx::TensorProto::BOOL:
     {
         std::vector<char> data(t.int32_data().begin(), t.int32_data().end());
-		return create_argument(migraphx_shape_bool_type, dims, data);
+        return create_argument(migraphx_shape_bool_type, dims, data);
     }
     case onnx::TensorProto::INT8:
     {
         std::vector<char> data(t.int32_data().begin(), t.int32_data().end());
         return create_argument(migraphx_shape_int8_type, dims, data);
     }
-    case onnx::TensorProto::UINT8: 
+    case onnx::TensorProto::UINT8:
     {
         std::vector<unsigned char> data(t.int32_data().begin(), t.int32_data().end());
         return create_argument(migraphx_shape_uint8_type, dims, data);
     }
-    case onnx::TensorProto::INT16: 
+    case onnx::TensorProto::INT16:
     {
         std::vector<int16_t> data(t.int32_data().begin(), t.int32_data().end());
         return create_argument(migraphx_shape_int16_type, dims, data);
     }
-    case onnx::TensorProto::UINT16: 
+    case onnx::TensorProto::UINT16:
     {
         std::vector<uint16_t> data(t.int32_data().begin(), t.int32_data().end());
         return create_argument(migraphx_shape_uint16_type, dims, data);
     }
-    case onnx::TensorProto::INT32: 
+    case onnx::TensorProto::INT32:
     {
         std::vector<int32_t> data(t.int32_data().begin(), t.int32_data().end());
         return create_argument(migraphx_shape_int32_type, dims, data);
@@ -149,7 +151,7 @@ migraphx::argument parse_tensor(const onnx::TensorProto& t, std::vector<std::str
         std::vector<uint32_t> data(t.int64_data().begin(), t.int64_data().end());
         return create_argument(migraphx_shape_uint32_type, dims, data);
     }
-    case onnx::TensorProto::INT64: 
+    case onnx::TensorProto::INT64:
     {
         std::vector<int64_t> data(t.int64_data().begin(), t.int64_data().end());
         return create_argument(migraphx_shape_int64_type, dims, data);
@@ -174,7 +176,7 @@ migraphx::argument parse_tensor(const onnx::TensorProto& t, std::vector<std::str
         std::vector<double> data(t.double_data().begin(), t.double_data().end());
         return create_argument(migraphx_shape_double_type, dims, data);
     }
-    case onnx::TensorProto::FLOAT: 
+    case onnx::TensorProto::FLOAT:
     {
         std::vector<float> data(t.float_data().begin(), t.float_data().end());
         return create_argument(migraphx_shape_float_type, dims, data);
@@ -191,14 +193,14 @@ migraphx::argument parse_tensor(const onnx::TensorProto& t, std::vector<std::str
 migraphx::argument parse_pb_file(const std::string& file_name, std::vector<std::string>& input_data)
 {
     std::fstream input(file_name.c_str(), std::ios::in | std::ios::binary);
-	if (!input.is_open())
+    if(!input.is_open())
     {
         std::cout << "Tensor File " << file_name << " open error!" << std::endl;
         std::abort();
     }
 
     onnx::TensorProto tensor;
-    if (not tensor.ParseFromIstream(&input))
+    if(not tensor.ParseFromIstream(&input))
     {
         std::cout << "Parse tensor from file " << file_name << " error!" << std::endl;
         std::abort();

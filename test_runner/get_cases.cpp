@@ -16,11 +16,11 @@ std::string get_path_last_folder(const std::string& path_str)
 std::vector<std::string> get_test_cases(const std::string& path_str)
 {
     std::vector<std::string> sub_dirs;
-    for (const auto& entry : fs::directory_iterator(path_str))
+    for(const auto& entry : fs::directory_iterator(path_str))
     {
         const auto& entry_path = entry.path();
-        bool is_dir = fs::is_directory(entry_path);
-        if (is_dir)
+        bool is_dir            = fs::is_directory(entry_path);
+        if(is_dir)
         {
             sub_dirs.push_back(entry_path);
         }
@@ -31,14 +31,14 @@ std::vector<std::string> get_test_cases(const std::string& path_str)
 
 std::string get_model_name(const std::string& path_str)
 {
-    for (const auto& entry : fs::directory_iterator(path_str))
+    for(const auto& entry : fs::directory_iterator(path_str))
     {
         const auto& entry_path = entry.path();
-        bool is_file = fs::is_regular_file(entry_path);
-        if (is_file)
+        bool is_file           = fs::is_regular_file(entry_path);
+        if(is_file)
         {
             auto ext = fs::path(entry_path).extension();
-            if (ext == ".onnx")
+            if(ext == ".onnx")
             {
                 return entry_path;
             }
@@ -47,5 +47,3 @@ std::string get_model_name(const std::string& path_str)
 
     return {};
 }
-
-
