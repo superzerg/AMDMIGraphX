@@ -153,10 +153,11 @@ migraphx::argument parse_tensor(const onnx::TensorProto& t, std::vector<std::str
     {
         std::vector<uint16_t> data_uint16(t.int32_data().begin(), t.int32_data().end());
         std::vector<half_float::half> data_half;
-        std::transform(data_uint16.begin(),
-                       data_uint16.end(),
-                       std::back_inserter(data_half),
-                       [](uint16_t raw_val) { return *reinterpret_cast<half_float::half*>(&raw_val); });
+        std::transform(
+            data_uint16.begin(),
+            data_uint16.end(),
+            std::back_inserter(data_half),
+            [](uint16_t raw_val) { return *reinterpret_cast<half_float::half*>(&raw_val); });
         return create_argument(migraphx_shape_half_type, dims, data_half);
     }
     case onnx::TensorProto::DOUBLE:

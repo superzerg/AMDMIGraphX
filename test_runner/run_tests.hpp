@@ -324,8 +324,7 @@ bool compare_results(const migraphx::argument& arg1,
     }
 
     auto type = arg1.get_shape().type();
-    if(type == migraphx_shape_double_type or 
-       type == migraphx_shape_float_type or
+    if(type == migraphx_shape_double_type or type == migraphx_shape_float_type or
        type == migraphx_shape_half_type)
     {
         std::vector<double> res1, res2;
