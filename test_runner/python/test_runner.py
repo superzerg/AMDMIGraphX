@@ -8,6 +8,7 @@ from onnx import numpy_helper
 sys.path.append(os.getcwd() + "/lib")
 import migraphx
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="MIGraphX test runner")
     parser.add_argument('test_dir',
