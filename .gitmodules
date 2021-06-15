@@ -1,0 +1,3 @@
+[submodule "examples/examples/python_api_inference/models"]
+	path = examples/examples/python_api_inference/models
+	url = https://github.com/mengniwang95/models
