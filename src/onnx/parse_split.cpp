@@ -34,9 +34,7 @@ struct parse_split : op_parser<parse_split>
         {
             auto arg_split = args.at(1)->eval();
             check_arg_empty(arg_split, "PARSE_SPLIT: cannot handle split input!");
-            arg_split.visit([&](auto v) {
-                vec_splits.assign(v.begin(), v.end());
-            });
+            arg_split.visit([&](auto v) { vec_splits.assign(v.begin(), v.end()); });
         }
         else if(contains(info.attributes, "split"))
         {
