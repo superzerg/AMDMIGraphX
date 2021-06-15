@@ -3,6 +3,7 @@
 #include <migraphx/ranges.hpp>
 #include <migraphx/make_op.hpp>
 #include <migraphx/tune_axis.hpp>
+#include <migraphx/onnx/checks.hpp>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -28,7 +29,16 @@ struct parse_split : op_parser<parse_split>
         int64_t tuned_axis = tune_axis(n_rank, axis, opd.op_name);
 
         std::vector<int64_t> vec_splits;
-        if(contains(info.attributes, "split"))
+        // split is an input
+        if(args.size() == 2)
+        {
+            auto arg_split = args.at(1)->eval();
+            check_arg_empty(arg_split, "PARSE_SPLIT: cannot handle split input!");
+            arg_split.visit([&](auto v) {
+                vec_splits.assign(v.begin(), v.end());
+            });
+        }
+        else if(contains(info.attributes, "split"))
         {
             literal s = parser.parse_value(info.attributes.at("split"));
             s.visit([&](auto v) { vec_splits.assign(v.begin(), v.end()); });
