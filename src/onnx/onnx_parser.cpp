@@ -302,6 +302,7 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
 
     for(auto&& node : graph.node())
     {
+        std::cout << "================= node_op_type = " << node.op_type() << std::endl;
         std::vector<instruction_ref> args;
         for(auto&& input : node.input())
         {
@@ -316,6 +317,14 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
             }
             args.push_back(instructions.at(input));
         }
+        
+        std::cout << "inputs:" << std::endl;
+        for (auto& in : args)
+        {
+            std::cout << "\t" << in->get_operator().name() << ": ";
+            std::cout << "\t" << in->get_shape() << std::endl;
+        }
+        std::cout << std::endl;
 
         std::vector<instruction_ref> result;
         std::size_t output_num = static_cast<std::size_t>(node.output().size());
@@ -332,6 +341,13 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
             result                = ops[node.op_type()](
                 *this, {get_attributes(node), output_num, node_name, mod}, args);
         }
+
+        std::cout << "output:" << std::endl;
+        for (auto& out : result)
+        {
+            std::cout << "\t" << out->get_shape() << std::endl;
+        }
+        std::cout << std::endl;
 
         output_num = std::min<std::size_t>(output_num, result.size());
         std::transform(node.output().begin(),

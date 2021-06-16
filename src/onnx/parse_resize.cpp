@@ -195,6 +195,8 @@ struct parse_resize : op_parser<parse_resize>
 
         // scale
         std::vector<double> vec_scale;
+        // rio
+        std::vector<double> vec_rio;
 
         for(const auto& arg : args)
         {
@@ -211,6 +213,7 @@ struct parse_resize : op_parser<parse_resize>
             }
 
             auto type = arg->get_shape().type();
+
             // output size
             if(type == shape::int64_type)
             {
@@ -254,6 +257,19 @@ struct parse_resize : op_parser<parse_resize>
                                    [&](auto idx, auto scale) {
                                        return static_cast<std::size_t>(idx * scale);
                                    });
+                }
+                else if(lens[0] == 2 * in_lens.size())
+                {
+                    auto arg_rio = arg->eval();
+                    check_arg_empty(arg_rio,
+                                    "PARSE_RESIZE: dynamic input rio is not supported!");
+                    arg_rio.visit([&](auto v) { vec_rio.assign(v.begin(), v.end()); });
+                    std::cout << "rio = " << std::endl;
+                    for (auto v : vec_rio)
+                    {
+                        std::cout << v << ", ";
+                    }
+                    std::cout << std::endl;
                 }
             }
         }
