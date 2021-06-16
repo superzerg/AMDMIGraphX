@@ -317,9 +317,9 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
             }
             args.push_back(instructions.at(input));
         }
-        
+
         std::cout << "inputs:" << std::endl;
-        for (auto& in : args)
+        for(auto& in : args)
         {
             std::cout << "\t" << in->get_operator().name() << ": ";
             std::cout << "\t" << in->get_shape() << std::endl;
@@ -343,7 +343,7 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
         }
 
         std::cout << "output:" << std::endl;
-        for (auto& out : result)
+        for(auto& out : result)
         {
             std::cout << "\t" << out->get_shape() << std::endl;
         }

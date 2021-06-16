@@ -261,11 +261,10 @@ struct parse_resize : op_parser<parse_resize>
                 else if(lens[0] == 2 * in_lens.size())
                 {
                     auto arg_rio = arg->eval();
-                    check_arg_empty(arg_rio,
-                                    "PARSE_RESIZE: dynamic input rio is not supported!");
+                    check_arg_empty(arg_rio, "PARSE_RESIZE: dynamic input rio is not supported!");
                     arg_rio.visit([&](auto v) { vec_rio.assign(v.begin(), v.end()); });
                     std::cout << "rio = " << std::endl;
-                    for (auto v : vec_rio)
+                    for(auto v : vec_rio)
                     {
                         std::cout << v << ", ";
                     }
