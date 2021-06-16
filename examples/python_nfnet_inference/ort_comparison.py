@@ -23,12 +23,35 @@ x = x.astype(numpy.float32)
 import migraphx
 model = migraphx.parse_onnx("dm_nfnet_f0.onnx")
 model.compile(migraphx.get_target("gpu"))
-print(model.get_parameter_names())
+print(model.get_parameter_names())  
 print(model.get_parameter_shapes())
 print(model.get_output_shapes())
 
-result_migraphx = model.run({"inputs": x})
-result_ort = sess.run([output_name], {input_name: x})
+import time
+print("MIGRAPHX")
+tmp_sum = []
+for i in range(10):
+    start = time.time()
+    result_migraphx = model.run({"inputs": x})
+    end = time.time()
+    print(end - start)
+    tmp_sum.append(end - start)
+avg = sum(tmp_sum[1:])/len(tmp_sum[1:])
+print("MIGRAPHX AVG:")
+print(end-start)
+
+print("ONNXRUNTIME")
+for i in range(10):
+    start = time.time()
+    result_ort = sess.run([output_name], {input_name: x})
+    end = time.time()
+    print(end - start)
+    tmp_sum.append(end - start)
+avg = sum(tmp_sum[1:])/len(tmp_sum[1:])
+print("ONNXRUNTIME AVG:")
+print(end-start)
+
+raise
 
 result_migraphx = result_migraphx[0].tolist()
 
