@@ -46,7 +46,8 @@ int main(int argc, const char* argv[])
     rv.add_validation_for("gpu", &validate_gpu);
     rv.disable_test_for("cpu", {"test_if_lp", "test_if_param", "test_if_literal"});
     rv.disable_test_for("gpu",
-                        {"batch_quant_dot_2",
+                        {"batch_quant_dot_1",
+                         "batch_quant_dot_2",
                          "batch_quant_dot_3",
                          "batch_quant_dot_5",
                          "quant_dot_3args_1",
