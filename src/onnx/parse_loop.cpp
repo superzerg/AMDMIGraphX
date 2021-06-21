@@ -28,6 +28,7 @@ struct parse_loop : op_parser<parse_loop>
         {
             max_iter_num = arg_iters.at<int64_t>();
         }
+        max_iter_num = 10;
 
         // retrieve the subgraph
         const auto& sub_graph = info.attributes.at("body").g();
