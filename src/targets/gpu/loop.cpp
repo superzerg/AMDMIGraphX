@@ -60,12 +60,11 @@ hip_loop::compute(const shape&,
 
     std::vector<argument> in_args(cpy_args.begin(), cpy_args.begin() + input_num);
     std::vector<argument> out_args(cpy_args.begin() + input_num, cpy_args.end());
-    std::cout << "iter_num = " << iter_num << std::endl;
     for(int64_t iter = 0; (iter < iter_num) and cond; ++iter)
     {
-        std::cout << "loop = " << iter << std::endl;
         // copy iter num and cond to device memory
         (void)hipMemcpy(in_args.at(0).data(), &iter, sizeof(int64_t), hipMemcpyHostToDevice);
+        (void)hipMemcpy(in_args.at(1).data(), &cond, sizeof(bool), hipMemcpyHostToDevice);
 
         // wrap up the inputs and outputs
         std::unordered_map<std::string, argument> params;
@@ -81,7 +80,7 @@ hip_loop::compute(const shape&,
             }
             else
             {
-                if(io_index.first >= dep_num)
+                if(io_index.first > dep_num)
                 {
                     const auto& arg = out_args.at(io_index.first);
                     params[name]    = arg.load(pn.second, arg.data() + iter * pn.second.bytes());
@@ -94,10 +93,10 @@ hip_loop::compute(const shape&,
         }
 
         auto mod_args = run(mod, params);
+        gpu_sync();
 
         // copy back cond to be used next iteration
         (void)hipMemcpy(&cond, mod_args.at(0).data(), sizeof(bool), hipMemcpyDeviceToHost);
-        std::cout << "cond = " << std::endl;
         std::copy(mod_args.begin(), mod_args.begin() + dep_num + 1, in_args.begin() + 1);
     }
 
