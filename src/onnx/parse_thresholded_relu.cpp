@@ -25,7 +25,7 @@ struct parse_thresholded_relu : op_parser<parse_thresholded_relu>
         auto s = args.front()->get_shape();
         std::vector<float> vec(s.elements(), alpha);
         auto la = info.add_literal(literal(s, vec));
-        auto x = info.add_instruction(make_op("sub"), args.front(), la);
+        auto x  = info.add_instruction(make_op("sub"), args.front(), la);
         return info.add_instruction(make_op("relu"), x);
     }
 };
