@@ -93,7 +93,7 @@ struct parse_slice : op_parser<parse_slice>
         }
 
         auto ins = info.add_instruction(op, args[0]);
-        //if(std::any_of(steps.begin(), steps.end(), [](auto s) { return std::abs(s) != 1; }))
+        // if(std::any_of(steps.begin(), steps.end(), [](auto s) { return std::abs(s) != 1; }))
         //{
         //    std::vector<int64_t> nsteps;
         //    std::transform(steps.begin(), steps.end(), std::back_inserter(nsteps), [](auto s) {
