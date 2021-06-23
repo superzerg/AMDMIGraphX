@@ -41,8 +41,9 @@ struct reverse
     {
         auto lens = inputs[0].lens();
         auto type = inputs[0].type();
-        shape reverse_shape{type, lens};
-        return reverse_shape.with_lens(type, lens);
+        return {type, lens};
+        // shape reverse_shape{type, lens};
+        // return reverse_shape.with_lens(type, lens);
     }
 
     argument compute(const shape& s, std::vector<argument> args) const
