@@ -28,7 +28,7 @@ struct parse_loop : op_parser<parse_loop>
         {
             max_iter_num = arg_iters.at<int64_t>();
         }
-        if (max_iter_num > 10000)
+        if(max_iter_num > 10000)
         {
             max_iter_num = 10;
         }
