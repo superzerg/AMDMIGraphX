@@ -17,7 +17,7 @@ namespace op {
 
 struct nonmaxsuppression
 {
-    std::string name() const { return "nonmaxsuppresion"; }
+    std::string name() const { return "nonmaxsuppression"; }
 
     shape compute_shape(std::vector<shape> inputs) const
     {
