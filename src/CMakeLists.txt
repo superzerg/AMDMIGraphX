@@ -124,6 +124,7 @@ register_migraphx_ops(
     multibroadcast
     neg
     nonmaxsuppression
+    nonzero
     outline
     pad
     pooling
