@@ -7,12 +7,6 @@
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 
-template <class T>
-auto equal_to(const T& x)
-{
-    return [&](const T& y) { return std::equal_to<T>{}(x, y); };
-}
-
 instruction::instruction(operation o, shape r, std::vector<instruction_ref> args)
     : op(std::move(o)), result(std::move(r)), arguments(std::move(args))
 {

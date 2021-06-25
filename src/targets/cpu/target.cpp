@@ -45,6 +45,13 @@ std::vector<pass> target::get_passes(migraphx::context& gctx, const compile_opti
     auto& ctx = any_cast<context>(gctx);
     std::set<shape::type_t> unsupported_types(shape::types().begin(), shape::types().end());
     unsupported_types.erase(shape::type_t::float_type);
+    auto preallocate_params = [](const std::string& param, const std::string& mod) {
+        if (contains({"output", "scratch"}, param))
+            return true;
+        if (starts_with(param, mod + ":#output_"))
+            return true;
+        return false;
+    };
     return {normalize_ops{},
             eliminate_data_type{unsupported_types, shape::type_t::float_type},
             dead_code_elimination{},
@@ -78,7 +85,7 @@ std::vector<pass> target::get_passes(migraphx::context& gctx, const compile_opti
             dead_code_elimination{},
             memory_coloring{"cpu::allocate"},
             dead_code_elimination{},
-            preallocate_param{"scratch", cpu_allocation_model{}},
+            preallocate_param{preallocate_params, cpu_allocation_model{}},
             dead_code_elimination{}};
 }
 

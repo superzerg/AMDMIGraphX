@@ -51,6 +51,17 @@ std::vector<pass> target::get_passes(migraphx::context& gctx, const compile_opti
     unsupported_types.erase(shape::type_t::bool_type);
     unsupported_types.erase(shape::type_t::int8_type);
     unsupported_types.erase(shape::type_t::uint8_type);
+    auto preallocate_params = [=](const std::string& param, const std::string& mod) {
+        if (param == "scratch")
+            return true;
+        if (not options.offload_copy)
+            return false;
+        if (param == "output")
+            return true;
+        if (starts_with(param, mod + ":#output_"))
+            return true;
+        return false;
+    };
     // clang-format off
     return
     {
@@ -95,7 +106,7 @@ std::vector<pass> target::get_passes(migraphx::context& gctx, const compile_opti
         schedule{gpu::schedule_model{ctx.get_current_device().nstreams()}, not enabled(MIGRAPHX_DISABLE_SCHEDULE_PASS{})},
         memory_coloring{"hip::allocate"},
         sync_device{},
-        preallocate_param{"scratch", gpu_allocation_model{}},
+        preallocate_param{preallocate_params, gpu_allocation_model{}},
         dead_code_elimination{},
         eliminate_workspace{},
         eliminate_allocation{"hip::allocate"},

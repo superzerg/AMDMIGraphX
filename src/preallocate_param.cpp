@@ -14,7 +14,8 @@ void preallocate_param::apply(module& m) const
     {
         if(ins->name() != "@param")
             continue;
-        if(param != any_cast<builtin::param>(ins->get_operator()).parameter)
+        std::string param = any_cast<builtin::param>(ins->get_operator()).parameter;
+        if(not predicate(param, m.name()))
             continue;
         std::string id = m.name() + ":" + param;
         auto r         = m.insert_instruction(ins, model.preallocate(ins->get_shape(), id));

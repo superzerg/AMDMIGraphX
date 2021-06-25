@@ -11,7 +11,7 @@ struct module;
 
 struct preallocate_param
 {
-    std::string param;
+    std::function<bool(const std::string& param, const std::string& mod)> predicate;
     allocation_model model;
     std::string name() const { return "preallocate_param"; }
     void apply(module& m) const;
