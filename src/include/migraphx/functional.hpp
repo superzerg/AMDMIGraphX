@@ -218,12 +218,10 @@ auto always(T x)
     return always_f<T>{x};
 }
 
-template<class T>
+template <class T>
 auto equal_to(T x)
 {
-    return [=](auto y) {
-        return std::equal_to<std::common_type_t<T, decltype(y)>>{}(x, y);
-    };
+    return [=](auto y) { return std::equal_to<std::common_type_t<T, decltype(y)>>{}(x, y); };
 }
 
 struct id

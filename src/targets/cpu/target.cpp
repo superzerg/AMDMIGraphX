@@ -46,9 +46,9 @@ std::vector<pass> target::get_passes(migraphx::context& gctx, const compile_opti
     std::set<shape::type_t> unsupported_types(shape::types().begin(), shape::types().end());
     unsupported_types.erase(shape::type_t::float_type);
     auto preallocate_params = [](const std::string& param, const std::string& mod) {
-        if (contains({"output", "scratch"}, param))
+        if(contains({"output", "scratch"}, param))
             return true;
-        if (starts_with(param, mod + ":#output_"))
+        if(starts_with(param, mod + ":#output_"))
             return true;
         return false;
     };

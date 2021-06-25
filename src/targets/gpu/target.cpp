@@ -52,13 +52,13 @@ std::vector<pass> target::get_passes(migraphx::context& gctx, const compile_opti
     unsupported_types.erase(shape::type_t::int8_type);
     unsupported_types.erase(shape::type_t::uint8_type);
     auto preallocate_params = [=](const std::string& param, const std::string& mod) {
-        if (param == "scratch")
+        if(param == "scratch")
             return true;
-        if (not options.offload_copy)
+        if(not options.offload_copy)
             return false;
-        if (param == "output")
+        if(param == "output")
             return true;
-        if (starts_with(param, mod + ":#output_"))
+        if(starts_with(param, mod + ":#output_"))
             return true;
         return false;
     };
