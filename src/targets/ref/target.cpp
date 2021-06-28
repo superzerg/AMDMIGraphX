@@ -5,7 +5,12 @@
 #include <migraphx/pass.hpp>
 #include <migraphx/auto_contiguous.hpp>
 #include <migraphx/rewrite_rnn.hpp>
+<<<<<<< HEAD
 #include <migraphx/rewrite_qdq.hpp>
+=======
+#include <migraphx/eliminate_pad.hpp>
+#include <migraphx/insert_pad.hpp>
+>>>>>>> c44112297f591e350ea35d39fe4b97be2af14a33
 #include <migraphx/dead_code_elimination.hpp>
 #include <migraphx/generate.hpp>
 #include <migraphx/normalize_ops.hpp>
@@ -20,6 +25,10 @@ std::vector<pass> target::get_passes(migraphx::context&, const compile_options&)
 {
     return {normalize_ops{},
             rewrite_qdq{},
+            dead_code_elimination{},
+            eliminate_pad{},
+            dead_code_elimination{},
+            insert_pad{},
             dead_code_elimination{},
             rewrite_rnn{},
             dead_code_elimination{},

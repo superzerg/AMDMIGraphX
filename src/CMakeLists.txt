@@ -23,6 +23,7 @@ add_library(migraphx
     eliminate_data_type.cpp
     eliminate_identity.cpp
     eliminate_pad.cpp
+    insert_pad.cpp
     file_buffer.cpp
     rewrite_batchnorm.cpp
     rewrite_rnn.cpp
@@ -30,6 +31,7 @@ add_library(migraphx
     rewrite_qdq.cpp
     env.cpp
     generate.cpp
+    inline_module.cpp
     instruction.cpp
     load_save.cpp
     make_op.cpp
@@ -101,6 +103,7 @@ register_migraphx_ops(
     flatten
     floor
     gather
+    get_tuple_elem
     greater
     gru
     identity
@@ -138,6 +141,7 @@ register_migraphx_ops(
     reduce_sum
     relu
     reshape
+    reverse
     rnn
     rnn_last_cell_output
     rnn_last_hs_output
