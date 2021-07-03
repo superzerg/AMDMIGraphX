@@ -230,7 +230,11 @@ struct miopen_apply
             auto s = it->get_shape();
             if(apply_map.count(it->name()) > 0)
             {
-                check_shape(s, apply_map.at(it->name())(it));
+                std::cout << "ins_name = " << it->name() << std::endl;
+                std::cout << "s = " << s << std::endl;
+                auto ss = apply_map.at(it->name())(it);
+                std::cout << "ss = " << ss->get_shape() << std::endl;
+                check_shape(s, ss);
             }
         }
 
@@ -463,16 +467,17 @@ struct miopen_apply
 
     void add_topk_op()
     {
-        apply_map.emplace("top", [=](instruction_ref ins) {
+        apply_map.emplace("topk", [=](instruction_ref ins) {
             std::vector<instruction_ref> inputs = ins->inputs();
             auto s                              = ins->get_shape();
             auto ss                             = s.sub_shapes();
+            std::cout << "lowringss = " << ss << std::endl;
             auto out_val                        = insert_allocation(ins, ss.front());
             auto out_ind                        = insert_allocation(ins, ss.back());
             inputs.push_back(out_ind);
             inputs.push_back(out_val);
 
-            return mod->replace_instruction(ins, make_op("gpu::topk"), inputs);
+            return mod->replace_instruction(ins, make_op("gpu::topk", ins->get_operator().to_value()), inputs);
         });
     }
 };
