@@ -133,6 +133,7 @@ add_library(migraphx_gpu
     kernel.cpp
     lowering.cpp
     logsoftmax.cpp
+    loop.cpp
     lrn.cpp
     leaky_relu.cpp
     mlir_conv.cpp
@@ -188,6 +189,7 @@ register_migraphx_gpu_ops(hip_
     logical_and
     logical_or
     logical_xor
+    loop
     max
     min
     mul

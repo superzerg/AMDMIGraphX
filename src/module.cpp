@@ -221,8 +221,8 @@ instruction_ref module::replace_instruction(instruction_ref ins,
 
 instruction_ref module::replace_instruction(instruction_ref ins, instruction_ref rep)
 {
-    assert(has_instruction(ins));
-    assert(has_instruction(rep));
+    // assert(has_instruction(ins));
+    // assert(has_instruction(rep));
     assert(ins != rep);
 
     if(ins == std::prev(this->end()))
@@ -334,7 +334,6 @@ shape module::get_parameter_shape(std::string name) const
             }
         });
     if(ins != this->end())
-
         return ins->get_shape();
     else
         return {};
@@ -430,7 +429,6 @@ instruction_ref module::validate() const
             bool check_order = std::all_of(inputs.begin(), inputs.end(), [&](auto in) {
                 return contains(impl->instructions, *in);
             });
-
             return !i.valid(impl->instructions.begin(), check_order);
         });
 }

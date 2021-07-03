@@ -1,3 +1,4 @@
+#include <iterator>
 #include <migraphx/gpu/lowering.hpp>
 #include <migraphx/manage_ptr.hpp>
 #include <migraphx/instruction.hpp>
@@ -183,6 +184,7 @@ struct miopen_apply
         add_neg_op();
         add_if_op();
         add_topk_op();
+        add_loop_op();
     }
 
     void copy_params()
@@ -425,7 +427,7 @@ struct miopen_apply
         });
     }
 
-    // replace the if operator with gpu_if operator
+    // add input and output argument for the if operator
     void add_if_op()
     {
         apply_map.emplace("if", [=](instruction_ref ins) {
@@ -479,6 +481,44 @@ struct miopen_apply
 
             return mod->replace_instruction(
                 ins, make_op("gpu::topk", ins->get_operator().to_value()), inputs);
+        });
+    }
+
+    // replace the loop operator with gpu_loop operator
+    void add_loop_op()
+    {
+        apply_map.emplace("loop", [=](instruction_ref ins) {
+            std::vector<instruction_ref> inputs = ins->inputs();
+            // copy max_iter from gpu to cpu
+            auto cpu_max_iter =
+                mod->insert_instruction(ins, make_op("hip::copy_from_gpu"), inputs.at(0));
+            auto cpu_cond =
+                mod->insert_instruction(ins, make_op("hip::copy_from_gpu"), inputs.at(1));
+            auto sync_iter =
+                mod->insert_instruction(ins, make_op("hip::sync_stream"), cpu_max_iter);
+            inputs.at(0) = sync_iter;
+            inputs.at(1) = cpu_cond;
+
+            // allocate another buffer for iteration and cond
+            auto gpu_iter = insert_allocation(ins, inputs.at(0)->get_shape());
+            auto gpu_cond = insert_allocation(ins, inputs.at(1)->get_shape());
+            inputs.insert(inputs.begin() + 1, gpu_cond);
+            inputs.insert(inputs.begin(), gpu_iter);
+
+            auto mod_args       = ins->module_inputs();
+            auto ins_s          = ins->get_shape();
+            auto vec_ss         = ins->get_shape().sub_shapes();
+            const auto* sub_mod = mod_args.front();
+            // auto vec_ss = sub_mod->get_output_shapes();
+            std::vector<instruction_ref> vec_outs;
+            vec_outs.push_back(insert_allocation(ins, sub_mod->get_output_shapes().front()));
+            std::transform(vec_ss.begin(), vec_ss.end(), std::back_inserter(vec_outs), [&](auto s) {
+                return insert_allocation(ins, s);
+            });
+            inputs.insert(inputs.end(), vec_outs.begin(), vec_outs.end());
+
+            return mod->replace_instruction(
+                ins, make_op("gpu::loop", ins->get_operator().to_value()), inputs, mod_args);
         });
     }
 };
