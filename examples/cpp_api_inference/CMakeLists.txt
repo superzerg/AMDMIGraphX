@@ -9,5 +9,8 @@ find_package (migraphx)
 
 message("source file: " ${EXAMPLE}.cpp " ---> bin: " ${EXAMPLE})
 add_executable(${EXAMPLE} ${EXAMPLE}.cpp)
-
 target_link_libraries(${EXAMPLE} migraphx::c)
+
+add_executable(mnist mnist2.cpp)
+target_link_libraries(mnist migraphx::c)
+
