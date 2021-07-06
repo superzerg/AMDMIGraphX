@@ -24,7 +24,8 @@ void run_model(std::vector<float> digit)
 {
     migraphx::program prog = migraphx::load("mnist.migraphx");
     migraphx::shape input_shape{migraphx_shape_float_type, {1, 1, 28, 28}};
-    migraphx::arguments outputs = prog.eval({{"Input3", migraphx::argument{input_shape, digit.data()}}});
+    migraphx::arguments outputs =
+        prog.eval({{"Input3", migraphx::argument{input_shape, digit.data()}}});
 
     float* results = reinterpret_cast<float*>(outputs[0].data());
     float* max     = std::max_element(results, results + outputs[0].get_shape().bytes() / 4);
@@ -66,7 +67,8 @@ std::vector<float> read_nth_digit(const int n)
     return digit;
 }
 
-int main() {
+int main()
+{
     compile_model();
     run_model(read_nth_digit(1));
 }
