@@ -1901,6 +1901,77 @@ def if_then_test():
 
 
 @onnx_test
+def if_tuple_test():
+    x = onnx.helper.make_tensor_value_info('x', onnx.TensorProto.FLOAT, [1, 4])
+    y = onnx.helper.make_tensor_value_info('y', onnx.TensorProto.FLOAT, [3, 4])
+    cond_input = onnx.helper.make_tensor_value_info('cond',
+                                                    onnx.TensorProto.BOOL, [])
+
+    then_out0 = onnx.helper.make_tensor_value_info('then_out0',
+                                                   onnx.TensorProto.FLOAT,
+                                                   [1, 4])
+    then_out1 = onnx.helper.make_tensor_value_info('then_out1',
+                                                   onnx.TensorProto.FLOAT,
+                                                   [3, 4])
+    else_out0 = onnx.helper.make_tensor_value_info('else_out0',
+                                                   onnx.TensorProto.FLOAT,
+                                                   [1, 4])
+    else_out1 = onnx.helper.make_tensor_value_info('else_out1',
+                                                   onnx.TensorProto.FLOAT,
+                                                   [3, 4])
+
+    one = np.ones([1]).astype(np.float)
+    one_tensor = helper.make_tensor(name='one',
+                                    data_type=TensorProto.FLOAT,
+                                    dims=one.shape,
+                                    vals=one.flatten().astype(np.float32))
+
+    two = np.array([2]).astype(np.float)
+    two_tensor = helper.make_tensor(name='two',
+                                    data_type=TensorProto.FLOAT,
+                                    dims=two.shape,
+                                    vals=two.flatten().astype(np.float32))
+
+    three = np.array([3]).astype(np.float)
+    three_tensor = helper.make_tensor(name='three',
+                                      data_type=TensorProto.FLOAT,
+                                      dims=three.shape,
+                                      vals=three.flatten().astype(np.float32))
+
+    then_add_node = onnx.helper.make_node('Add',
+                                          inputs=['x', 'one'],
+                                          outputs=['then_out0'])
+    then_mul_node = onnx.helper.make_node('Mul',
+                                          inputs=['y', 'two'],
+                                          outputs=['then_out1'])
+
+    else_mul_node = onnx.helper.make_node('Mul',
+                                          inputs=['x', 'three'],
+                                          outputs=['else_out0'])
+    else_add_node = onnx.helper.make_node('Add',
+                                          inputs=['y', 'three'],
+                                          outputs=['else_out1'])
+
+    then_body = onnx.helper.make_graph([then_add_node, then_mul_node],
+                                       'then_body', [], [then_out0, then_out1])
+
+    else_body = onnx.helper.make_graph([else_mul_node, else_add_node],
+                                       'else_body', [], [else_out0, else_out1])
+
+    res0 = onnx.helper.make_tensor_value_info('res0', TensorProto.FLOAT, [])
+    res1 = onnx.helper.make_tensor_value_info('res1', TensorProto.FLOAT, [])
+
+    node = onnx.helper.make_node('If',
+                                 inputs=['cond'],
+                                 outputs=['res0', 'res1'],
+                                 then_branch=then_body,
+                                 else_branch=else_body)
+
+    return ([node], [cond_input, x,
+                     y], [res0, res1], [one_tensor, two_tensor, three_tensor])
+
+
+@onnx_test
 def imagescaler_test():
     x = helper.make_tensor_value_info('0', TensorProto.FLOAT, [1, 3, 16, 16])
     y = helper.make_tensor_value_info('1', TensorProto.FLOAT, [1, 3, 16, 16])
@@ -3513,7 +3584,7 @@ def slice_5arg_reverse_test():
                                 outputs=['arg_axis'],
                                 value=axis_tensor)
 
-    end = np.array([-1, -1])
+    end = np.array([-5, -1])
     end_tensor = helper.make_tensor(name="end",
                                     data_type=TensorProto.INT32,
                                     dims=end.shape,
@@ -3523,7 +3594,60 @@ def slice_5arg_reverse_test():
                                outputs=['arg_end'],
                                value=end_tensor)
 
-    start = np.array([-5, -3])
+    start = np.array([-1, -3])
+    start_tensor = helper.make_tensor(name="start",
+                                      data_type=TensorProto.INT32,
+                                      dims=start.shape,
+                                      vals=start.astype(int))
+    arg_start = helper.make_node("Constant",
+                                 inputs=[],
+                                 outputs=['arg_start'],
+                                 value=start_tensor)
+
+    x = helper.make_tensor_value_info('0', TensorProto.FLOAT, [5, 5])
+    y = helper.make_tensor_value_info('1', TensorProto.FLOAT, [4, 2])
+
+    node = onnx.helper.make_node(
+        'Slice',
+        inputs=['0', 'arg_start', 'arg_end', 'arg_axis', 'arg_step'],
+        outputs=['1'])
+
+    return ([arg_step, arg_axis, arg_end, arg_start, node], [x], [y])
+
+
+@onnx_test
+def slice_5arg_step_test():
+    step = np.array([-2, 2])
+    step_tensor = helper.make_tensor(name="step",
+                                     data_type=TensorProto.INT32,
+                                     dims=step.shape,
+                                     vals=step.astype(int))
+    arg_step = helper.make_node("Constant",
+                                inputs=[],
+                                outputs=['arg_step'],
+                                value=step_tensor)
+
+    axis = np.array([-1, -2])
+    axis_tensor = helper.make_tensor(name="axis",
+                                     data_type=TensorProto.INT32,
+                                     dims=axis.shape,
+                                     vals=axis.astype(int))
+    arg_axis = helper.make_node("Constant",
+                                inputs=[],
+                                outputs=['arg_axis'],
+                                value=axis_tensor)
+
+    end = np.array([-5, -1])
+    end_tensor = helper.make_tensor(name="end",
+                                    data_type=TensorProto.INT32,
+                                    dims=end.shape,
+                                    vals=end.astype(int))
+    arg_end = helper.make_node("Constant",
+                               inputs=[],
+                               outputs=['arg_end'],
+                               value=end_tensor)
+
+    start = np.array([-1, -3])
     start_tensor = helper.make_tensor(name="start",
                                       data_type=TensorProto.INT32,
                                       dims=start.shape,
