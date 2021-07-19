@@ -47,7 +47,7 @@ struct parse_gemm : op_parser<parse_gemm>
         if(alpha != 1.0f)
         {
             auto alpha_literal = info.add_literal(alpha);
-            l1      = info.add_broadcastable_binary_op("mul", alpha_literal, l1);
+            l1                 = info.add_broadcastable_binary_op("mul", alpha_literal, l1);
         }
 
         l1      = (transa) ? info.add_instruction(make_op("transpose", {{"dims", perm}}), l1) : l1;
