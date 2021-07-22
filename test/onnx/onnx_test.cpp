@@ -1,28 +1,37 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
+#include <migraphx/common.hpp>
 #include <migraphx/literal.hpp>
-#include <migraphx/operators.hpp>
 #include <migraphx/program.hpp>
 #include <migraphx/instruction.hpp>
 #include <migraphx/instruction_ref.hpp>
 #include <migraphx/pass_manager.hpp>
 #include <migraphx/dead_code_elimination.hpp>
+#include <migraphx/rewrite_quantization.hpp>
 #include <migraphx/eliminate_identity.hpp>
 #include <migraphx/onnx.hpp>
 #include <migraphx/make_op.hpp>
+#include <migraphx/op/convolution.hpp>
+#include <migraphx/op/pad.hpp>
+#include <migraphx/op/pooling.hpp>
+#include <migraphx/op/lrn.hpp>
+#include <migraphx/op/reshape.hpp>
+#include <migraphx/op/unknown.hpp>
 
 #include <migraphx/serialize.hpp>
 
 #include "test.hpp"
 
-migraphx::program optimize_onnx(const std::string& name, bool eliminate_deadcode = false)
+migraphx::program optimize_onnx(const std::string& name, bool run_passes = false)
 {
     migraphx::onnx_options options;
     options.skip_unknown_operators = true;
     auto prog                      = migraphx::parse_onnx(name, options);
     auto* mm                       = prog.get_main_module();
-    if(eliminate_deadcode)
-        migraphx::run_passes(*mm, {migraphx::dead_code_elimination{}});
+    if(run_passes)
+        migraphx::run_passes(*mm,
+                             {migraphx::rewrite_quantization{}, migraphx::dead_code_elimination{}});
 
     // remove the last identity instruction
     auto last_ins = std::prev(mm->end());
@@ -181,7 +190,8 @@ TEST_CASE(averagepool_1d_test)
     auto l0  = mm->add_parameter("0", {migraphx::shape::float_type, {1, 3, 5}});
     mm->add_instruction(
         migraphx::make_op(
-            "pooling", {{"mode", "average"}, {"padding", {0}}, {"stride", {1}}, {"lengths", {3}}}),
+            "pooling",
+            {{"mode", "average"}, {"padding", {0, 0}}, {"stride", {1}}, {"lengths", {3}}}),
         l0);
 
     auto prog = optimize_onnx("averagepool_1d_test.onnx");
@@ -195,7 +205,7 @@ TEST_CASE(averagepool_3d_test)
     auto l0  = mm->add_parameter("0", {migraphx::shape::float_type, {1, 3, 5, 5, 5}});
     mm->add_instruction(migraphx::make_op("pooling",
                                           {{"mode", "average"},
-                                           {"padding", {0, 0, 0}},
+                                           {"padding", {0, 0, 0, 0, 0, 0}},
                                            {"stride", {1, 1, 1}},
                                            {"lengths", {3, 3, 3}}}),
                         l0);
@@ -209,12 +219,13 @@ TEST_CASE(averagepool_notset_test)
     migraphx::program p;
     auto* mm   = p.get_main_module();
     auto input = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 5}});
-    auto ins   = mm->add_instruction(
-        migraphx::make_op(
-            "pooling",
-            {{"mode", "average"}, {"padding", {2, 2}}, {"stride", {2, 2}}, {"lengths", {6, 6}}}),
-        input);
-    auto ret = mm->add_instruction(
+    auto ins   = mm->add_instruction(migraphx::make_op("pooling",
+                                                     {{"mode", "average"},
+                                                      {"padding", {2, 2, 2, 2}},
+                                                      {"stride", {2, 2}},
+                                                      {"lengths", {6, 6}}}),
+                                   input);
+    auto ret   = mm->add_instruction(
         migraphx::make_op("slice", {{"axes", {2, 3}}, {"starts", {1, 1}}, {"ends", {2, 2}}}), ins);
     mm->add_return({ret});
     auto prog = migraphx::parse_onnx("averagepool_notset_test.onnx");
@@ -229,11 +240,12 @@ TEST_CASE(averagepool_nt_cip_test)
     auto input = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 5}});
     std::vector<int64_t> pads = {0, 0, 0, 0, 0, 0, 1, 1};
     auto ins_pad = mm->add_instruction(migraphx::make_op("pad", {{"pads", pads}}), input);
-    auto ret     = mm->add_instruction(
-        migraphx::make_op(
-            "pooling",
-            {{"mode", "average"}, {"padding", {0, 0}}, {"stride", {2, 2}}, {"lengths", {6, 6}}}),
-        ins_pad);
+    auto ret     = mm->add_instruction(migraphx::make_op("pooling",
+                                                     {{"mode", "average"},
+                                                      {"padding", {0, 0, 0, 0}},
+                                                      {"stride", {2, 2}},
+                                                      {"lengths", {6, 6}}}),
+                                   ins_pad);
     mm->add_return({ret});
 
     auto prog = migraphx::parse_onnx("averagepool_nt_cip_test.onnx");
@@ -245,12 +257,13 @@ TEST_CASE(averagepool_same_lower_test)
     migraphx::program p;
     auto* mm   = p.get_main_module();
     auto input = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 5}});
-    auto ins   = mm->add_instruction(
-        migraphx::make_op(
-            "pooling",
-            {{"mode", "average"}, {"padding", {1, 1}}, {"stride", {1, 1}}, {"lengths", {2, 2}}}),
-        input);
-    auto ret = mm->add_instruction(
+    auto ins   = mm->add_instruction(migraphx::make_op("pooling",
+                                                     {{"mode", "average"},
+                                                      {"padding", {1, 1, 1, 1}},
+                                                      {"stride", {1, 1}},
+                                                      {"lengths", {2, 2}}}),
+                                   input);
+    auto ret   = mm->add_instruction(
         migraphx::make_op("slice", {{"axes", {2, 3}}, {"starts", {0, 0}}, {"ends", {5, 5}}}), ins);
     mm->add_return({ret});
     auto prog = migraphx::parse_onnx("averagepool_same_lower_test.onnx");
@@ -265,11 +278,12 @@ TEST_CASE(averagepool_sl_cip_test)
     auto input = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 5}});
     std::vector<int64_t> pads = {0, 0, 1, 1, 0, 0, 0, 0};
     auto ins_pad = mm->add_instruction(migraphx::make_op("pad", {{"pads", pads}}), input);
-    auto ret     = mm->add_instruction(
-        migraphx::make_op(
-            "pooling",
-            {{"mode", "average"}, {"padding", {0, 0}}, {"stride", {1, 1}}, {"lengths", {2, 2}}}),
-        ins_pad);
+    auto ret     = mm->add_instruction(migraphx::make_op("pooling",
+                                                     {{"mode", "average"},
+                                                      {"padding", {0, 0, 0, 0}},
+                                                      {"stride", {1, 1}},
+                                                      {"lengths", {2, 2}}}),
+                                   ins_pad);
     mm->add_return({ret});
     auto prog = migraphx::parse_onnx("averagepool_sl_cip_test.onnx");
 
@@ -281,12 +295,13 @@ TEST_CASE(averagepool_same_upper_test)
     migraphx::program p;
     auto* mm   = p.get_main_module();
     auto input = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 5}});
-    auto ins   = mm->add_instruction(
-        migraphx::make_op(
-            "pooling",
-            {{"mode", "average"}, {"padding", {1, 1}}, {"stride", {1, 1}}, {"lengths", {2, 2}}}),
-        input);
-    auto ret = mm->add_instruction(
+    auto ins   = mm->add_instruction(migraphx::make_op("pooling",
+                                                     {{"mode", "average"},
+                                                      {"padding", {1, 1, 1, 1}},
+                                                      {"stride", {1, 1}},
+                                                      {"lengths", {2, 2}}}),
+                                   input);
+    auto ret   = mm->add_instruction(
         migraphx::make_op("slice", {{"axes", {2, 3}}, {"starts", {1, 1}}, {"ends", {6, 6}}}), ins);
     mm->add_return({ret});
     auto prog = migraphx::parse_onnx("averagepool_same_upper_test.onnx");
@@ -605,7 +620,7 @@ TEST_CASE(conv_autopad_same_test)
     auto l0  = mm->add_parameter("0", {migraphx::shape::float_type, {1, 3, 32, 32}});
     auto l1  = mm->add_parameter("1", {migraphx::shape::float_type, {1, 3, 3, 3}});
     migraphx::op::convolution op;
-    op.padding      = {1, 1};
+    op.padding      = {1, 1, 1, 1};
     op.padding_mode = migraphx::op::padding_mode_t::same;
     mm->add_instruction(op, l0, l1);
 
@@ -643,8 +658,9 @@ TEST_CASE(conv_bn_relu_maxpool_test)
     auto p5       = mm->add_parameter("5", {migraphx::shape::float_type, {1}});
     auto p6       = mm->add_parameter("6", {migraphx::shape::float_type, {1}});
     uint64_t axis = 1;
-    auto l3       = mm->add_instruction(migraphx::make_op("convolution"), l0, l1);
-    auto l4       = mm->add_instruction(
+    auto l3 =
+        mm->add_instruction(migraphx::make_op("convolution", {{"padding", {0, 0, 0, 0}}}), l0, l1);
+    auto l4 = mm->add_instruction(
         migraphx::make_op("broadcast", {{"axis", axis}, {"dims", l3->get_shape().lens()}}), l2);
     auto l5 = mm->add_instruction(migraphx::make_op("add"), l3, l4);
     auto l6 = mm->add_instruction(
@@ -653,7 +669,7 @@ TEST_CASE(conv_bn_relu_maxpool_test)
     mm->add_instruction(
         migraphx::make_op(
             "pooling",
-            {{"mode", "max"}, {"padding", {0, 0}}, {"stride", {2, 2}}, {"lengths", {2, 2}}}),
+            {{"mode", "max"}, {"padding", {0, 0, 0, 0}}, {"stride", {2, 2}}, {"lengths", {2, 2}}}),
         l7);
 
     auto prog = optimize_onnx("conv_bn_relu_maxpool_test.onnx");
@@ -668,15 +684,16 @@ TEST_CASE(conv_relu_maxpool_test)
     auto l1       = mm->add_parameter("1", {migraphx::shape::float_type, {1, 3, 5, 5}});
     auto l2       = mm->add_parameter("2", {migraphx::shape::float_type, {1}});
     uint64_t axis = 1;
-    auto l3       = mm->add_instruction(migraphx::make_op("convolution"), l0, l1);
-    auto l4       = mm->add_instruction(
+    auto l3 =
+        mm->add_instruction(migraphx::make_op("convolution", {{"padding", {0, 0, 0, 0}}}), l0, l1);
+    auto l4 = mm->add_instruction(
         migraphx::make_op("broadcast", {{"axis", axis}, {"dims", l3->get_shape().lens()}}), l2);
     auto l5 = mm->add_instruction(migraphx::make_op("add"), l3, l4);
     auto l6 = mm->add_instruction(migraphx::make_op("relu"), l5);
     mm->add_instruction(
         migraphx::make_op(
             "pooling",
-            {{"mode", "max"}, {"padding", {0, 0}}, {"stride", {2, 2}}, {"lengths", {2, 2}}}),
+            {{"mode", "max"}, {"padding", {0, 0, 0, 0}}, {"stride", {2, 2}}, {"lengths", {2, 2}}}),
         l6);
 
     auto prog = optimize_onnx("conv_relu_maxpool_test.onnx");
@@ -691,20 +708,22 @@ TEST_CASE(conv_relu_maxpool_x2_test)
     auto l1       = mm->add_parameter("1", {migraphx::shape::float_type, {5, 3, 5, 5}});
     auto l2       = mm->add_parameter("2", {migraphx::shape::float_type, {5}});
     uint64_t axis = 1;
-    auto l3       = mm->add_instruction(migraphx::make_op("convolution"), l0, l1);
-    auto l4       = mm->add_instruction(
+    auto l3 =
+        mm->add_instruction(migraphx::make_op("convolution", {{"padding", {0, 0, 0, 0}}}), l0, l1);
+    auto l4 = mm->add_instruction(
         migraphx::make_op("broadcast", {{"axis", axis}, {"dims", l3->get_shape().lens()}}), l2);
     auto l5 = mm->add_instruction(migraphx::make_op("add"), l3, l4);
     auto l6 = mm->add_instruction(migraphx::make_op("relu"), l5);
     auto l7 = mm->add_instruction(
         migraphx::make_op(
             "pooling",
-            {{"mode", "max"}, {"padding", {0, 0}}, {"stride", {2, 2}}, {"lengths", {2, 2}}}),
+            {{"mode", "max"}, {"padding", {0, 0, 0, 0}}, {"stride", {2, 2}}, {"lengths", {2, 2}}}),
         l6);
 
-    auto l8  = mm->add_parameter("3", {migraphx::shape::float_type, {1, 5, 5, 5}});
-    auto l9  = mm->add_parameter("4", {migraphx::shape::float_type, {1}});
-    auto l10 = mm->add_instruction(migraphx::make_op("convolution"), l7, l8);
+    auto l8 = mm->add_parameter("3", {migraphx::shape::float_type, {1, 5, 5, 5}});
+    auto l9 = mm->add_parameter("4", {migraphx::shape::float_type, {1}});
+    auto l10 =
+        mm->add_instruction(migraphx::make_op("convolution", {{"padding", {0, 0, 0, 0}}}), l7, l8);
     auto l11 = mm->add_instruction(
         migraphx::make_op("broadcast", {{"axis", axis}, {"dims", l10->get_shape().lens()}}), l9);
     auto l12 = mm->add_instruction(migraphx::make_op("add"), l10, l11);
@@ -712,7 +731,7 @@ TEST_CASE(conv_relu_maxpool_x2_test)
     mm->add_instruction(
         migraphx::make_op(
             "pooling",
-            {{"mode", "max"}, {"padding", {0, 0}}, {"stride", {2, 2}}, {"lengths", {2, 2}}}),
+            {{"mode", "max"}, {"padding", {0, 0, 0, 0}}, {"stride", {2, 2}}, {"lengths", {2, 2}}}),
         l13);
 
     auto prog = optimize_onnx("conv_relu_maxpool_x2_test.onnx");
@@ -824,7 +843,8 @@ TEST_CASE(deconv_input_pads_asymm_1d_test)
     auto l0  = mm->add_parameter("x", {migraphx::shape::float_type, {1, 1, 3}});
     auto l1  = mm->add_parameter("w", {migraphx::shape::float_type, {1, 2, 3}});
     auto l2  = mm->add_instruction(
-        migraphx::make_op("deconvolution", {{"padding", {0}}, {"stride", {2}}, {"dilation", {1}}}),
+        migraphx::make_op("deconvolution",
+                          {{"padding", {0, 0}}, {"stride", {2}}, {"dilation", {1}}}),
         l0,
         l1);
     mm->add_instruction(migraphx::make_op("slice", {{"axes", {2}}, {"starts", {0}}, {"ends", {6}}}),
@@ -894,6 +914,94 @@ TEST_CASE(deconv_output_shape_3d_test)
 
     auto prog = optimize_onnx("deconv_output_shape_3d_test.onnx");
     EXPECT(p == prog);
+}
+
+TEST_CASE(dequantizelinear_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", {migraphx::shape::int8_type, {5}});
+    auto l1  = mm->add_parameter("1", {migraphx::shape::float_type, {1}});
+    auto l1_mbcast =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {5}}}), l1);
+    auto dequant = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::float_type)}}),
+        l0);
+    mm->add_instruction(migraphx::make_op("mul"), dequant, l1_mbcast);
+
+    auto prog = optimize_onnx("dequantizelinear_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
+}
+
+TEST_CASE(dequantizelinear_zero_point_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", {migraphx::shape::int8_type, {5}});
+    auto l1  = mm->add_parameter("1", {migraphx::shape::float_type, {1}});
+    auto l2  = mm->add_parameter("2", {migraphx::shape::int8_type, {1}});
+    auto l1_mbcast =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {5}}}), l1);
+    auto l2_mbcast =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {5}}}), l2);
+    l2_mbcast = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::float_type)}}),
+        l2_mbcast);
+    l0 = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::float_type)}}),
+        l0);
+
+    auto sub = mm->add_instruction(migraphx::make_op("sub"), l0, l2_mbcast);
+    mm->add_instruction(migraphx::make_op("mul"), sub, l1_mbcast);
+
+    auto prog = optimize_onnx("dequantizelinear_zero_point_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
+}
+
+migraphx::program make_dequantizelinear_axis_prog()
+{
+    migraphx::program p;
+    std::vector<size_t> input_lens{1, 1, 5, 1};
+    int axis      = 2;
+    auto* mm      = p.get_main_module();
+    auto l0       = mm->add_parameter("0", {migraphx::shape::int8_type, input_lens});
+    auto l1       = mm->add_parameter("1", {migraphx::shape::float_type, {5}});
+    auto l2       = mm->add_parameter("2", {migraphx::shape::int8_type, {5}});
+    auto l1_bcast = mm->add_instruction(
+        migraphx::make_op("broadcast", {{"axis", axis}, {"dims", input_lens}}), l1);
+    auto l2_bcast = mm->add_instruction(
+        migraphx::make_op("broadcast", {{"axis", axis}, {"dims", input_lens}}), l2);
+    l2_bcast = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::float_type)}}),
+        l2_bcast);
+    l0 = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::float_type)}}),
+        l0);
+    auto sub = mm->add_instruction(migraphx::make_op("sub"), l0, l2_bcast);
+
+    mm->add_instruction(migraphx::make_op("mul"), sub, l1_bcast);
+    return p;
+}
+
+TEST_CASE(dequantizelinear_axis_test)
+{
+    migraphx::program p = make_dequantizelinear_axis_prog();
+
+    auto prog = optimize_onnx("dequantizelinear_axis_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
+}
+
+TEST_CASE(dequantizelinear_neg_axis_test)
+{
+    migraphx::program p = make_dequantizelinear_axis_prog();
+
+    auto prog = optimize_onnx("dequantizelinear_neg_axis_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
 }
 
 TEST_CASE(dropout_test)
@@ -1037,9 +1145,10 @@ migraphx::program create_external_data_prog()
     std::vector<float> weight_data(1210, 1);
     std::vector<float> bias_data(10, 1);
     auto bias = mm->add_literal(migraphx::literal({migraphx::shape::float_type, {10}}, bias_data));
-    auto weights    = mm->add_literal(migraphx::literal(s2, weight_data));
-    auto param      = mm->add_parameter("input", s);
-    auto conv       = mm->add_instruction(migraphx::make_op("convolution"), param, weights);
+    auto weights = mm->add_literal(migraphx::literal(s2, weight_data));
+    auto param   = mm->add_parameter("input", s);
+    auto conv    = mm->add_instruction(
+        migraphx::make_op("convolution", {{"padding", {0, 0, 0, 0}}}), param, weights);
     auto bias_bcast = mm->add_instruction(
         migraphx::make_op("broadcast", {{"axis", 1}, {"dims", {1, 10, 214, 214}}}), bias);
     mm->add_instruction(migraphx::make_op("add"), conv, bias_bcast);
@@ -1160,19 +1269,28 @@ TEST_CASE(gather_elements_axis1_test)
 TEST_CASE(gemm_test)
 {
     migraphx::program p;
-    auto* mm = p.get_main_module();
-    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {5, 7}});
-    auto l1  = mm->add_parameter("1", migraphx::shape{migraphx::shape::float_type, {11, 5}});
-    auto l2  = mm->add_parameter("2", migraphx::shape{migraphx::shape::float_type});
-    auto t0  = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {1, 0}}}), l0);
-    auto t1  = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {1, 0}}}), l1);
-    auto bl2 =
-        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {7, 11}}}), l2);
+    auto* mm   = p.get_main_module();
+    auto l0    = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {5, 7}});
+    auto l1    = mm->add_parameter("1", migraphx::shape{migraphx::shape::float_type, {11, 5}});
+    auto l2    = mm->add_parameter("2", migraphx::shape{migraphx::shape::float_type});
     auto alpha = 2.f;
     auto beta  = 2.0f;
-    mm->add_instruction(migraphx::make_op("dot", {{"alpha", alpha}, {"beta", beta}}), t0, t1, bl2);
-    auto prog = optimize_onnx("gemm_test.onnx");
+    auto a_l   = mm->add_literal(alpha);
+    auto t_a   = add_common_op(*mm, migraphx::make_op("mul"), {a_l, l0});
+    t_a        = mm->add_instruction(
+        migraphx::make_op("convert", {{"target_type", l1->get_shape().type()}}), t_a);
+    t_a     = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {1, 0}}}), t_a);
+    auto t1 = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {1, 0}}}), l1);
 
+    auto b_l = mm->add_literal(beta);
+    auto l2_b =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {7, 11}}}), l2);
+    auto b_b = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", l2_b->get_shape().lens()}}), b_l);
+    auto l2_bb = mm->add_instruction(migraphx::make_op("mul"), l2_b, b_b);
+    mm->add_instruction(
+        migraphx::make_op("dot", {{"alpha", 1.0f}, {"beta", 1.0f}}), t_a, t1, l2_bb);
+    auto prog = optimize_onnx("gemm_test.onnx");
     EXPECT(p == prog);
 }
 
@@ -1183,10 +1301,21 @@ TEST_CASE(gemm_ex_test)
     auto l0    = mm->add_parameter("1", migraphx::shape{migraphx::shape::float_type, {1, 1, 8, 6}});
     auto l1    = mm->add_parameter("2", migraphx::shape{migraphx::shape::float_type, {1, 1, 8, 7}});
     auto l2    = mm->add_parameter("3", migraphx::shape{migraphx::shape::float_type, {1, 1, 6, 7}});
-    auto t0    = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {0, 1, 3, 2}}}), l0);
     auto alpha = 0.5f;
     auto beta  = 0.8f;
-    mm->add_instruction(migraphx::make_op("dot", {{"alpha", alpha}, {"beta", beta}}), t0, l1, l2);
+    auto a_l   = mm->add_literal(alpha);
+    auto t_a   = add_common_op(*mm, migraphx::make_op("mul"), {a_l, l0});
+    t_a        = mm->add_instruction(
+        migraphx::make_op("convert", {{"target_type", l1->get_shape().type()}}), t_a);
+
+    t_a = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {0, 1, 3, 2}}}), t_a);
+
+    auto b_l = mm->add_literal(beta);
+    auto b_b = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", l2->get_shape().lens()}}), b_l);
+    auto l2_b = mm->add_instruction(migraphx::make_op("mul"), l2, b_b);
+    mm->add_instruction(migraphx::make_op("dot", {{"alpha", 1.0f}, {"beta", 1.0f}}), t_a, l1, l2_b);
+
     auto prog = optimize_onnx("gemm_ex_test.onnx");
 
     EXPECT(p == prog);
@@ -1199,13 +1328,25 @@ TEST_CASE(gemm_ex_brcst_test)
     auto l0  = mm->add_parameter("1", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 6}});
     auto l1  = mm->add_parameter("2", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 7}});
     auto l2  = mm->add_parameter("3", migraphx::shape{migraphx::shape::float_type, {1, 1, 6, 1}});
-    auto t0  = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {0, 1, 3, 2}}}), l0);
     std::vector<std::size_t> out_lens{1, 1, 6, 7};
-    auto t2 =
-        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", out_lens}}), l2);
     auto alpha = 0.5f;
     auto beta  = 0.8f;
-    mm->add_instruction(migraphx::make_op("dot", {{"alpha", alpha}, {"beta", beta}}), t0, l1, t2);
+    auto a_l   = mm->add_literal(alpha);
+    auto t_a   = add_common_op(*mm, migraphx::make_op("mul"), {a_l, l0});
+    t_a        = mm->add_instruction(
+        migraphx::make_op("convert", {{"target_type", l1->get_shape().type()}}), t_a);
+
+    t_a = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {0, 1, 3, 2}}}), t_a);
+
+    auto b_l = mm->add_literal(beta);
+    auto l2_b =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", out_lens}}), l2);
+    auto b_b = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", l2_b->get_shape().lens()}}), b_l);
+    auto l2_bb = mm->add_instruction(migraphx::make_op("mul"), l2_b, b_b);
+    mm->add_instruction(
+        migraphx::make_op("dot", {{"alpha", 1.0f}, {"beta", 1.0f}}), t_a, l1, l2_bb);
+
     auto prog = optimize_onnx("gemm_ex_brcst_test.onnx");
 
     EXPECT(p == prog);
@@ -1220,6 +1361,7 @@ TEST_CASE(globalavgpool_test)
     auto op    = migraphx::op::pooling{"average"};
     auto lens  = input->get_shape().lens();
     op.lengths = {lens[2], lens[3]};
+    op.padding = {0, 0, 0, 0};
     mm->add_instruction(op, input);
 
     auto prog = optimize_onnx("globalavgpool_test.onnx");
@@ -1236,6 +1378,7 @@ TEST_CASE(globalmaxpool_test)
     auto op    = migraphx::op::pooling{"max"};
     auto lens  = input->get_shape().lens();
     op.lengths = {lens[2], lens[3]};
+    op.padding = {0, 0, 0, 0};
     mm->add_instruction(op, input);
 
     auto prog = optimize_onnx("globalmaxpool_test.onnx");
@@ -1294,6 +1437,220 @@ TEST_CASE(group_conv_test)
     mm->add_instruction(op, l0, l1);
     auto prog = optimize_onnx("group_conv_test.onnx");
 
+    EXPECT(p == prog);
+}
+
+TEST_CASE(if_else_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape sc{migraphx::shape::bool_type, {1}};
+    auto cond = mm->add_literal(migraphx::literal(sc, {0}));
+    migraphx::shape s{migraphx::shape::float_type, {2, 3}};
+    std::vector<float> ones(s.elements(), 1.0f);
+    auto l1                 = mm->add_literal(s, ones);
+    std::vector<float> rand = {-0.583375, 0.633757, 0.0668345, -0.479422, -0.604634, 0.0388589};
+    auto l2                 = mm->add_literal(s, rand);
+    auto x                  = mm->add_parameter("x", s);
+    auto y                  = mm->add_parameter("y", s);
+
+    auto* then_mod = p.create_module("If_5_if");
+    auto rt        = then_mod->add_instruction(migraphx::make_op("add"), x, l1);
+    then_mod->add_return({rt});
+
+    auto* else_mod = p.create_module("If_5_else");
+    auto re        = else_mod->add_instruction(migraphx::make_op("mul"), y, l2);
+    else_mod->add_return({re});
+
+    auto ret = mm->add_instruction(migraphx::make_op("if"), {cond}, {then_mod, else_mod});
+    auto r   = mm->add_instruction(migraphx::make_op("get_tuple_elem", {{"index", 0}}), ret);
+    mm->add_return({r});
+
+    std::ifstream ifs("if_else_test.onnx", std::ios::binary);
+    ifs.seekg(0, std::ios::end);
+    auto length = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
+    std::vector<char> onnx_buffer(length);
+    ifs.read(onnx_buffer.data(), length);
+    ifs.close();
+
+    auto prog = migraphx::parse_onnx_buffer(onnx_buffer.data(), length, {});
+    EXPECT(p == prog);
+}
+
+TEST_CASE(if_literal_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape cond_s{migraphx::shape::bool_type};
+    auto cond = mm->add_parameter("cond", cond_s);
+
+    migraphx::shape s{migraphx::shape::float_type, {5}};
+
+    auto* then_mod           = p.create_module("If_1_if");
+    std::vector<float> data1 = {1, 2, 3, 4, 5};
+    auto l1                  = then_mod->add_literal(migraphx::literal(s, data1));
+    then_mod->add_literal({});
+    then_mod->add_return({l1});
+
+    auto* else_mod           = p.create_module("If_1_else");
+    std::vector<float> data2 = {5, 4, 3, 2, 1};
+    auto l2                  = else_mod->add_literal(migraphx::literal(s, data2));
+    else_mod->add_literal({});
+    else_mod->add_return({l2});
+
+    auto ret = mm->add_instruction(migraphx::make_op("if"), {cond}, {then_mod, else_mod});
+    auto r   = mm->add_instruction(migraphx::make_op("get_tuple_elem", {{"index", 0}}), ret);
+    mm->add_return({r});
+
+    auto prog = migraphx::parse_onnx("if_literal_test.onnx");
+    EXPECT(p == prog);
+}
+
+TEST_CASE(if_param_excp_test)
+{
+    EXPECT(test::throws([&] { migraphx::parse_onnx("if_param_excp_test.onnx"); }));
+}
+
+TEST_CASE(if_param_excp1_test)
+{
+    EXPECT(test::throws([&] { migraphx::parse_onnx("if_param_excp1_test.onnx"); }));
+}
+
+TEST_CASE(if_param_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape cond_s{migraphx::shape::bool_type};
+    auto cond = mm->add_parameter("cond", cond_s);
+    migraphx::shape ds{migraphx::shape::float_type, {2, 3}};
+    auto x = mm->add_parameter("x", ds);
+    auto y = mm->add_parameter("y", ds);
+
+    auto* then_mod           = p.create_module("If_3_if");
+    std::vector<float> data1 = {0.384804, -1.77948, -0.453775, 0.477438, -1.06333, -1.12893};
+    auto l1                  = then_mod->add_literal(migraphx::literal(ds, data1));
+    auto a1                  = then_mod->add_instruction(migraphx::make_op("add"), x, l1);
+    then_mod->add_return({a1});
+
+    auto* else_mod           = p.create_module("If_3_else");
+    std::vector<float> data2 = {-0.258047, 0.360394, 0.536804, -0.577762, 1.0217, 1.02442};
+    auto l2                  = else_mod->add_literal(migraphx::literal(ds, data2));
+    auto a2                  = else_mod->add_instruction(migraphx::make_op("mul"), y, l2);
+    else_mod->add_return({a2});
+
+    auto ret = mm->add_instruction(migraphx::make_op("if"), {cond}, {then_mod, else_mod});
+    auto r   = mm->add_instruction(migraphx::make_op("get_tuple_elem", {{"index", 0}}), ret);
+    mm->add_return({r});
+
+    auto prog = migraphx::parse_onnx("if_param_test.onnx");
+    EXPECT(p == prog);
+}
+
+TEST_CASE(if_pl_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape cond_s{migraphx::shape::bool_type};
+    migraphx::shape xs{migraphx::shape::float_type, {2, 3}};
+    migraphx::shape ys{migraphx::shape::float_type, {3, 3}};
+    std::vector<float> datax = {1, 2, 3, 4, 5, 6};
+    std::vector<float> datay = {8, 7, 6, 5, 4, 3, 2, 1, 0};
+
+    auto lx   = mm->add_literal(migraphx::literal(xs, datax));
+    auto ly   = mm->add_literal(migraphx::literal(ys, datay));
+    auto cond = mm->add_parameter("cond", cond_s);
+    auto x    = mm->add_parameter("x", xs);
+    auto y    = mm->add_parameter("y", ys);
+
+    auto* then_mod = p.create_module("If_5_if");
+    auto l1        = then_mod->add_literal(migraphx::literal(ys, datay));
+    auto a1        = then_mod->add_instruction(migraphx::make_op("add"), x, lx);
+    then_mod->add_return({a1, l1});
+
+    auto* else_mod = p.create_module("If_5_else");
+    auto l2        = else_mod->add_literal(migraphx::literal(xs, datax));
+    auto a2        = else_mod->add_instruction(migraphx::make_op("mul"), y, ly);
+    else_mod->add_return({l2, a2});
+
+    auto ret = mm->add_instruction(migraphx::make_op("if"), {cond}, {then_mod, else_mod});
+    auto r   = mm->add_instruction(migraphx::make_op("get_tuple_elem", {{"index", 0}}), ret);
+    mm->add_instruction(migraphx::make_op("get_tuple_elem", {{"index", 1}}), ret);
+    mm->add_return({r});
+
+    auto prog = migraphx::parse_onnx("if_pl_test.onnx");
+    EXPECT(p == prog);
+}
+
+TEST_CASE(if_then_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape sc{migraphx::shape::bool_type, {1}};
+    auto cond = mm->add_literal(migraphx::literal(sc, {1}));
+    migraphx::shape s{migraphx::shape::float_type, {2, 3}};
+    std::vector<float> ones(s.elements(), 1.0f);
+    auto l1                 = mm->add_literal(s, ones);
+    std::vector<float> rand = {-1.26487, -2.42279, 0.990835, 1.63072, 0.812238, -0.174946};
+    auto l2                 = mm->add_literal(s, rand);
+    auto x                  = mm->add_parameter("x", s);
+    auto y                  = mm->add_parameter("y", s);
+
+    auto* then_mod = p.create_module("If_5_if");
+    auto rt        = then_mod->add_instruction(migraphx::make_op("add"), x, l1);
+    then_mod->add_return({rt});
+
+    auto* else_mod = p.create_module("If_5_else");
+    auto re        = else_mod->add_instruction(migraphx::make_op("mul"), y, l2);
+    else_mod->add_return({re});
+
+    auto ret = mm->add_instruction(migraphx::make_op("if"), {cond}, {then_mod, else_mod});
+    auto r   = mm->add_instruction(migraphx::make_op("get_tuple_elem", {{"index", 0}}), ret);
+    mm->add_return({r});
+
+    auto prog = migraphx::parse_onnx("if_then_test.onnx");
+    EXPECT(p == prog);
+}
+
+TEST_CASE(if_tuple_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape sd{migraphx::shape::float_type, {1}};
+    auto l1 = mm->add_literal(migraphx::literal(sd, {1}));
+    auto l2 = mm->add_literal(migraphx::literal(sd, {2}));
+    auto l3 = mm->add_literal(migraphx::literal(sd, {3}));
+    migraphx::shape sx{migraphx::shape::float_type, {1, 4}};
+    migraphx::shape sy{migraphx::shape::float_type, {3, 4}};
+    migraphx::shape sc{migraphx::shape::bool_type};
+    auto cond = mm->add_parameter("cond", sc);
+    auto x    = mm->add_parameter("x", sx);
+    auto y    = mm->add_parameter("y", sy);
+
+    auto* then_mod = p.create_module("If_6_if");
+    auto m1        = then_mod->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", {1, 4}}}), l1);
+    auto add0 = then_mod->add_instruction(migraphx::make_op("add"), x, m1);
+    auto m2   = then_mod->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", {3, 4}}}), l2);
+    auto mul0 = then_mod->add_instruction(migraphx::make_op("mul"), y, m2);
+    then_mod->add_return({add0, mul0});
+
+    auto* else_mod = p.create_module("If_6_else");
+    auto me1       = else_mod->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", {1, 4}}}), l3);
+    auto mul1 = else_mod->add_instruction(migraphx::make_op("mul"), x, me1);
+    auto me2  = else_mod->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", {3, 4}}}), l3);
+    auto add1 = else_mod->add_instruction(migraphx::make_op("add"), y, me2);
+    else_mod->add_return({mul1, add1});
+
+    auto ret = mm->add_instruction(migraphx::make_op("if"), {cond}, {then_mod, else_mod});
+    auto r0  = mm->add_instruction(migraphx::make_op("get_tuple_elem", {{"index", 0}}), ret);
+    auto r1  = mm->add_instruction(migraphx::make_op("get_tuple_elem", {{"index", 1}}), ret);
+    mm->add_return({r0, r1});
+
+    auto prog = migraphx::parse_onnx("if_tuple_test.onnx");
     EXPECT(p == prog);
 }
 
@@ -1509,6 +1866,24 @@ TEST_CASE(less_bool_test)
     EXPECT(p == prog);
 }
 
+TEST_CASE(lessorequal_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+
+    auto input1 = mm->add_parameter("x1", migraphx::shape{migraphx::shape::float_type, {3}});
+    auto input2 = mm->add_parameter("x2", migraphx::shape{migraphx::shape::float_type, {3}});
+    auto temp   = mm->add_instruction(migraphx::make_op("greater"), input1, input2);
+    auto bt     = mm->add_instruction(
+        migraphx::make_op("convert", {{"target_type", migraphx::shape::bool_type}}), temp);
+    auto le = mm->add_instruction(migraphx::make_op("not"), bt);
+
+    mm->add_return({le});
+
+    auto prog = migraphx::parse_onnx("lessorequal_test.onnx");
+    EXPECT(p == prog);
+}
+
 TEST_CASE(log_test)
 {
     migraphx::program p;
@@ -1520,6 +1895,52 @@ TEST_CASE(log_test)
     EXPECT(p == prog);
 }
 
+TEST_CASE(logical_and_bcast_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::bool_type, {2, 3, 4, 5}});
+    auto l1  = mm->add_parameter("1", migraphx::shape{migraphx::shape::bool_type, {4, 5}});
+    auto l2  = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", l0->get_shape().lens()}}), l1);
+    auto ret = mm->add_instruction(migraphx::make_op("logical_and"), l0, l2);
+    mm->add_return({ret});
+
+    auto prog = migraphx::parse_onnx("logical_and_bcast_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(logical_or_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::bool_type, {2, 3, 4, 5}});
+    auto l1  = mm->add_parameter("1", migraphx::shape{migraphx::shape::bool_type, {2, 3, 4, 5}});
+    auto ret = mm->add_instruction(migraphx::make_op("logical_or"), l0, l1);
+    mm->add_return({ret});
+
+    auto prog = migraphx::parse_onnx("logical_or_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(logical_xor_bcast_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::bool_type, {2, 3, 4, 5}});
+    auto l1  = mm->add_parameter("1", migraphx::shape{migraphx::shape::bool_type, {4, 1}});
+    auto l2  = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"output_lens", l0->get_shape().lens()}}), l1);
+    auto ret = mm->add_instruction(migraphx::make_op("logical_xor"), l0, l2);
+    mm->add_return({ret});
+
+    auto prog = migraphx::parse_onnx("logical_xor_bcast_test.onnx");
+
+    EXPECT(p == prog);
+}
+
 TEST_CASE(logsoftmax_test)
 {
     migraphx::program p;
@@ -1528,6 +1949,21 @@ TEST_CASE(logsoftmax_test)
     int axis = 1;
     mm->add_instruction(migraphx::make_op("logsoftmax", {{"axis", axis}}), l0);
     auto prog = optimize_onnx("logsoftmax_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(logsoftmax_nonstd_input_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {6, 9}});
+    auto l1  = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0, 1}}, {"starts", {1, 0}}, {"ends", {4, 4}}}), l0);
+    auto l2 = mm->add_instruction(migraphx::make_op("logsoftmax", {{"axis", -1}}), l1);
+    mm->add_return({l2});
+
+    auto prog = migraphx::parse_onnx("logsoftmax_nonstd_input_test.onnx");
 
     EXPECT(p == prog);
 }
@@ -1682,15 +2118,11 @@ TEST_CASE(maxpool_notset_test)
     migraphx::program p;
     auto* mm   = p.get_main_module();
     auto input = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 5}});
-    std::vector<int64_t> pads = {0, 0, 0, 0, 0, 0, 1, 1};
-    float val                 = std::numeric_limits<float>::lowest();
-    auto ins_pad =
-        mm->add_instruction(migraphx::make_op("pad", {{"pads", pads}, {"value", val}}), input);
     mm->add_instruction(
         migraphx::make_op(
             "pooling",
-            {{"mode", "max"}, {"padding", {0, 0}}, {"stride", {2, 2}}, {"lengths", {6, 6}}}),
-        ins_pad);
+            {{"mode", "max"}, {"padding", {0, 0, 1, 1}}, {"stride", {2, 2}}, {"lengths", {6, 6}}}),
+        input);
 
     auto prog = optimize_onnx("maxpool_notset_test.onnx");
 
@@ -1702,15 +2134,11 @@ TEST_CASE(maxpool_same_upper_test)
     migraphx::program p;
     auto* mm   = p.get_main_module();
     auto input = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 5}});
-    std::vector<int64_t> pads = {0, 0, 0, 0, 0, 0, 1, 1};
-    float val                 = std::numeric_limits<float>::lowest();
-    auto ins_pad =
-        mm->add_instruction(migraphx::make_op("pad", {{"pads", pads}, {"value", val}}), input);
     mm->add_instruction(
         migraphx::make_op(
             "pooling",
-            {{"mode", "max"}, {"padding", {0, 0}}, {"stride", {1, 1}}, {"lengths", {2, 2}}}),
-        ins_pad);
+            {{"mode", "max"}, {"padding", {0, 0, 1, 1}}, {"stride", {1, 1}}, {"lengths", {2, 2}}}),
+        input);
 
     auto prog = optimize_onnx("maxpool_same_upper_test.onnx");
 
@@ -1786,6 +2214,32 @@ TEST_CASE(nonzero_int_test)
     mm->add_return({r});
 
     auto prog = migraphx::parse_onnx("nonzero_int_test.onnx");
+    EXPECT(p == prog);
+}
+
+TEST_CASE(not_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::int32_type, {4}});
+    auto ret = mm->add_instruction(migraphx::make_op("not"), l0);
+    mm->add_return({ret});
+
+    auto prog = migraphx::parse_onnx("not_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(not_bool_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::bool_type, {4}});
+    auto ret = mm->add_instruction(migraphx::make_op("not"), l0);
+    mm->add_return({ret});
+
+    auto prog = migraphx::parse_onnx("not_bool_test.onnx");
+
     EXPECT(p == prog);
 }
 
@@ -1939,6 +2393,21 @@ TEST_CASE(pow_i64_fp32_test)
     EXPECT(p == prog);
 }
 
+TEST_CASE(prefix_scan_sum)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    mm->add_literal({migraphx::shape{migraphx::shape::int32_type, {1}, {1}}, {0}});
+    auto l0  = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {2, 2, 2}});
+    auto ret = mm->add_instruction(
+        migraphx::make_op("prefix_scan_sum", {{"axis", 0}, {"exclusive", true}, {"reverse", true}}),
+        l0);
+    mm->add_return({ret});
+
+    auto prog = migraphx::parse_onnx("prefix_scan_sum_test.onnx");
+    EXPECT(p == prog);
+}
+
 TEST_CASE(prelu_brcst_test)
 {
     migraphx::program p;
@@ -1953,6 +2422,144 @@ TEST_CASE(prelu_brcst_test)
     auto prog = migraphx::parse_onnx("prelu_brcst_test.onnx");
 
     EXPECT(p == prog);
+}
+
+TEST_CASE(quantizelinear_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", {migraphx::shape::float_type, {5}});
+    auto l1  = mm->add_parameter("1", {migraphx::shape::float_type, {1}});
+    auto l1_mbcast =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {5}}}), l1);
+    auto div   = mm->add_instruction(migraphx::make_op("div"), l0, l1_mbcast);
+    auto round = mm->add_instruction(migraphx::make_op("round"), div);
+    auto s     = round->get_shape();
+    std::vector<int> min_data(s.elements(), 0);
+    std::vector<int> max_data(s.elements(), 255);
+    auto min_arg = mm->add_literal(s, min_data);
+    auto max_arg = mm->add_literal(s, max_data);
+    auto clip    = mm->add_instruction(migraphx::make_op("clip"), round, min_arg, max_arg);
+    mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::uint8_type)}}),
+        clip);
+
+    auto prog = optimize_onnx("quantizelinear_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
+}
+
+TEST_CASE(quantizelinear_int32_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", {migraphx::shape::int32_type, {5}});
+    auto l1  = mm->add_parameter("1", {migraphx::shape::float_type, {1}});
+    auto l1_mbcast =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {5}}}), l1);
+    l0 = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::float_type)}}),
+        l0);
+    auto div   = mm->add_instruction(migraphx::make_op("div"), l0, l1_mbcast);
+    auto round = mm->add_instruction(migraphx::make_op("round"), div);
+    auto s     = round->get_shape();
+    std::vector<int> min_data(s.elements(), 0);
+    std::vector<int> max_data(s.elements(), 255);
+    auto min_arg = mm->add_literal(s, min_data);
+    auto max_arg = mm->add_literal(s, max_data);
+    auto clip    = mm->add_instruction(migraphx::make_op("clip"), round, min_arg, max_arg);
+    mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::uint8_type)}}),
+        clip);
+
+    auto prog = optimize_onnx("quantizelinear_int32_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
+}
+
+TEST_CASE(quantizelinear_zero_point_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", {migraphx::shape::float_type, {5}});
+    auto l1  = mm->add_parameter("1", {migraphx::shape::float_type, {1}});
+    auto l2  = mm->add_parameter("2", {migraphx::shape::int8_type, {1}});
+    auto l1_mbcast =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {5}}}), l1);
+    auto div   = mm->add_instruction(migraphx::make_op("div"), l0, l1_mbcast);
+    auto round = mm->add_instruction(migraphx::make_op("round"), div);
+    auto l2_mbcast =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"output_lens", {5}}}), l2);
+    l2_mbcast = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::float_type)}}),
+        l2_mbcast);
+    auto add = mm->add_instruction(migraphx::make_op("add"), round, l2_mbcast);
+    auto s   = round->get_shape();
+    std::vector<int> min_data(s.elements(), -128);
+    std::vector<int> max_data(s.elements(), 127);
+    auto min_arg = mm->add_literal(s, min_data);
+    auto max_arg = mm->add_literal(s, max_data);
+    auto clip    = mm->add_instruction(migraphx::make_op("clip"), add, min_arg, max_arg);
+    mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::int8_type)}}),
+        clip);
+
+    auto prog = optimize_onnx("quantizelinear_zero_point_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
+}
+
+migraphx::program make_quantizelinear_axis_prog()
+{
+    migraphx::program p;
+    std::vector<size_t> input_lens{1, 1, 5, 1};
+    int axis = 2;
+    auto* mm = p.get_main_module();
+
+    auto l0       = mm->add_parameter("0", {migraphx::shape::float_type, input_lens});
+    auto l1       = mm->add_parameter("1", {migraphx::shape::float_type, {5}});
+    auto l2       = mm->add_parameter("2", {migraphx::shape::int8_type, {5}});
+    auto l1_bcast = mm->add_instruction(
+        migraphx::make_op("broadcast", {{"axis", axis}, {"dims", input_lens}}), l1);
+
+    auto div      = mm->add_instruction(migraphx::make_op("div"), l0, l1_bcast);
+    auto round    = mm->add_instruction(migraphx::make_op("round"), div);
+    auto l2_bcast = mm->add_instruction(
+        migraphx::make_op("broadcast", {{"axis", axis}, {"dims", input_lens}}), l2);
+    l2_bcast = mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::float_type)}}),
+        l2_bcast);
+    auto add = mm->add_instruction(migraphx::make_op("add"), round, l2_bcast);
+    auto s   = round->get_shape();
+    std::vector<int> min_data(s.elements(), -128);
+    std::vector<int> max_data(s.elements(), 127);
+    auto min_arg = mm->add_literal(s, min_data);
+    auto max_arg = mm->add_literal(s, max_data);
+    auto clip    = mm->add_instruction(migraphx::make_op("clip"), add, min_arg, max_arg);
+    mm->add_instruction(
+        migraphx::make_op("convert",
+                          {{"target_type", migraphx::to_value(migraphx::shape::int8_type)}}),
+        clip);
+    return p;
+}
+
+TEST_CASE(quantizelinear_axis_test)
+{
+    migraphx::program p = make_quantizelinear_axis_prog();
+
+    auto prog = optimize_onnx("quantizelinear_axis_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
+}
+
+TEST_CASE(quantizelinear_neg_axis_test)
+{
+    migraphx::program p = make_quantizelinear_axis_prog();
+
+    auto prog = optimize_onnx("quantizelinear_neg_axis_test.onnx", true);
+    EXPECT(p.sort() == prog.sort());
 }
 
 TEST_CASE(range_test)
@@ -2116,6 +2723,33 @@ TEST_CASE(reducesum_test)
     EXPECT(p == prog);
 }
 
+TEST_CASE(reducesum_empty_axes_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    mm->add_literal({});
+    auto x  = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {3, 4, 5, 6}});
+    auto l1 = mm->add_instruction(migraphx::make_op("reduce_sum", {{"axes", {0, 1, 2, 3}}}), x);
+    auto r  = mm->add_instruction(migraphx::make_op("squeeze", {{"axes", {0, 1, 2, 3}}}), l1);
+    mm->add_return({r});
+
+    auto prog = migraphx::parse_onnx("reducesum_empty_axes_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(reducesum_noop_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    mm->add_literal({});
+    auto x = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {3, 4, 5, 6}});
+    mm->add_return({x});
+    auto prog = migraphx::parse_onnx("reducesum_noop_test.onnx");
+
+    EXPECT(p == prog);
+}
+
 TEST_CASE(reducesum_multiaxis_test)
 {
     migraphx::program p;
@@ -2185,32 +2819,6 @@ TEST_CASE(reshape_non_standard_test)
     EXPECT(p == prog);
 }
 
-TEST_CASE(resize_downsample_f_test)
-{
-    migraphx::program p;
-    auto* mm              = p.get_main_module();
-    std::vector<float> ds = {1.0f, 1.0f, 0.6f, 0.6f};
-    migraphx::shape ss{migraphx::shape::float_type, {4}};
-    mm->add_literal(migraphx::literal{ss, ds});
-
-    migraphx::shape sx{migraphx::shape::float_type, {1, 1, 2, 4}};
-    auto inx = mm->add_parameter("X", sx);
-
-    mm->add_instruction(migraphx::make_op("undefined"));
-
-    migraphx::shape si{migraphx::shape::int32_type, {1, 1, 1, 2}};
-    std::vector<int> ind = {4, 7};
-    auto li              = mm->add_literal(migraphx::literal(si, ind));
-
-    auto lrsp = mm->add_instruction(migraphx::make_op("reshape", {{"dims", {8}}}), inx);
-    auto r    = mm->add_instruction(migraphx::make_op("gather", {{"axis", 0}}), lrsp, li);
-    mm->add_return({r});
-
-    auto prog = migraphx::parse_onnx("resize_downsample_f_test.onnx");
-
-    EXPECT(p == prog);
-}
-
 TEST_CASE(resize_downsample_c_test)
 {
     migraphx::program p;
@@ -2238,6 +2846,100 @@ TEST_CASE(resize_downsample_c_test)
     EXPECT(p == prog);
 }
 
+TEST_CASE(resize_downsample_f_test)
+{
+    migraphx::program p;
+    auto* mm              = p.get_main_module();
+    std::vector<float> ds = {1.0f, 1.0f, 0.6f, 0.6f};
+    migraphx::shape ss{migraphx::shape::float_type, {4}};
+    mm->add_literal(migraphx::literal{ss, ds});
+
+    migraphx::shape sx{migraphx::shape::float_type, {1, 1, 2, 4}};
+    auto inx = mm->add_parameter("X", sx);
+
+    mm->add_instruction(migraphx::make_op("undefined"));
+
+    migraphx::shape si{migraphx::shape::int32_type, {1, 1, 1, 2}};
+    std::vector<int> ind = {0, 3};
+    auto li              = mm->add_literal(migraphx::literal(si, ind));
+
+    auto lrsp = mm->add_instruction(migraphx::make_op("reshape", {{"dims", {8}}}), inx);
+    auto r    = mm->add_instruction(migraphx::make_op("gather", {{"axis", 0}}), lrsp, li);
+    mm->add_return({r});
+
+    auto prog = migraphx::parse_onnx("resize_downsample_f_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(resize_downsample_linear_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape ss{migraphx::shape::float_type, {4}};
+    std::vector<float> ds = {1, 1, 0.6, 0.5};
+    mm->add_literal(migraphx::literal(ss, ds));
+
+    migraphx::shape sx{migraphx::shape::float_type, {1, 1, 2, 4}};
+    auto x = mm->add_parameter("X", sx);
+    migraphx::shape s_ind{migraphx::shape::int32_type, {16, 1, 1, 2}};
+    std::vector<int> d_ind = {0, 2, 0, 2, 0, 2, 0, 2, 4, 6, 4, 6, 4, 6, 4, 6,
+                              1, 3, 1, 3, 1, 3, 1, 3, 5, 7, 5, 7, 5, 7, 5, 7};
+    auto l_ind             = mm->add_literal(migraphx::literal(s_ind, d_ind));
+
+    migraphx::shape s8{migraphx::shape::float_type, {8, 1, 1, 2}};
+    std::vector<float> d8(16, 0.5f);
+    auto l8 = mm->add_literal(migraphx::literal(s8, d8));
+
+    migraphx::shape s4{migraphx::shape::float_type, {4, 1, 1, 2}};
+    std::vector<float> d4(8, 1.0f / 3.0f);
+    auto l4 = mm->add_literal(migraphx::literal(s4, d4));
+
+    migraphx::shape s2{migraphx::shape::float_type, {2, 1, 1, 2}};
+    std::vector<float> d2(4, 0);
+    auto l2 = mm->add_literal(migraphx::literal(s2, d2));
+
+    migraphx::shape s1{migraphx::shape::float_type, {1, 1, 1, 2}};
+    std::vector<float> d1(2, 0.0f);
+    auto l1 = mm->add_literal(migraphx::literal(s1, d1));
+
+    mm->add_instruction(migraphx::make_op("undefined"));
+    auto rsp   = mm->add_instruction(migraphx::make_op("reshape", {{"dims", {8}}}), x);
+    auto data  = mm->add_instruction(migraphx::make_op("gather", {{"axis", 0}}), rsp, l_ind);
+    auto slc80 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {8}}}), data);
+    auto slc81 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {8}}, {"ends", {16}}}), data);
+    auto diff8 = mm->add_instruction(migraphx::make_op("sub"), slc81, slc80);
+    auto mul8  = mm->add_instruction(migraphx::make_op("mul"), diff8, l8);
+    auto add8  = mm->add_instruction(migraphx::make_op("add"), mul8, slc80);
+    auto slc40 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {4}}}), add8);
+    auto slc41 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {4}}, {"ends", {8}}}), add8);
+    auto diff4 = mm->add_instruction(migraphx::make_op("sub"), slc41, slc40);
+    auto mul4  = mm->add_instruction(migraphx::make_op("mul"), diff4, l4);
+    auto add4  = mm->add_instruction(migraphx::make_op("add"), mul4, slc40);
+    auto slc20 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {2}}}), add4);
+    auto slc21 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {2}}, {"ends", {4}}}), add4);
+    auto diff2 = mm->add_instruction(migraphx::make_op("sub"), slc21, slc20);
+    auto mul2  = mm->add_instruction(migraphx::make_op("mul"), diff2, l2);
+    auto add2  = mm->add_instruction(migraphx::make_op("add"), mul2, slc20);
+    auto slc10 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {1}}}), add2);
+    auto slc11 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {1}}, {"ends", {2}}}), add2);
+    auto diff1 = mm->add_instruction(migraphx::make_op("sub"), slc11, slc10);
+    auto mul1  = mm->add_instruction(migraphx::make_op("mul"), diff1, l1);
+    auto add1  = mm->add_instruction(migraphx::make_op("add"), mul1, slc10);
+    mm->add_return({add1});
+
+    auto prog = migraphx::parse_onnx("resize_downsample_linear_test.onnx");
+    EXPECT(p == prog);
+}
+
 TEST_CASE(resize_outsize_test)
 {
     migraphx::program p;
@@ -2262,6 +2964,225 @@ TEST_CASE(resize_outsize_test)
 
     auto prog = migraphx::parse_onnx("resize_outsize_test.onnx");
 
+    EXPECT(p == prog);
+}
+
+TEST_CASE(resize_nonstd_input_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+
+    std::vector<float> ds = {1.0f, 1.0f, 0.6f, 0.6f};
+    migraphx::shape ss{migraphx::shape::float_type, {4}};
+    mm->add_literal(migraphx::literal{ss, ds});
+
+    migraphx::shape sx{migraphx::shape::float_type, {1, 1, 4, 2}};
+    auto inx = mm->add_parameter("X", sx);
+
+    migraphx::shape si{migraphx::shape::int32_type, {1, 1, 1, 2}};
+    std::vector<int> ind = {0, 4};
+    auto li              = mm->add_literal(migraphx::literal(si, ind));
+
+    auto tx = mm->add_instruction(migraphx::make_op("transpose", {{"dims", {0, 1, 3, 2}}}), inx);
+    mm->add_instruction(migraphx::make_op("undefined"));
+    auto tx_cont = mm->add_instruction(migraphx::make_op("contiguous"), tx);
+
+    auto lrsp = mm->add_instruction(migraphx::make_op("reshape", {{"dims", {8}}}), tx_cont);
+    auto r    = mm->add_instruction(migraphx::make_op("gather", {{"axis", 0}}), lrsp, li);
+    mm->add_return({r});
+
+    auto prog = migraphx::parse_onnx("resize_nonstd_input_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(resize_upsample_linear_ac_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape ss{migraphx::shape::float_type, {4}};
+    std::vector<float> ds = {1, 1, 2, 2};
+    mm->add_literal(migraphx::literal(ss, ds));
+
+    migraphx::shape sx{migraphx::shape::float_type, {1, 1, 2, 2}};
+    auto x = mm->add_parameter("X", sx);
+    migraphx::shape s_ind{migraphx::shape::int32_type, {16, 1, 4, 4}};
+    std::vector<int> d_ind = {
+        0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2,
+        2, 2, 3, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
+        0, 1, 2, 2, 2, 3, 0, 0, 0, 1, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 0, 0, 0, 1, 2, 2, 2,
+        3, 2, 2, 2, 3, 2, 2, 2, 3, 0, 0, 0, 1, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 0, 0, 0, 1,
+        2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 2, 3, 3, 3, 0,
+        1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 2, 3, 3, 3, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 2, 3,
+        3, 3, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 2, 3, 3, 3, 0, 1, 1, 1, 2, 3, 3, 3, 2, 3, 3,
+        3, 2, 3, 3, 3, 0, 1, 1, 1, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 0, 1, 1, 1, 2, 3, 3, 3,
+        2, 3, 3, 3, 2, 3, 3, 3, 0, 1, 1, 1, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3};
+    auto l_ind = mm->add_literal(migraphx::literal(s_ind, d_ind));
+
+    migraphx::shape s8{migraphx::shape::float_type, {8, 1, 4, 4}};
+    std::vector<float> d8 = {
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0};
+    auto l8 = mm->add_literal(migraphx::literal(s8, d8));
+
+    migraphx::shape s4{migraphx::shape::float_type, {4, 1, 4, 4}};
+    std::vector<float> d4 = {
+        0,        0,        0,        0,        1.0f / 3, 1.0f / 3, 1.0f / 3, 1.0f / 3,
+        2.0f / 3, 2.0f / 3, 2.0f / 3, 2.0f / 3, 0,        0,        0,        0,
+        0,        0,        0,        0,        1.0f / 3, 1.0f / 3, 1.0f / 3, 1.0f / 3,
+        2.0f / 3, 2.0f / 3, 2.0f / 3, 2.0f / 3, 0,        0,        0,        0,
+        0,        0,        0,        0,        1.0f / 3, 1.0f / 3, 1.0f / 3, 1.0f / 3,
+        2.0f / 3, 2.0f / 3, 2.0f / 3, 2.0f / 3, 0,        0,        0,        0,
+        0,        0,        0,        0,        1.0f / 3, 1.0f / 3, 1.0f / 3, 1.0f / 3,
+        2.0f / 3, 2.0f / 3, 2.0f / 3, 2.0f / 3, 0,        0,        0,        0};
+    auto l4 = mm->add_literal(migraphx::literal(s4, d4));
+
+    migraphx::shape s2{migraphx::shape::float_type, {2, 1, 4, 4}};
+    std::vector<float> d2(32, 0);
+    auto l2 = mm->add_literal(migraphx::literal(s2, d2));
+
+    migraphx::shape s1{migraphx::shape::float_type, {1, 1, 4, 4}};
+    std::vector<float> d1(16, 0.0f);
+    auto l1 = mm->add_literal(migraphx::literal(s1, d1));
+
+    mm->add_instruction(migraphx::make_op("undefined"));
+    auto rsp   = mm->add_instruction(migraphx::make_op("reshape", {{"dims", {4}}}), x);
+    auto data  = mm->add_instruction(migraphx::make_op("gather", {{"axis", 0}}), rsp, l_ind);
+    auto slc80 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {8}}}), data);
+    auto slc81 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {8}}, {"ends", {16}}}), data);
+    auto diff8 = mm->add_instruction(migraphx::make_op("sub"), slc81, slc80);
+    auto mul8  = mm->add_instruction(migraphx::make_op("mul"), diff8, l8);
+    auto add8  = mm->add_instruction(migraphx::make_op("add"), mul8, slc80);
+    auto slc40 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {4}}}), add8);
+    auto slc41 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {4}}, {"ends", {8}}}), add8);
+    auto diff4 = mm->add_instruction(migraphx::make_op("sub"), slc41, slc40);
+    auto mul4  = mm->add_instruction(migraphx::make_op("mul"), diff4, l4);
+    auto add4  = mm->add_instruction(migraphx::make_op("add"), mul4, slc40);
+    auto slc20 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {2}}}), add4);
+    auto slc21 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {2}}, {"ends", {4}}}), add4);
+    auto diff2 = mm->add_instruction(migraphx::make_op("sub"), slc21, slc20);
+    auto mul2  = mm->add_instruction(migraphx::make_op("mul"), diff2, l2);
+    auto add2  = mm->add_instruction(migraphx::make_op("add"), mul2, slc20);
+    auto slc10 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {1}}}), add2);
+    auto slc11 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {1}}, {"ends", {2}}}), add2);
+    auto diff1 = mm->add_instruction(migraphx::make_op("sub"), slc11, slc10);
+    auto mul1  = mm->add_instruction(migraphx::make_op("mul"), diff1, l1);
+    auto add1  = mm->add_instruction(migraphx::make_op("add"), mul1, slc10);
+    mm->add_return({add1});
+
+    auto prog = migraphx::parse_onnx("resize_upsample_linear_ac_test.onnx");
+    EXPECT(p == prog);
+}
+
+TEST_CASE(resize_upsample_linear_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    migraphx::shape ss{migraphx::shape::float_type, {4}};
+    std::vector<float> ds = {1, 1, 2, 2};
+    mm->add_literal(migraphx::literal(ss, ds));
+
+    migraphx::shape sx{migraphx::shape::float_type, {1, 1, 2, 2}};
+    auto x = mm->add_parameter("X", sx);
+    migraphx::shape s_ind{migraphx::shape::int32_type, {16, 1, 4, 4}};
+    std::vector<int> d_ind = {
+        0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2,
+        2, 2, 3, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
+        0, 1, 2, 2, 2, 3, 0, 0, 0, 1, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 0, 0, 0, 1, 2, 2, 2,
+        3, 2, 2, 2, 3, 2, 2, 2, 3, 0, 0, 0, 1, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 0, 0, 0, 1,
+        2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 2, 3, 3, 3, 0,
+        1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 2, 3, 3, 3, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 2, 3,
+        3, 3, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 2, 3, 3, 3, 0, 1, 1, 1, 2, 3, 3, 3, 2, 3, 3,
+        3, 2, 3, 3, 3, 0, 1, 1, 1, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 0, 1, 1, 1, 2, 3, 3, 3,
+        2, 3, 3, 3, 2, 3, 3, 3, 0, 1, 1, 1, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3};
+    auto l_ind = mm->add_literal(migraphx::literal(s_ind, d_ind));
+
+    migraphx::shape s8{migraphx::shape::float_type, {8, 1, 4, 4}};
+    std::vector<float> d8 = {
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0,
+        0, 1.0f / 3, 2.0f / 3, 0, 0, 1.0f / 3, 2.0f / 3, 0};
+    auto l8 = mm->add_literal(migraphx::literal(s8, d8));
+
+    migraphx::shape s4{migraphx::shape::float_type, {4, 1, 4, 4}};
+    std::vector<float> d4 = {
+        0,        0,        0,        0,        1.0f / 3, 1.0f / 3, 1.0f / 3, 1.0f / 3,
+        2.0f / 3, 2.0f / 3, 2.0f / 3, 2.0f / 3, 0,        0,        0,        0,
+        0,        0,        0,        0,        1.0f / 3, 1.0f / 3, 1.0f / 3, 1.0f / 3,
+        2.0f / 3, 2.0f / 3, 2.0f / 3, 2.0f / 3, 0,        0,        0,        0,
+        0,        0,        0,        0,        1.0f / 3, 1.0f / 3, 1.0f / 3, 1.0f / 3,
+        2.0f / 3, 2.0f / 3, 2.0f / 3, 2.0f / 3, 0,        0,        0,        0,
+        0,        0,        0,        0,        1.0f / 3, 1.0f / 3, 1.0f / 3, 1.0f / 3,
+        2.0f / 3, 2.0f / 3, 2.0f / 3, 2.0f / 3, 0,        0,        0,        0};
+    auto l4 = mm->add_literal(migraphx::literal(s4, d4));
+
+    migraphx::shape s2{migraphx::shape::float_type, {2, 1, 4, 4}};
+    std::vector<float> d2(32, 0);
+    auto l2 = mm->add_literal(migraphx::literal(s2, d2));
+
+    migraphx::shape s1{migraphx::shape::float_type, {1, 1, 4, 4}};
+    std::vector<float> d1(16, 0.0f);
+    auto l1 = mm->add_literal(migraphx::literal(s1, d1));
+
+    mm->add_instruction(migraphx::make_op("undefined"));
+    auto rsp   = mm->add_instruction(migraphx::make_op("reshape", {{"dims", {4}}}), x);
+    auto data  = mm->add_instruction(migraphx::make_op("gather", {{"axis", 0}}), rsp, l_ind);
+    auto slc80 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {8}}}), data);
+    auto slc81 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {8}}, {"ends", {16}}}), data);
+    auto diff8 = mm->add_instruction(migraphx::make_op("sub"), slc81, slc80);
+    auto mul8  = mm->add_instruction(migraphx::make_op("mul"), diff8, l8);
+    auto add8  = mm->add_instruction(migraphx::make_op("add"), mul8, slc80);
+    auto slc40 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {4}}}), add8);
+    auto slc41 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {4}}, {"ends", {8}}}), add8);
+    auto diff4 = mm->add_instruction(migraphx::make_op("sub"), slc41, slc40);
+    auto mul4  = mm->add_instruction(migraphx::make_op("mul"), diff4, l4);
+    auto add4  = mm->add_instruction(migraphx::make_op("add"), mul4, slc40);
+    auto slc20 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {2}}}), add4);
+    auto slc21 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {2}}, {"ends", {4}}}), add4);
+    auto diff2 = mm->add_instruction(migraphx::make_op("sub"), slc21, slc20);
+    auto mul2  = mm->add_instruction(migraphx::make_op("mul"), diff2, l2);
+    auto add2  = mm->add_instruction(migraphx::make_op("add"), mul2, slc20);
+    auto slc10 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {1}}}), add2);
+    auto slc11 = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0}}, {"starts", {1}}, {"ends", {2}}}), add2);
+    auto diff1 = mm->add_instruction(migraphx::make_op("sub"), slc11, slc10);
+    auto mul1  = mm->add_instruction(migraphx::make_op("mul"), diff1, l1);
+    auto add1  = mm->add_instruction(migraphx::make_op("add"), mul1, slc10);
+    mm->add_return({add1});
+
+    auto prog = migraphx::parse_onnx("resize_upsample_linear_test.onnx");
     EXPECT(p == prog);
 }
 
@@ -2475,6 +3396,51 @@ TEST_CASE(slice_5arg_test)
     EXPECT(p == prog);
 }
 
+TEST_CASE(slice_5arg_reverse_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {5, 5}});
+    mm->add_literal({{migraphx::shape::int32_type, {2}}, {-1, 1}});
+    mm->add_literal({{migraphx::shape::int32_type, {2}}, {-1, -2}});
+    mm->add_literal({{migraphx::shape::int32_type, {2}}, {-5, -1}});
+    mm->add_literal({{migraphx::shape::int32_type, {2}}, {-1, -3}});
+    auto slice_out = mm->add_instruction(
+        migraphx::make_op("slice",
+                          {{"axes", {-1, -2}}, {"starts", {-4, -3}}, {"ends", {2147483647, -1}}}),
+        l0);
+    auto ret = mm->add_instruction(migraphx::make_op("reverse", {{"axes", {-1}}}), slice_out);
+    mm->add_return({ret});
+
+    auto prog = migraphx::parse_onnx("slice_5arg_reverse_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(slice_5arg_step_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {5, 5}});
+    mm->add_literal({{migraphx::shape::int32_type, {2}}, {-2, 2}});
+    mm->add_literal({{migraphx::shape::int32_type, {2}}, {-1, -2}});
+    mm->add_literal({{migraphx::shape::int32_type, {2}}, {-5, -1}});
+    mm->add_literal({{migraphx::shape::int32_type, {2}}, {-1, -3}});
+    auto slice_out = mm->add_instruction(
+        migraphx::make_op("slice",
+                          {{"axes", {-1, -2}}, {"starts", {-4, -3}}, {"ends", {2147483647, -1}}}),
+        l0);
+    auto reverse_out =
+        mm->add_instruction(migraphx::make_op("reverse", {{"axes", {-1}}}), slice_out);
+    auto step_out = mm->add_instruction(
+        migraphx::make_op("step", {{"axes", {-1, -2}}, {"steps", {2, 2}}}), reverse_out);
+    mm->add_return({step_out});
+
+    auto prog = migraphx::parse_onnx("slice_5arg_step_test.onnx");
+
+    EXPECT(p == prog);
+}
+
 TEST_CASE(slice_max_end_test)
 {
     migraphx::program p;
@@ -2496,6 +3462,21 @@ TEST_CASE(softmax_test)
     auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {1, 3}});
     mm->add_instruction(migraphx::make_op("softmax", {{"axis", 1}}), l0);
     auto prog = optimize_onnx("softmax_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(softmax_nonstd_input_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {6, 8}});
+    auto l1  = mm->add_instruction(
+        migraphx::make_op("slice", {{"axes", {0, 1}}, {"starts", {1, 0}}, {"ends", {4, 4}}}), l0);
+    auto l2 = mm->add_instruction(migraphx::make_op("softmax", {{"axis", -1}}), l1);
+    mm->add_return({l2});
+
+    auto prog = migraphx::parse_onnx("softmax_nonstd_input_test.onnx");
 
     EXPECT(p == prog);
 }
@@ -2572,6 +3553,34 @@ TEST_CASE(squeeze_unsqueeze_test)
     auto l1 = mm->add_instruction(migraphx::make_op("squeeze", {{"axes", squeeze_axes}}), l0);
     mm->add_instruction(migraphx::make_op("unsqueeze", {{"axes", unsqueeze_axes}}), l1);
     auto prog = optimize_onnx("squeeze_unsqueeze_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(squeeze_axes_input_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    mm->add_literal(migraphx::literal({migraphx::shape::int64_type, {2}}, {1, 3}));
+    auto l0 = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {3, 1, 5, 1}});
+    auto l1 = mm->add_instruction(migraphx::make_op("squeeze", {{"axes", {1, 3}}}), l0);
+    mm->add_return({l1});
+
+    auto prog = migraphx::parse_onnx("squeeze_axes_input_test.onnx");
+
+    EXPECT(p == prog);
+}
+
+TEST_CASE(squeeze_empty_axes_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    mm->add_literal({});
+    auto l0 = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, {3, 1, 5, 1}});
+    auto l1 = mm->add_instruction(migraphx::make_op("squeeze"), l0);
+    mm->add_return({l1});
+
+    auto prog = migraphx::parse_onnx("squeeze_empty_axes_test.onnx");
 
     EXPECT(p == prog);
 }

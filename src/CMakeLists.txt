@@ -7,50 +7,64 @@ include(CheckCXXLinkerFlag)
 add_library(migraphx 
     adjust_allocation.cpp
     analyze_streams.cpp
+    argument.cpp
     auto_contiguous.cpp
-    eliminate_common_subexpression.cpp
-    decompose.cpp
-    propagate_constant.cpp
+    common.cpp
+    compile_src.cpp
+    convert_to_json.cpp
+    cpp_generator.cpp
     dead_code_elimination.cpp
+    decompose.cpp
+    dom_info.cpp
+    dynamic_loader.cpp
     eliminate_allocation.cpp
-    eliminate_contiguous.cpp
+    eliminate_common_subexpression.cpp
     eliminate_concat.cpp
+    eliminate_contiguous.cpp
+    eliminate_data_type.cpp
     eliminate_identity.cpp
     eliminate_pad.cpp
-    file_buffer.cpp
-    rewrite_batchnorm.cpp
-    rewrite_rnn.cpp
-    rewrite_pooling.cpp
     env.cpp
+    file_buffer.cpp
     generate.cpp
+    inline_module.cpp
+    insert_pad.cpp
     instruction.cpp
+    json.cpp
     load_save.cpp
     make_op.cpp
-    msgpack.cpp
-    operation.cpp
-    program.cpp
     module.cpp
+    msgpack.cpp
+    normalize_attributes.cpp
+    normalize_ops.cpp
+    operation.cpp
+    opt/memory_coloring.cpp
+    opt/memory_coloring_impl.cpp
+    pass_manager.cpp
+    permutation.cpp
+    preallocate_param.cpp
+    process.cpp
+    program.cpp
+    propagate_constant.cpp
     quantization.cpp
     reduce_dims.cpp
-    remap.cpp
-    shape.cpp
-    schedule.cpp
-    serialize.cpp
-    pass_manager.cpp
     register_op.cpp
     register_target.cpp
+    remap.cpp
+    rewrite_batchnorm.cpp
+    rewrite_pooling.cpp
+    rewrite_quantization.cpp
+    rewrite_rnn.cpp
+    schedule.cpp
+    serialize.cpp
+    shape.cpp
     simplify_algebra.cpp
     simplify_reshapes.cpp
     tmp_dir.cpp
     value.cpp
     verify_args.cpp
-    json.cpp
-    convert_to_json.cpp
-    opt/memory_coloring.cpp
-    opt/memory_coloring_impl.cpp
-    normalize_attributes.cpp
-    normalize_ops.cpp
 )
+configure_file(version.h.in include/migraphx/version.h)
 rocm_set_soversion(migraphx ${MIGRAPHX_SO_VERSION})
 function(register_migraphx_ops)
     foreach(OP ${ARGN})
@@ -81,6 +95,7 @@ register_migraphx_ops(
     cosh
     cos
     deconvolution
+    dequantizelinear
     div
     dot
     elu
@@ -90,14 +105,19 @@ register_migraphx_ops(
     flatten
     floor
     gather
+    get_tuple_elem
     greater
     gru
     identity
+    if_op
     im2col
     leaky_relu
     less
     load
     log
+    logical_and
+    logical_or
+    logical_xor
     logsoftmax
     lrn
     lstm
@@ -110,9 +130,11 @@ register_migraphx_ops(
     pad
     pooling
     pow
+    prefix_scan_sum
     prelu
     quant_convolution
     quant_dot
+    quantizelinear
     recip
     reduce_max
     reduce_mean
@@ -121,6 +143,7 @@ register_migraphx_ops(
     reduce_sum
     relu
     reshape
+    reverse
     rnn
     rnn_last_cell_output
     rnn_last_hs_output
@@ -137,10 +160,12 @@ register_migraphx_ops(
     sqdiff
     sqrt
     squeeze
+    step
     sub
     tanh
     tan
     transpose
+    unary_not
     undefined
     unknown
     unsqueeze
@@ -152,6 +177,7 @@ rocm_install_targets(
   TARGETS migraphx
   INCLUDE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 
@@ -160,9 +186,8 @@ if(HAS_LIB_STD_FILESYSTEM)
 target_link_libraries(migraphx PRIVATE -lstdc++fs)
 endif()
 
+target_link_libraries(migraphx PRIVATE -ldl)
 
-find_path(HALF_INCLUDE_DIR half.hpp)
-# TODO: Fix the incorrect path
 target_include_directories(migraphx SYSTEM PUBLIC $<BUILD_INTERFACE:${HALF_INCLUDE_DIR}>)
 
 find_package(msgpack REQUIRED)
@@ -192,6 +217,10 @@ list(APPEND PACKAGE_DEPENDS PACKAGE MIOpen PACKAGE rocblas)
 add_subdirectory(targets/gpu)
 target_link_libraries(migraphx_all_targets INTERFACE migraphx_gpu)
 target_compile_definitions(migraphx_all_targets INTERFACE -DHAVE_GPU)
+endif()
+
+if(HAVE_HALF_EXPR)
+    target_compile_definitions(migraphx PUBLIC -DHAS_HALF_V1)
 endif()
 
 rocm_export_targets(

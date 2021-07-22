@@ -19,11 +19,13 @@ template <class Op>
 struct rocblas_gemm
 {
     Op op;
+    bool int8_x4_format = true;
 
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
-        return migraphx::reflect(self.op, f);
+        return pack_join(migraphx::reflect(self.op, f),
+                         pack(f(self.int8_x4_format, "int8_x4_format")));
     }
 
     std::string name() const
@@ -49,7 +51,7 @@ struct rocblas_gemm
     argument
     compute(context& ctx, const shape& output_shape, const std::vector<argument>& args) const
     {
-        gemm(ctx, output_shape, args, op.alpha, op.beta);
+        gemm(ctx, output_shape, args, op.alpha, op.beta, int8_x4_format);
         return args.back();
     }
 
