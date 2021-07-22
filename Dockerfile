@@ -32,7 +32,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-
     software-properties-common \
     wget \
     rocm-device-libs \
-    miopen-hip \
+    # miopen-hip \
     rocblas \
     zlib1g-dev && \
     apt-get clean && \
@@ -76,6 +76,19 @@ RUN cget -p $PREFIX install ccache@v4.1
 
 # Install newer cmake for onnx runtime
 RUN cget -p /opt/cmake install kitware/cmake@v3.13.4
+
+ARG MIOPEN_REPO=https://github.com/ROCmSoftwarePlatform/MIOpen.git
+ARG MIOPEN_BRANCH=develop
+ARG MIOPEN_COMMIT=1ebf0216930f672994c341d3c29c9d670cfd3cf8
+RUN git clone --single-branch --branch ${MIOPEN_BRANCH} --recursive ${MIOPEN_REPO} MIOpen && \
+    cd MIOpen && \
+    git checkout ${MIOPEN_COMMIT} && \
+    rbuild build -d depend -t install --cxx=/opt/rocm/llvm/bin/clang++ && \
+    cd ~
+    # mkdir build && cd build && \
+    # CXX=/opt/rocm/llvm/bin/clang++ cmake -DMIOPEN_BACKEND=HIP .. && \
+    # make install -j$(nproc)
+    # /bin/sh dockerfiles/scripts/install_common_deps.sh
 
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
 ARG ONNXRUNTIME_BRANCH=master
