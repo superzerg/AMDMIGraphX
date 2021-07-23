@@ -106,7 +106,7 @@ struct fusion
         auto t      = keep_alive(make_tensor(weights));
         auto status = miopenCreateOpConvForward(fp.get(), &result, cd.get(), t.get());
         if(status != miopenStatusSuccess)
-            MIGRAPHX_THROW("Creating operator failed");
+            MIGRAPHX_THROW("Creating operator failed: " + to_string(status));
         return result;
     }
 
