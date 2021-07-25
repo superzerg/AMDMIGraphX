@@ -598,7 +598,6 @@ struct miopen_conv_bias
 };
 MIGRAPHX_REGISTER_OP(miopen_conv_bias)
 
-
 // template<class T>
 // void print_vec(std::ostream& os, const std::vector<T>& vec)
 // {
@@ -619,7 +618,6 @@ MIGRAPHX_REGISTER_OP(miopen_conv_bias)
 //     print_vec(os, vec);
 //     return os;
 // }
-
 
 struct miopen_conv_bias_relu
 {
@@ -660,7 +658,7 @@ struct miopen_conv_bias_relu
         miopenSetOpArgsConvForward(fargs.get(), conv, &alpha, &beta, args[1].implicit());
         miopenSetOpArgsBiasForward(fargs.get(), bias, &alpha, &beta, args[3].implicit());
         miopenSetOpArgsActivForward(fargs.get(), relu, &alpha, &beta, 0, 0, 0);
-        auto result = f.execute(ctx, fargs, args[0], args[4]);
+        auto result     = f.execute(ctx, fargs, args[0], args[4]);
         auto gpu_result = migraphx::gpu::from_gpu(result);
         std::vector<float> vec;
         gpu_result.visit([&](auto v) { vec.assign(v.begin(), v.end()); });

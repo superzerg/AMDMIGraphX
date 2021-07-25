@@ -625,18 +625,19 @@ capture_arguments_impl(program& prog, const target& t, const std::vector<std::st
         std::vector<float> vec_val;
         argument arg = t.copy_from(args.front());
         arg.visit([&](auto output) { vec_val.assign(output.begin(), output.end()); });
-        if (ins_index == 6)
+        if(ins_index == 6)
         {
             std::cout << "index = " << ins_index << ", arg = " << vec_val << std::endl;
-            auto max_it                = std::max_element(vec_val.begin(), vec_val.end());
-            auto min_it               = std::min_element(vec_val.begin(), vec_val.end());
+            auto max_it = std::max_element(vec_val.begin(), vec_val.end());
+            auto min_it = std::min_element(vec_val.begin(), vec_val.end());
             std::cout << "max_loc = " << std::distance(vec_val.begin(), max_it) << std::endl;
             std::cout << "min_loc = " << std::distance(vec_val.begin(), min_it) << std::endl;
         }
-        auto max_val                = *std::max_element(vec_val.begin(), vec_val.end());
-        auto min_val                = *std::min_element(vec_val.begin(), vec_val.end());
-        auto max_abs                = std::max(std::fabs(max_val), std::fabs(min_val));
-        std::cout << "index = " << ins_index << ", max_val = " << max_val << ", min_val = " << min_val << std::endl;
+        auto max_val = *std::max_element(vec_val.begin(), vec_val.end());
+        auto min_val = *std::min_element(vec_val.begin(), vec_val.end());
+        auto max_abs = std::max(std::fabs(max_val), std::fabs(min_val));
+        std::cout << "index = " << ins_index << ", max_val = " << max_val
+                  << ", min_val = " << min_val << std::endl;
         max_abs_vals->at(ins_index) = std::max(max_abs_vals->at(ins_index), max_abs);
 
         // if all values are 0, no need to do scaling

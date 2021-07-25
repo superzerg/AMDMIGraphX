@@ -70,7 +70,7 @@ argument miopen_convolution::compute(context& ctx,
     // arg_w.visit([&](auto v) { vec_w.assign(v.begin(), v.end()); });
     // std::cout << "gpu_conv_w = " << vec_w << std::endl;
 
-    if (count == 3)
+    if(count == 3)
     {
         std::cout << "all_x = " << arg_x << std::endl;
         std::cout << "all_w = " << arg_w << std::endl;
@@ -106,7 +106,7 @@ argument miopen_convolution::compute(context& ctx,
     // std::cout << "max_val = " << *max_res_it;
     // std::cout << ", gpu_conv_res = " << vec << std::endl;
 
-    if (count == 3)
+    if(count == 3)
     {
         std::vector<float> vec;
         result.visit([&](auto v) { vec.assign(v.begin(), v.end()); });
@@ -114,7 +114,6 @@ argument miopen_convolution::compute(context& ctx,
         std::cout << "max_val = " << *max_res_it;
         std::cout << ", all_res = " << result << std::endl;
     }
-
 
     return args[3];
 }
