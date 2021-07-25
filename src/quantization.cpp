@@ -18,6 +18,7 @@
 #include <migraphx/stringutils.hpp>
 #include <migraphx/ranges.hpp>
 #include <migraphx/target.hpp>
+#include <migraphx/print.hpp>
 #include <new>
 #include <utility>
 #include <set>
@@ -577,6 +578,37 @@ std::size_t capture_arguments(program& prog,
     return num_quant_params;
 }
 
+// template<class T>
+// void print_vec(std::ostream& os, const std::vector<T>& vec)
+// {
+//     std::size_t print_num = 320;
+//     os << "{";
+//     std::size_t elem_num = vec.size() > print_num ? print_num : vec.size();
+//     for (std::size_t i = 0; i < elem_num; ++i)
+//     {
+//         os << std::setw(12) << vec[i];
+//         if (i != vec.size() - 1) os << ", ";
+//         if (((i + 1) % 8) == 0) os << std::endl;
+//     }
+
+//     std::size_t start = vec.size() - print_num > 0 ? vec.size() - print_num : 0;
+//     start = start < print_num ? print_num : start;
+//     for (std::size_t i = 0; i < elem_num; ++i)
+//     {
+//         os << std::setw(12) << vec[i];
+//         if (i != vec.size() - 1) os << ", ";
+//         if (((i + 1) % 8) == 0) os << std::endl;
+//     }
+//     os << "}";
+// }
+
+// template<class T>
+// std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
+// {
+//     print_vec(os, vec);
+//     return os;
+// }
+
 std::shared_ptr<std::vector<std::pair<float, float>>>
 capture_arguments_impl(program& prog, const target& t, const std::vector<std::string>& ins_names)
 {
@@ -593,9 +625,18 @@ capture_arguments_impl(program& prog, const target& t, const std::vector<std::st
         std::vector<float> vec_val;
         argument arg = t.copy_from(args.front());
         arg.visit([&](auto output) { vec_val.assign(output.begin(), output.end()); });
+        if (ins_index == 6)
+        {
+            std::cout << "index = " << ins_index << ", arg = " << vec_val << std::endl;
+            auto max_it                = std::max_element(vec_val.begin(), vec_val.end());
+            auto min_it               = std::min_element(vec_val.begin(), vec_val.end());
+            std::cout << "max_loc = " << std::distance(vec_val.begin(), max_it) << std::endl;
+            std::cout << "min_loc = " << std::distance(vec_val.begin(), min_it) << std::endl;
+        }
         auto max_val                = *std::max_element(vec_val.begin(), vec_val.end());
         auto min_val                = *std::min_element(vec_val.begin(), vec_val.end());
         auto max_abs                = std::max(std::fabs(max_val), std::fabs(min_val));
+        std::cout << "index = " << ins_index << ", max_val = " << max_val << ", min_val = " << min_val << std::endl;
         max_abs_vals->at(ins_index) = std::max(max_abs_vals->at(ins_index), max_abs);
 
         // if all values are 0, no need to do scaling

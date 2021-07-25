@@ -29,9 +29,11 @@
 #include <migraphx/register_op.hpp>
 #include <migraphx/make_op.hpp>
 #include <migraphx/tune_axis.hpp>
+#include <migraphx/print.hpp>
 #include <unordered_map>
 #include <utility>
 #include <iostream>
+#include <iomanip>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -189,6 +191,27 @@ auto visit_quantize(T&& x, Ts&&... xs)
     };
 }
 
+// template<class T>
+// void print_vec(std::ostream& os, const std::vector<T>& vec)
+// {
+//     os << "{";
+//     std::size_t elem_num = vec.size() > 320 ? 320 : vec.size();
+//     for (std::size_t i = 0; i < elem_num; ++i)
+//     {
+//         os << std::setw(12) << vec[i];
+//         if (i != vec.size() - 1) os << ", ";
+//         if (((i + 1) % 8) == 0) os << std::endl;
+//     }
+//     os << "}";
+// }
+
+// template<class T>
+// std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
+// {
+//     print_vec(os, vec);
+//     return os;
+// }
+
 template <class Op>
 struct ref_convolution : auto_register_op<ref_convolution<Op>>
 {
@@ -211,6 +234,18 @@ struct ref_convolution : auto_register_op<ref_convolution<Op>>
     }
     argument compute(context&, shape output_shape, std::vector<argument> args) const
     {
+        auto arg_x = args.at(0);
+        std::vector<float> vec_x;
+        arg_x.visit([&](auto v) { vec_x.assign(v.begin(), v.end()); });
+        auto max_it = std::max_element(vec_x.begin(), vec_x.end());
+        std::cout << "max_val = " << *max_it;
+        std::cout << ", cpu_conv_x = " << vec_x << std::endl;
+
+        auto arg_w = args.at(1);
+        std::vector<float> vec_w;
+        arg_w.visit([&](auto v) { vec_w.assign(v.begin(), v.end()); });
+        std::cout << "cpu_conv_w = " << vec_w << std::endl;
+
         argument result{output_shape};
         visit_quantize(result, args[0], args[1])([&](auto output, auto input, auto weights) {
             auto in_lens = input.get_shape().lens();
@@ -265,6 +300,13 @@ struct ref_convolution : auto_register_op<ref_convolution<Op>>
                 output[i] = acc;
             });
         });
+
+        std::vector<float> vec;
+        result.visit([&](auto v) { vec.assign(v.begin(), v.end()); });
+        auto max_res_it = std::max_element(vec.begin(), vec.end());
+        std::cout << "max_val = " << *max_res_it;
+        std::cout << ", cpu_conv_res = " << vec << std::endl;
+
         return result;
     }
 };

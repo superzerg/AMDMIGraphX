@@ -2,6 +2,9 @@
 #include <migraphx/gpu/device/convert.hpp>
 #include <migraphx/gpu/context.hpp>
 #include <migraphx/generate.hpp>
+#include <migraphx/module.hpp>
+#include <migraphx/print.hpp>
+#include <iomanip>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -23,6 +26,18 @@ argument miopen_quant_convolution::compute(context& ctx,
     float alpha = 1;
     float beta  = 0;
 
+    auto arg_x = migraphx::gpu::from_gpu(args.at(0));
+    std::vector<float> vec_x;
+    arg_x.visit([&](auto v) { vec_x.assign(v.begin(), v.end()); });
+    auto max_it = std::max_element(vec_x.begin(), vec_x.end());
+    std::cout << "max_val = " << *max_it;
+    std::cout << ", gpu_quant_conv_x = " << vec_x << std::endl;
+
+    auto arg_w = migraphx::gpu::from_gpu(args.at(1));
+    std::vector<float> vec_w;
+    arg_w.visit([&](auto v) { vec_w.assign(v.begin(), v.end()); });
+    std::cout << "gpu_quant_conv_w = " << vec_w << std::endl;
+
     auto status = miopenConvolutionForward(ctx.get_stream().get_miopen(),
                                            &alpha,
                                            x_desc.get(),
@@ -40,6 +55,13 @@ argument miopen_quant_convolution::compute(context& ctx,
     {
         MIGRAPHX_THROW("QUANT_CONVOLUTION: run convolution forward failed");
     }
+
+    auto result = migraphx::gpu::from_gpu(args[3]);
+    std::vector<float> vec;
+    result.visit([&](auto v) { vec.assign(v.begin(), v.end()); });
+    auto max_res_it = std::max_element(vec.begin(), vec.end());
+    std::cout << "max_val = " << *max_res_it;
+    std::cout << "gpu_quant_conv_res = " << vec << std::endl;
 
     return args[3];
 }

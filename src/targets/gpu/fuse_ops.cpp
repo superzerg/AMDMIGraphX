@@ -24,8 +24,10 @@
 #include <migraphx/instruction.hpp>
 #include <migraphx/register_op.hpp>
 #include <migraphx/array.hpp>
+#include <migraphx/print.hpp>
 #include <migraphx/op/clip.hpp>
 #include <cmath>
+#include <iomanip>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -596,6 +598,29 @@ struct miopen_conv_bias
 };
 MIGRAPHX_REGISTER_OP(miopen_conv_bias)
 
+
+// template<class T>
+// void print_vec(std::ostream& os, const std::vector<T>& vec)
+// {
+//     os << "{";
+//     std::size_t elem_num = vec.size() > 320 ? 320 : vec.size();
+//     for (std::size_t i = 0; i < elem_num; ++i)
+//     {
+//         os << std::setw(12) << vec[i];
+//         if (i != vec.size() - 1) os << ", ";
+//         if (((i + 1) % 8) == 0) os << std::endl;
+//     }
+//     os << "}";
+// }
+
+// template<class T>
+// std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
+// {
+//     print_vec(os, vec);
+//     return os;
+// }
+
+
 struct miopen_conv_bias_relu
 {
     op::convolution op;
@@ -619,13 +644,30 @@ struct miopen_conv_bias_relu
     }
     argument compute(context& ctx, const shape&, const std::vector<argument>& args) const
     {
+        auto arg_x = migraphx::gpu::from_gpu(args.at(0));
+        std::vector<float> vec_x;
+        arg_x.visit([&](auto v) { vec_x.assign(v.begin(), v.end()); });
+        std::cout << "conv_bias_rele_x = " << vec_x << std::endl;
+
+        auto arg_w = migraphx::gpu::from_gpu(args.at(1));
+        std::vector<float> vec_w;
+        arg_w.visit([&](auto v) { vec_w.assign(v.begin(), v.end()); });
+        std::cout << "conv_bias_rele_w = " << vec_w << std::endl;
+
         auto fargs  = make_fused_args();
         float alpha = 1;
         float beta  = 0;
         miopenSetOpArgsConvForward(fargs.get(), conv, &alpha, &beta, args[1].implicit());
         miopenSetOpArgsBiasForward(fargs.get(), bias, &alpha, &beta, args[3].implicit());
         miopenSetOpArgsActivForward(fargs.get(), relu, &alpha, &beta, 0, 0, 0);
-        return f.execute(ctx, fargs, args[0], args[4]);
+        auto result = f.execute(ctx, fargs, args[0], args[4]);
+        auto gpu_result = migraphx::gpu::from_gpu(result);
+        std::vector<float> vec;
+        gpu_result.visit([&](auto v) { vec.assign(v.begin(), v.end()); });
+        std::cout << "conv_bias_relu_res = " << vec << std::endl;
+        return result;
+
+        // return f.execute(ctx, fargs, args[0], args[4]);
     }
     void finalize(context& ctx, const shape&, const std::vector<shape>& inputs)
     {
@@ -767,7 +809,7 @@ void fuse_ops::apply(module& p) const
     match::find_matches(p, find_triadd{});
     match::find_matches(p,
                         find_layernorm{},
-                        find_conv_bias_relu{ctx},
+                        // find_conv_bias_relu{ctx},
                         find_conv_bias{ctx},
                         find_add_gelu{},
                         find_add_gelu_new{},

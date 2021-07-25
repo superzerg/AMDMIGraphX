@@ -1,6 +1,9 @@
 #include <migraphx/gpu/convolution.hpp>
 #include <migraphx/gpu/context.hpp>
 #include <migraphx/generate.hpp>
+#include <migraphx/module.hpp>
+#include <migraphx/print.hpp>
+#include <iomanip>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -28,10 +31,51 @@ inline shape reshape_if_1d(const shape& input)
     return new_shape;
 }
 
+// template<class T>
+// void print_vec(std::ostream& os, const std::vector<T>& vec)
+// {
+//     os << "{";
+//     std::size_t elem_num = vec.size() > 320 ? 320 : vec.size();
+//     for (std::size_t i = 0; i < elem_num; ++i)
+//     {
+//         os << std::setw(12) << vec[i];
+//         if (i != vec.size() - 1) os << ", ";
+//         if (((i + 1) % 8) == 0) os << std::endl;
+//     }
+//     os << "}";
+// }
+
+// template<class T>
+// std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
+// {
+//     print_vec(os, vec);
+//     return os;
+// }
+
+static std::size_t count = 0;
 argument miopen_convolution::compute(context& ctx,
                                      const shape& output_shape,
                                      const std::vector<argument>& args) const
 {
+    count++;
+    auto arg_x = migraphx::gpu::from_gpu(args.at(0));
+    // std::vector<float> vec_x;
+    // arg_x.visit([&](auto v) { vec_x.assign(v.begin(), v.end()); });
+    // auto max_it = std::max_element(vec_x.begin(), vec_x.end());
+    // std::cout << "max_val = " << *max_it;
+    // std::cout << ", gpu_conv_x = " << vec_x << std::endl;
+
+    auto arg_w = migraphx::gpu::from_gpu(args.at(1));
+    // std::vector<float> vec_w;
+    // arg_w.visit([&](auto v) { vec_w.assign(v.begin(), v.end()); });
+    // std::cout << "gpu_conv_w = " << vec_w << std::endl;
+
+    if (count == 3)
+    {
+        std::cout << "all_x = " << arg_x << std::endl;
+        std::cout << "all_w = " << arg_w << std::endl;
+    }
+
     auto x_desc = make_tensor(reshape_if_1d(args[0].get_shape()));
     auto w_desc = make_tensor(reshape_if_1d(args[1].get_shape()));
     auto y_desc = make_tensor(reshape_if_1d(output_shape));
@@ -53,6 +97,25 @@ argument miopen_convolution::compute(context& ctx,
 
     if(status != miopenStatusSuccess)
         MIGRAPHX_THROW("MIOpen Convolution: running convolution failed");
+
+    auto result = migraphx::gpu::from_gpu(args[3]);
+    gpu_sync();
+    // std::vector<float> vec;
+    // result.visit([&](auto v) { vec.assign(v.begin(), v.end()); });
+    // auto max_res_it = std::max_element(vec.begin(), vec.end());
+    // std::cout << "max_val = " << *max_res_it;
+    // std::cout << ", gpu_conv_res = " << vec << std::endl;
+
+    if (count == 3)
+    {
+        std::vector<float> vec;
+        result.visit([&](auto v) { vec.assign(v.begin(), v.end()); });
+        auto max_res_it = std::max_element(vec.begin(), vec.end());
+        std::cout << "max_val = " << *max_res_it;
+        std::cout << ", all_res = " << result << std::endl;
+    }
+
+
     return args[3];
 }
 

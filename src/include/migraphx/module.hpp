@@ -15,6 +15,9 @@
 #include <migraphx/config.hpp>
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
+#include <ostream>
+
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
