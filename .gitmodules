@@ -1,0 +1,3 @@
+[submodule "examples/gpen/GPEN"]
+	path = examples/gpen/GPEN
+	url = https://github.com/cagery/GPEN
