@@ -19,7 +19,11 @@ def rocmtestnode(Map conf) {
             mkdir build
             cd build
             CXX=${compiler} CXXFLAGS='-Werror -Wno-fallback' cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ${flags} .. 
-            CTEST_PARALLEL_LEVEL=32 make -j\$(nproc) generate all doc package check VERBOSE=1
+            CTEST_PARALLEL_LEVEL=32 make -j\$(nproc) test_verify VERBOSE=1
+            export MIOPEN_ENABLE_LOGGING=1
+            export MIOPEN_ENABLE_LOGGING_CMD=1
+            export MIOPEN_LOG_LEVEL=6
+            ./bin/test_verify test_conv_bn_add
         """
         echo cmd
         sh cmd
