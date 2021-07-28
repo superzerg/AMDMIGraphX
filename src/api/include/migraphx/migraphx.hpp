@@ -524,6 +524,22 @@ struct program : MIGRAPHX_HANDLE_BASE(program)
         return program_parameter_shapes(pout, own{});
     }
 
+    /// Return the name of the input parameters in order
+    std::vector<const char*> get_parameter_names() const
+    {
+        migraphx_program_parameter_shapes_t pout;
+        call(&migraphx_program_get_parameter_shapes, &pout, this->get_handle_ptr());
+        std::size_t param_num;
+        call(&migraphx_program_parameter_shapes_size, &param_num, pout);
+
+        std::vector<const char*> result(param_num);
+        if(!result.empty())
+        {
+            call(&migraphx_program_get_parameter_names, result.data(), this->get_handle_ptr());
+        }
+        return result;
+    }
+
     /// Get the shapes of all the outputs returned by this program
     shapes get_output_shapes() const
     {
