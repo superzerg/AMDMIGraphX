@@ -86,14 +86,16 @@ struct match_quantizable_ops
     {
         match::name(get_quantizable_op_names())(
             match::arg(0)(match::name("dequantizelinear")(
-                match::arg(0)(match::name("quantizelinear")).bind("q0"))).bind("dq0"),
+                              match::arg(0)(match::name("quantizelinear")).bind("q0")))
+                .bind("dq0"),
             match::arg(1)(match::name("dequantizelinear")(
-                match::arg(0)(match::name("quantizelinear")).bind("q1"))).bind("dq1"));
+                              match::arg(0)(match::name("quantizelinear")).bind("q1")))
+                .bind("dq1"));
     }
 
     void apply(module& m, match::matcher_result r) const
     {
-        auto ins  = r.result;
+        auto ins = r.result;
         auto dq0 = r.instructions["dq0"];
         auto q0  = r.instructions["q0"];
         auto dq1 = r.instructions["dq1"];
@@ -106,22 +108,22 @@ struct match_quantizable_ops
 
         std::vector<instruction_ref> lits = {q0, dq0, q1, dq1};
         if(not std::all_of(lits.begin(), lits.end(), [&](auto in) {
-            const auto& lit_inputs = in->inputs();
-            return (lit_inputs.size() == 2) or inputs_are_zeros(lit_inputs.at(2));
-        }))
+               const auto& lit_inputs = in->inputs();
+               return (lit_inputs.size() == 2) or inputs_are_zeros(lit_inputs.at(2));
+           }))
         {
             return;
         }
 
         // Only zero_point==0 currently supported
-        auto dq0_args  = dq0->inputs();
-        auto dq1_args  = dq1->inputs();
+        auto dq0_args = dq0->inputs();
+        auto dq1_args = dq1->inputs();
 
         auto scale     = get_scale(dq0_args.at(1)) * get_scale(dq1_args.at(1));
         auto qop_args  = ins->inputs();
         qop_args.at(0) = q0;
         qop_args.at(1) = q1;
-        auto lens = ins->get_shape().lens();
+        auto lens      = ins->get_shape().lens();
 
         instruction_ref qop{};
         instruction_ref dq_scale{};
@@ -129,27 +131,29 @@ struct match_quantizable_ops
         if(ins->name() == "convolution")
         {
             auto conv_val = ins->get_operator().to_value();
-            qop = m.insert_instruction(ins, make_op("quant_convolution", conv_val), qop_args);
-            dq_scale     = m.add_literal(static_cast<float>(scale));
-            zero_point   = m.add_literal(0);
+            qop      = m.insert_instruction(ins, make_op("quant_convolution", conv_val), qop_args);
+            dq_scale = m.add_literal(static_cast<float>(scale));
+            zero_point = m.add_literal(0);
         }
         else if(qop->name() == "dot")
         {
-            auto dot_op    = any_cast<op::dot>(qop->get_operator());
-            auto scale_val = dot_op.alpha / scale;
+            auto dot_op             = any_cast<op::dot>(qop->get_operator());
+            auto scale_val          = dot_op.alpha / scale;
             instruction_ref input_c = m.end();
-            if (qop_args.size() == 3)
+            if(qop_args.size() == 3)
             {
                 input_c = qop_args.at(2);
                 qop_args.pop_back();
             }
 
-            qop = m.insert_instruction(ins, make_op("quant_dot", {{"alpha", 1}, {"beta", 0}}), qop_args);
-            dq_scale   = m.add_literal(static_cast<float>(scale_val));
-            if (dot_op.beta != 0.0f and input_c != m.end())
+            qop = m.insert_instruction(
+                ins, make_op("quant_dot", {{"alpha", 1}, {"beta", 0}}), qop_args);
+            dq_scale = m.add_literal(static_cast<float>(scale_val));
+            if(dot_op.beta != 0.0f and input_c != m.end())
             {
                 auto l_beta = m.add_literal(-1.0f * dot_op.beta / scale_val);
-                auto m_beta = m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", lens}}), l_beta);
+                auto m_beta = m.insert_instruction(
+                    ins, make_op("multibroadcast", {{"output_lens", lens}}), l_beta);
                 zero_point = m.insert_instruction(ins, make_op("mul"), m_beta, input_c);
             }
             else
@@ -158,10 +162,12 @@ struct match_quantizable_ops
             }
         }
 
-        auto scale_mb = m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", lens}}), dq_scale);
-        if (zero_point->get_shape().lens() != lens)
+        auto scale_mb =
+            m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", lens}}), dq_scale);
+        if(zero_point->get_shape().lens() != lens)
         {
-            zero_point = m.insert_instruction(ins, make_op("multibroadcast", {{"output_lens", lens}}), zero_point);
+            zero_point = m.insert_instruction(
+                ins, make_op("multibroadcast", {{"output_lens", lens}}), zero_point);
         }
 
         m.replace_instruction(ins, make_op("dequantizelinear"), qop, scale_mb, zero_point);
@@ -172,15 +178,15 @@ struct remove_qdq_pair
 {
     auto matcher() const
     {
-            match::name("dequantizelinear")(match::arg(0)(match::name("quantizelinear")));
+        match::name("dequantizelinear")(match::arg(0)(match::name("quantizelinear")));
     }
 
     void apply(module& m, match::matcher_result r) const
     {
-        auto dq  = r.result;
+        auto dq     = r.result;
         auto inputs = dq->inputs();
-        auto q = inputs.at(0);
-        auto input = q->inputs().at(0);
+        auto q      = inputs.at(0);
+        auto input  = q->inputs().at(0);
         m.replace_instruction(dq, input);
     }
 };
