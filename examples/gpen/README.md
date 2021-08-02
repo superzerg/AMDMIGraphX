@@ -26,3 +26,10 @@ Successfully preprocessed all matching files.
 <i>Note the automatic `.cu` to `.hip` conversion, and successful execution.</i>
 
 # Create ONNX model from PyTorch
+
+The GPEN model has two models: RetinaFace and FaceGAN. 
+
+- RetinaFace ONNX model can be generated using the script provided [here](https://github.com/cagery/GPEN/blob/main/pt_to_onnx_retinafacedetection.py).
+- FaceGAN model requires `FusedLeakyReluFunction` operator to be defined in PyTorch to be converted to ONNX. Currently it is erroring with `RuntimeError: ONNX export failed: Couldn't export Python operator FusedLeakyReLUFunction`. This operator can be defined as a custom operator in PyTorch and then can be converted to ONNX. Deferred to be done later due to priority. 
+The script of conversion is [here](https://github.com/cagery/GPEN/blob/main/pt_to_onnx_facegan.py).
+
