@@ -16,7 +16,7 @@ struct test_conv3 : verify_program<test_conv3>
             mm->add_parameter("w", migraphx::shape{migraphx::shape::float_type, {256, 256, 3, 3}});
         mm->add_instruction(
             migraphx::make_op("convolution",
-                              {{"padding", {2, 2, 2, 2}}, {"stride", {1, 1}}, {"dilation", {2, 2}}, {"group", {1}}, {"padding_mode", {0}}}),
+                              {{"padding", {2, 2, 2, 2}}, {"stride", {1, 1}}, {"dilation", {2, 2}}}),
             input,
             weights);
         return p;
