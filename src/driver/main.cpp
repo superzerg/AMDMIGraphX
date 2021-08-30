@@ -4,6 +4,9 @@
 #include "perf.hpp"
 #include "models.hpp"
 
+// hip header file
+#include <hip/hip_runtime.h>
+
 #include <migraphx/tf.hpp>
 #include <migraphx/onnx.hpp>
 #include <migraphx/stringutils.hpp>
@@ -25,6 +28,9 @@
 #include <migraphx/register_target.hpp>
 
 #include <fstream>
+
+void start_tracing();
+void stop_tracing();
 
 namespace migraphx {
 namespace driver {
@@ -466,20 +472,26 @@ struct perf : command<perf>
 {
     compiler c;
     unsigned n = 100;
+    bool rocprof_enable = false;
     void parse(argument_parser& ap)
     {
         c.parse(ap);
         ap(n, {"--iterations", "-n"}, ap.help("Number of iterations to run for perf report"));
+        ap(rocprof_enable, {"--rocprof"}, ap.help("Enable rocprof"),ap.set_value(true));
     }
 
     void run()
-    {
+    {   
+        if(rocprof_enable)
+            start_tracing();
         std::cout << "Compiling ... " << std::endl;
         auto p = c.compile();
         std::cout << "Allocating params ... " << std::endl;
         auto m = c.params(p);
         std::cout << "Running performance report ... " << std::endl;
         p.perf_report(std::cout, n, m);
+        if(rocprof_enable)
+            stop_tracing();
     }
 };
 
@@ -555,3 +567,142 @@ int main(int argc, const char* argv[])
 
     return 0;
 }
+
+
+/////////////////////////////////////////////////////////////////////////////
+// HIP/HCC Callbacks/Activity tracing
+/////////////////////////////////////////////////////////////////////////////
+#include <roctracer/roctracer_hip.h>
+#include <roctracer/roctracer_hcc.h>
+#include <roctracer/roctracer_ext.h>
+#include <roctracer/roctracer_roctx.h>
+#include <roctracer/roctx.h>
+
+// Macro to check ROC-tracer calls status
+#define ROCTRACER_CALL(call)                                               \
+   do {                                                                    \
+      int err = call;                                                      \
+      if (err != 0) {                                                      \
+         std::cerr << roctracer_error_string() << std::endl << std::flush; \
+         abort();                                                          \
+      }                                                                    \
+   } while (0)
+
+// HIP API callback function
+void hip_api_callback(
+   uint32_t domain,
+   uint32_t cid,
+   const void* callback_data,
+   void* arg)
+{
+   (void)arg;
+   const hip_api_data_t* data = reinterpret_cast<const hip_api_data_t*>                   
+                                (callback_data);
+   fprintf(stdout, "<%s id(%u)\tcorrelation_id(%lu) %s> ",
+        roctracer_op_string(ACTIVITY_DOMAIN_HIP_API, cid, 0),
+        cid,
+        data->correlation_id,
+        (data->phase == ACTIVITY_API_PHASE_ENTER) ? "on-enter" : "on-exit");
+   if (data->phase == ACTIVITY_API_PHASE_ENTER) {
+      switch (cid) {
+         case HIP_API_ID_hipMemcpy:
+            fprintf(stdout, "dst(%p) src(%p) size(0x%x) kind(%u)",
+                  data->args.hipMemcpy.dst,
+                  data->args.hipMemcpy.src,
+                  static_cast<uint32_t>(data->args.hipMemcpy.sizeBytes),
+                  static_cast<uint32_t>(data->args.hipMemcpy.kind));
+            break;
+         case HIP_API_ID_hipMalloc:
+            fprintf(stdout, "ptr(%p) size(0x%x)",
+                  data->args.hipMalloc.ptr,
+                  static_cast<uint32_t>(data->args.hipMalloc.size));
+            break;
+         case HIP_API_ID_hipFree:
+            fprintf(stdout, "ptr(%p)", 
+                  data->args.hipFree.ptr);
+            break;
+         case HIP_API_ID_hipModuleLaunchKernel:
+            fprintf(stdout, "kernel(\"%s\") stream(%p)",
+                  hipKernelNameRef(data->args.hipModuleLaunchKernel.f),
+                  data->args.hipModuleLaunchKernel.stream);
+            break;
+         default:
+            break;
+   }
+   } else {
+      switch (cid) {
+         case HIP_API_ID_hipMalloc:
+            fprintf(stdout, "*ptr(0x%p)",
+                  *(data->args.hipMalloc.ptr));
+            break;
+         default:
+            break;
+      }
+   }
+   fprintf(stdout, "\n"); fflush(stdout);
+}
+
+// Activity tracing callback
+//   hipMalloc id(3) correlation_id(1): 
+//   begin_ns(1525888652762640464) end_ns(1525888652762877067)
+void activity_callback(const char* begin, const char* end, void* arg) {
+   const roctracer_record_t* record = reinterpret_cast 
+                                      <const roctracer_record_t*>(begin);
+   const roctracer_record_t* end_record = reinterpret_cast
+                                      <const roctracer_record_t*>(end);
+   fprintf(stdout, "\tActivity records:\n"); fflush(stdout);
+   while (record < end_record) {
+      const char * name = roctracer_op_string(record->domain, record->op, record->kind);
+      fprintf(stdout, "\t%s\tcorrelation_id(%lu) time_ns(%lu:%lu) \
+                      device_id(%d) stream_id(%lu)",
+              name,
+              record->correlation_id,
+              record->begin_ns,
+              record->end_ns,
+              record->device_id,
+              record->thread_id
+              );
+      //if (record->kind == hc::HSA_OP_ID_COPY) 
+      //   fprintf(stdout, " bytes(0x%zx)", record->bytes);
+      //fprintf(stdout, "\n");
+      fflush(stdout);
+      ROCTRACER_CALL(roctracer_next_record(record, &record));
+   }
+}
+
+// Start tracing routine
+void start_tracing() {
+   std::cout << "# START #############################" << std::endl
+             << std::flush;
+    
+    //I don't know what this does, looks like we need it.
+    ROCTRACER_CALL(roctracer_set_properties(ACTIVITY_DOMAIN_HIP_API, NULL));
+
+    //sync --> callbacks
+    //async --> pool --> calls you back
+    ROCTRACER_CALL(roctracer_enable_domain_callback(ACTIVITY_DOMAIN_HIP_API, hip_api_callback, NULL)); //all HIP calls, callback function
+    ROCTRACER_CALL(roctracer_disable_op_callback(ACTIVITY_DOMAIN_HIP_API, HIP_API_ID_hipGetDevice));
+    ROCTRACER_CALL(roctracer_enable_domain_callback(ACTIVITY_DOMAIN_ROCTX, hip_api_callback, NULL));
+
+    // Work around a roctracer bug.  Must have a default pool or crash at exit
+    roctracer_properties_t properties;
+    memset(&properties, 0, sizeof(roctracer_properties_t));
+    properties.buffer_size = 0x40000; //large pool
+    properties.buffer_callback_fun = activity_callback;
+    roctracer_open_pool(&properties);
+    roctracer_enable_domain_activity(ACTIVITY_DOMAIN_HCC_OPS);
+
+    roctracer_start();
+}
+
+// Stop tracing routine
+void stop_tracing() {
+    ROCTRACER_CALL(roctracer_stop());
+    ROCTRACER_CALL(roctracer_disable_callback());
+    ROCTRACER_CALL(roctracer_disable_activity());
+    ROCTRACER_CALL(roctracer_close_pool());
+    ROCTRACER_CALL(roctracer_flush_activity());
+    std::cout << "# STOP  #############################" << std::endl 
+             << std::flush;
+}
+/////////////////////////////////////////////////////////////////////////////
