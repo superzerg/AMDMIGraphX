@@ -370,7 +370,7 @@ struct verify : command<verify>
 {
     static const int q_fp16 = 1;
     static const int q_int8 = 2;
-    int quantize = 0;
+    int quantize            = 0;
     loader l;
     program_params parameters;
     compiler_target ct;
@@ -403,7 +403,7 @@ struct verify : command<verify>
 
     void run()
     {
-        auto p = l.load();
+        auto p  = l.load();
         auto p2 = p;
         if(quantize == q_fp16)
         {

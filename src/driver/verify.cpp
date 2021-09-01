@@ -130,7 +130,7 @@ void verify_reduced_program(const program& p,
     auto n         = std::distance(mm->begin(), mm->end());
     for(std::size_t i = 0; i < n; i++)
     {
-        verify_reduced(p, p2,i, t, options, inputs, tolerance);
+        verify_reduced(p, p2, i, t, options, inputs, tolerance);
     }
 }
 
