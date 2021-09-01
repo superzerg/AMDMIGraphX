@@ -9,6 +9,7 @@ inline namespace MIGRAPHX_INLINE_NS {
 
 void verify_program(const std::string& name,
                     const program& p,
+                    const program& p2,
                     const target& t,
                     compile_options options     = compile_options{},
                     const parameter_map& inputs = {},
@@ -18,6 +19,7 @@ void verify_instructions(const program& prog,
                          compile_options options = compile_options{},
                          double tolerance        = 80);
 void verify_reduced_program(const program& p,
+                            const program& p2,
                             const target& t,
                             compile_options options     = compile_options{},
                             const parameter_map& inputs = {},

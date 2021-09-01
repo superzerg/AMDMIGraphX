@@ -368,6 +368,9 @@ struct params : command<params>
 
 struct verify : command<verify>
 {
+    static const int q_fp16 = 1;
+    static const int q_int8 = 2;
+    int quantize = 0;
     loader l;
     program_params parameters;
     compiler_target ct;
@@ -395,11 +398,17 @@ struct verify : command<verify>
            ap.help("Verify each instruction"),
            ap.set_value(true));
         ap(reduce, {"-r", "--reduce"}, ap.help("Reduce program and verify"), ap.set_value(true));
+        ap(quantize, {"--fp16"}, ap.help("Quantize for fp16"), ap.set_value(q_fp16));
     }
 
     void run()
     {
         auto p = l.load();
+        auto p2 = p;
+        if(quantize == q_fp16)
+        {
+            quantize_fp16(p);
+        }
         l.save(p);
         std::cout << p << std::endl;
 
@@ -415,11 +424,11 @@ struct verify : command<verify>
         }
         else if(reduce)
         {
-            verify_reduced_program(p, t, options, m, tolerance);
+            verify_reduced_program(p, p2, t, options, m, tolerance);
         }
         else
         {
-            verify_program(l.file, p, t, options, m, tolerance);
+            verify_program(l.file, p, p2, t, options, m, tolerance);
         }
     }
 };

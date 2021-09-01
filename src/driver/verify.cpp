@@ -41,12 +41,13 @@ run_target(program p, const target& t, const compile_options& options, const par
 
 void verify_program(const std::string& name,
                     const program& p,
+                    const program& p2,
                     const target& t,
                     compile_options options,
                     const parameter_map& inputs,
                     double tolerance)
 {
-    auto x = run_ref(p, inputs);
+    auto x = run_ref(p2, inputs);
     auto y = run_target(p, t, options, inputs);
 
     std::size_t output_num = x.size();
@@ -92,7 +93,7 @@ void verify_instructions(const program& prog,
         {
             std::cout << "Verify: " << ins.name() << std::endl;
             std::cout << p << std::endl;
-            verify_program(ins.name(), p, t, options, create_param_map(p, false), tolerance);
+            verify_program(ins.name(), p, p, t, options, create_param_map(p, false), tolerance);
         }
         catch(...)
         {
@@ -103,6 +104,7 @@ void verify_instructions(const program& prog,
 }
 
 void verify_reduced(program p,
+                    program p2,
                     int n,
                     const target& t,
                     compile_options options,
@@ -114,10 +116,11 @@ void verify_reduced(program p,
     mm->remove_instructions(last, mm->end());
     std::cout << "Verify: " << std::endl;
     std::cout << p << std::endl;
-    verify_program(std::to_string(n), p, t, options, inputs, tolerance);
+    verify_program(std::to_string(n), p, p2, t, options, inputs, tolerance);
 }
 
 void verify_reduced_program(const program& p,
+                            const program& p2,
                             const target& t,
                             compile_options options,
                             const parameter_map& inputs,
@@ -127,7 +130,7 @@ void verify_reduced_program(const program& p,
     auto n         = std::distance(mm->begin(), mm->end());
     for(std::size_t i = 0; i < n; i++)
     {
-        verify_reduced(p, i, t, options, inputs, tolerance);
+        verify_reduced(p, p2,i, t, options, inputs, tolerance);
     }
 }
 
