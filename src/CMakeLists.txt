@@ -207,6 +207,13 @@ add_subdirectory(driver)
 add_subdirectory(onnx)
 add_subdirectory(tf)
 
+if(MIGRAPHX_ENABLE_MARKERS)
+#add_library(migraphx_markers INTERFACE)
+include_directories(/opt/rocm/include/roctracer)
+target_link_libraries(migraphx INTERFACE /opt/rocm/lib/libroctx64.so)
+target_compile_definitions(migraphx INTERFACE -DHAVE_MARKERS)
+endif()
+
 add_subdirectory(py)
 add_subdirectory(targets/ref)
 if(MIGRAPHX_ENABLE_CPU)

@@ -59,6 +59,9 @@ endif()
 # Disable cpu backend by default
 set(MIGRAPHX_ENABLE_CPU Off CACHE BOOL "")
 
+# Disable Markers by default
+set(MIGRAPHX_ENABLE_MARKERS Off CACHE BOOL "")
+
 set(CMAKE_CXX_STANDARD_DEFAULT "")
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-std=c++17)
