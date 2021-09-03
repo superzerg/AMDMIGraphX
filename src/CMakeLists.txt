@@ -200,18 +200,18 @@ target_link_libraries(migraphx INTERFACE $<BUILD_INTERFACE:msgpackc-cxx>)
 add_library(migraphx_all_targets INTERFACE)
 target_link_libraries(migraphx_all_targets INTERFACE migraphx_ref)
 
+if(MIGRAPHX_ENABLE_MARKERS)
+    target_compile_definitions(migraphx PRIVATE -DHAVE_MARKERS)
+    target_include_directories(migraphx PRIVATE /opt/rocm/include/roctracer)
+    target_link_libraries(migraphx PRIVATE /opt/rocm/lib/libroctx64.so)
+endif()
+
 set(PACKAGE_DEPENDS)
 
 add_subdirectory(api)
 add_subdirectory(driver)
 add_subdirectory(onnx)
 add_subdirectory(tf)
-
-if(MIGRAPHX_ENABLE_MARKERS)
-include_directories(/opt/rocm/include/roctracer)
-target_link_libraries(migraphx INTERFACE /opt/rocm/lib/libroctx64.so)
-target_compile_definitions(migraphx INTERFACE -DHAVE_MARKERS)
-endif()
 
 add_subdirectory(py)
 add_subdirectory(targets/ref)
@@ -231,11 +231,11 @@ if(HAVE_HALF_EXPR)
     target_compile_definitions(migraphx PUBLIC -DHAS_HALF_V1)
 endif()
 
+
+
 rocm_export_targets(
   TARGETS migraphx::migraphx migraphx_all_targets
   NAMESPACE migraphx::
   DEPENDS
     ${PACKAGE_DEPENDS}
 )
- 
-

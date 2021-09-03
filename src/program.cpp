@@ -23,9 +23,9 @@
 #include <map>
 #include <cassert>
 
-//#ifdef HAVE_MARKERS
+#ifdef HAVE_MARKERS
 #include <roctx.h>
-//#endif
+#endif
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -198,9 +198,11 @@ std::vector<argument> generic_eval(const module* mod,
     for(auto ins : iterator_for(*mod))
     {
         const auto& name = ins->name();
+#ifdef HAVE_MARKERS
         roctxMark(("CG: " + name).c_str());
         int rangeId = roctxRangeStartA(("CG RANGE START: " + name).c_str());
         roctxRangePushA(("CG PUSH: " + name).c_str());
+#endif
         if(name == "@literal")
         {
             results.emplace(ins, trace(ins, [&] { return ins->get_literal().get_argument(); }));
@@ -256,8 +258,10 @@ std::vector<argument> generic_eval(const module* mod,
                                     ctx, ins->get_shape(), values, mod_args, module_eval);
                             }));
         }
-        roctxRangePop(); // for "hipMemcpy"
+#ifdef HAVE_MARKERS
+        roctxRangePop();
         roctxRangeStop(rangeId);
+#endif
         assert(results.find(ins) != results.end());
     }
     return {results.at(std::prev(mod->end()))};
