@@ -2753,9 +2753,9 @@ TEST_CASE(quantizelinear_neg_axis_test)
 
 TEST_CASE(randomnormal_test)
 {
-    float mean = 10.0;
-    float scale = 1.5; 
-    float seed = 0.0;
+    float mean  = 10.0;
+    float scale = 1.5;
+    float seed  = 0.0;
     std::vector<int> shape_attr{2, 3, 4};
 
     migraphx::program p;
@@ -2765,7 +2765,8 @@ TEST_CASE(randomnormal_test)
     std::vector<double> rand_vals(s.elements());
     std::mt19937 gen{seed};
     std::normal_distribution<> d{mean, scale};
-    std::transform(rand_vals.begin(), rand_vals.end(), rand_vals.begin(), [&](auto) { return d(gen); });
+    std::transform(
+        rand_vals.begin(), rand_vals.end(), rand_vals.begin(), [&](auto) { return d(gen); });
 
     mm->add_literal(migraphx::literal{s, rand_vals});
 
@@ -2786,9 +2787,9 @@ TEST_CASE(randomnormal_shape_error_test)
 
 TEST_CASE(randomnormallike_test)
 {
-    float mean = 10.0;
-    float scale = 1.5; 
-    float seed = 0.0;
+    float mean  = 10.0;
+    float scale = 1.5;
+    float seed  = 0.0;
     std::vector<int> shape_attr{2, 3, 4};
 
     migraphx::program p;
@@ -2798,7 +2799,8 @@ TEST_CASE(randomnormallike_test)
     std::vector<double> rand_vals(s.elements());
     std::mt19937 gen{seed};
     std::normal_distribution<> d{mean, scale};
-    std::transform(rand_vals.begin(), rand_vals.end(), rand_vals.begin(), [&](auto) { return d(gen); });
+    std::transform(
+        rand_vals.begin(), rand_vals.end(), rand_vals.begin(), [&](auto) { return d(gen); });
 
     mm->add_parameter("input", s);
     mm->add_literal(migraphx::literal{s, rand_vals});
@@ -2810,9 +2812,9 @@ TEST_CASE(randomnormallike_test)
 
 TEST_CASE(randomnormallike_dtype_fallback_test)
 {
-    float mean = 10.0;
-    float scale = 1.5; 
-    float seed = 0.0;
+    float mean  = 10.0;
+    float scale = 1.5;
+    float seed  = 0.0;
     std::vector<int> shape_attr{2, 3, 4};
 
     migraphx::program p;
@@ -2823,8 +2825,9 @@ TEST_CASE(randomnormallike_dtype_fallback_test)
     std::vector<double> rand_vals(s.elements());
     std::mt19937 gen{seed};
     std::normal_distribution<> d{mean, scale};
-    std::transform(rand_vals.begin(), rand_vals.end(), rand_vals.begin(), [&](auto) { return d(gen); });
-    
+    std::transform(
+        rand_vals.begin(), rand_vals.end(), rand_vals.begin(), [&](auto) { return d(gen); });
+
     mm->add_parameter("input", s2);
     mm->add_literal(migraphx::literal{s, rand_vals});
 

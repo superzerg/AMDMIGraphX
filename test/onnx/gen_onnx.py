@@ -3007,7 +3007,8 @@ def randomnormal_test():
     scale = 1.5
     seed = 0.0
     shape = [2, 3, 4]
-    output = helper.make_tensor_value_info('output', TensorProto.DOUBLE, [2, 3, 4])
+    output = helper.make_tensor_value_info('output', TensorProto.DOUBLE,
+                                           [2, 3, 4])
 
     node = onnx.helper.make_node('RandomNormal',
                                  inputs=[],
@@ -3025,7 +3026,8 @@ def randomnormal_test():
 def randomnormal_dtype_error_test():
     dtype = 6
     shape = [2, 3, 4]
-    output = helper.make_tensor_value_info('output', TensorProto.INT32, [2, 3, 4])
+    output = helper.make_tensor_value_info('output', TensorProto.INT32,
+                                           [2, 3, 4])
 
     node = onnx.helper.make_node('RandomNormal',
                                  inputs=[],
@@ -3039,7 +3041,8 @@ def randomnormal_dtype_error_test():
 @onnx_test
 def randomnormal_shape_error_test():
     dtype = 1
-    output = helper.make_tensor_value_info('output', TensorProto.FLOAT, [2, 3, 4])
+    output = helper.make_tensor_value_info('output', TensorProto.FLOAT,
+                                           [2, 3, 4])
 
     node = onnx.helper.make_node('RandomNormal',
                                  inputs=[],
@@ -3055,8 +3058,10 @@ def randomnormallike_test():
     mean = 10.0
     scale = 1.5
     seed = 0.0
-    input = helper.make_tensor_value_info('input', TensorProto.FLOAT16, [2, 3, 4])
-    output = helper.make_tensor_value_info('output', TensorProto.FLOAT16, [2, 3, 4])
+    input = helper.make_tensor_value_info('input', TensorProto.FLOAT16,
+                                          [2, 3, 4])
+    output = helper.make_tensor_value_info('output', TensorProto.FLOAT16,
+                                           [2, 3, 4])
 
     node = onnx.helper.make_node('RandomNormalLike',
                                  inputs=['input'],
@@ -3072,8 +3077,10 @@ def randomnormallike_test():
 @onnx_test
 def randomnormallike_dtype_fallback_test():
     seed = 0
-    input = helper.make_tensor_value_info('input', TensorProto.INT32, [2, 3, 4])
-    output = helper.make_tensor_value_info('output', TensorProto.FLOAT, [2, 3, 4])
+    input = helper.make_tensor_value_info('input', TensorProto.INT32,
+                                          [2, 3, 4])
+    output = helper.make_tensor_value_info('output', TensorProto.FLOAT,
+                                           [2, 3, 4])
 
     node = onnx.helper.make_node('RandomNormalLike',
                                  inputs=['input'],
