@@ -33,9 +33,13 @@ def parse(file):
         print(name)
         temp_list = []
         for entry in data:
-            if (entry) and (name in entry['name']):
-                print(entry.get('dur'))
-                temp_list.append(int(entry.get('dur')))
+            if (entry) and (name == entry['name']):
+                if(("gpu::" in name) and ("UserMarker frame:" in entry['args']['desc'])): #gpu side information
+                    print(entry)
+                    temp_list.append(int(entry.get('dur')))
+                elif(("gpu::" not in name) and ("Marker start:" in entry['args']['desc'])): #cpu side information
+                    print(entry)
+                    temp_list.append(int(entry.get('dur')))
         list_times_per_names.append(temp_list)
 
     print(list_names)
@@ -44,7 +48,7 @@ def parse(file):
     # Sum duration for each entry for a given name
     sum_per_name = []
     for list in list_times_per_names:
-            sum_per_name.append(sum(list))
+        sum_per_name.append(sum(list))
 
     print(sum_per_name)
     dictionary = dict(zip(list_names, sum_per_name))
