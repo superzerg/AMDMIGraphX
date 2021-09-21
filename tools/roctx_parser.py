@@ -1,6 +1,7 @@
 import json
 import argparse
-
+import os
+import subprocess
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parser for MIGraphX ROCTX Markers")
@@ -10,10 +11,10 @@ def parse_args():
                         help='path to json file')
     parser.add_argument('--parse', default=False, action='store_true')
     parser.add_argument('--run', default=False, action='store_true')
+    parser.add_argument('--onnx_file', type=str)
 
     args = parser.parse_args()
     return args
-
 
 def parse(file):
     with open(file, "r") as read_file:
@@ -63,6 +64,24 @@ def parse(file):
         print("%d us\t:\t%s" % (dictionary_sorted[item], item))
     print("TOTAL TIME: %s us"%total_time)
 
+def run():
+    args = parse_args()
+    onnx_path = args.onnx_file
+    if not (onnx_path):
+        raise Exception("No ONNX file is provided to run.")
+    onnx_rpath = os.path.realpath(onnx_path)
+    print(onnx_rpath)
+    #configurations
+    configs = '--hip-trace --roctx-trace --flush-rate 10ms --timestamp on'
+    output_dir = '-d roctxoutput'
+    executable = '/opt/rocm/bin/migraphx-driver trace %s --onnx --gpu'%onnx_rpath
+    process_args = configs + ' ' + output_dir + ' ' + executable
+    #run
+    #process = subprocess.run(['rocprof', process_args],stdout=subprocess.PIPE)
+    #print(process.stdout)
+    os.system('rocprof ' + process_args)
+    print("RUN COMPLETE.")
+
 def main():
     args = parse_args()
     print(args)
@@ -75,9 +94,6 @@ def main():
         if not (file):
             raise Exception("JSON path is not provided for parsing.")
         parse(file)
-    
-
-
 
 if __name__ == "__main__":
     main()
