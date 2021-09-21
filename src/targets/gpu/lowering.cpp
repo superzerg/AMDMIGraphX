@@ -188,6 +188,7 @@ struct miopen_apply
         add_if_op();
         add_loop_op();
         add_neg_op();
+        add_nonzero_op();
         add_quant_convolution_op();
         add_roialign();
     }
@@ -489,6 +490,19 @@ struct miopen_apply
             auto gpu_out =
                 mod->insert_instruction(ins, make_op("hip::copy_to_gpu"), cpu_out, output);
             return mod->replace_instruction(ins, gpu_out);
+        });
+    }
+
+    void add_nonzero_op()
+    {
+        apply_map.emplace("nonzero", [=](instruction_ref ins) {
+            auto input          = ins->inputs().front();
+            const auto& in_lens = input->get_shape().lens();
+            shape idx_s{shape::int64_type, in_lens};
+            auto idx = mod->insert_instruction(
+                ins, make_op("hip::allocate", {{"shape", to_value(idx_s)}}));
+            auto output = insert_allocation(ins, ins->get_shape());
+            return mod->replace_instruction(ins, make_op("gpu::nonzero"), input, idx, output);
         });
     }
 
