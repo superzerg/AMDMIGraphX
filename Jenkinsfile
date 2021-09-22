@@ -15,15 +15,21 @@ def rocmtestnode(Map conf) {
         def cmd = """
             env
             ulimit -c unlimited
+            echo "leak:dnnl::impl::malloc" > suppressions.txt
+            export LSAN_OPTIONS="suppressions=\$(pwd)/suppressions.txt"
             rm -rf build
             mkdir build
             cd build
             CXX=${compiler} CXXFLAGS='-Werror -Wno-fallback' cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ${flags} .. 
+<<<<<<< HEAD
             CTEST_PARALLEL_LEVEL=32 make -j\$(nproc) test_verify VERBOSE=1
             export MIOPEN_ENABLE_LOGGING=1
             export MIOPEN_ENABLE_LOGGING_CMD=1
             export MIOPEN_LOG_LEVEL=6
             ./bin/test_verify test_conv_bn_add
+=======
+            make -j\$(nproc) generate all doc package check VERBOSE=1
+>>>>>>> da26db342f95a136a315f9a68eb7264a2fd13ea6
         """
         echo cmd
         sh cmd
@@ -77,6 +83,8 @@ def rocmnodename(name) {
         node_name = "${rocmtest_name} && fiji";
     } else if(name == "vega") {
         node_name = "${rocmtest_name} && vega";
+    } else if(name == "nogpu") {
+        return rocmtest_name;
     }
     return node_name
 }
@@ -103,6 +111,12 @@ rocmtest clang_debug: rocmnode('vega') { cmake_build ->
         def sanitizers = "undefined"
         def debug_flags = "-g -O2 -fsanitize=${sanitizers} -fno-sanitize-recover=${sanitizers}"
         cmake_build("/opt/rocm/llvm/bin/clang++", "-DCMAKE_BUILD_TYPE=debug -DMIGRAPHX_ENABLE_PYTHON=Off -DMIGRAPHX_ENABLE_MLIR=On -DCMAKE_CXX_FLAGS_DEBUG='${debug_flags}'")
+    }
+}, clang_asan: rocmnode('nogpu') { cmake_build ->
+    stage('Clang ASAN') {
+        def sanitizers = "undefined,address"
+        def debug_flags = "-g -O2 -fno-omit-frame-pointer -fsanitize=${sanitizers} -fno-sanitize-recover=${sanitizers}"
+        cmake_build("/opt/rocm/llvm/bin/clang++", "-DCMAKE_BUILD_TYPE=debug -DMIGRAPHX_ENABLE_PYTHON=Off -DMIGRAPHX_ENABLE_GPU=Off -DMIGRAPHX_ENABLE_CPU=On -DCMAKE_CXX_FLAGS_DEBUG='${debug_flags}'")
     }
 }
 
