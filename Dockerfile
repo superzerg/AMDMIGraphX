@@ -80,7 +80,7 @@ RUN cget -p /opt/cmake install kitware/cmake@v3.13.4
 
 ARG MIOPEN_REPO=https://github.com/ROCmSoftwarePlatform/MIOpen.git
 ARG MIOPEN_BRANCH=develop
-ARG MIOPEN_COMMIT=1ebf0216930f672994c341d3c29c9d670cfd3cf8
+ARG MIOPEN_COMMIT=2d7b2dd76464ac0fe052118718c4ab217341d25b
 RUN git clone --single-branch --branch ${MIOPEN_BRANCH} --recursive ${MIOPEN_REPO} MIOpen && \
     cd MIOpen && \
     git checkout ${MIOPEN_COMMIT} && \
