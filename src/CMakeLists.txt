@@ -130,6 +130,7 @@ register_migraphx_ops(
     mul
     multibroadcast
     neg
+    nonmaxsuppression
     nonzero
     outline
     pad
