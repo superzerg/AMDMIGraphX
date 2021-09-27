@@ -79,6 +79,32 @@ def read_outputs(io_folder, out_num):
     return outputs
 
 
+def get_model_parameter_names(model_file_name):
+    with open(model_file_name, 'rb') as pfile:
+        data_str = pfile.read()
+        model_proto = onnx.ModelProto()
+        model_proto.ParseFromString(data_str)
+        init_names = set([(i.name) for i in model_proto.graph.initializer])
+        param_names = []
+        for input in model_proto.graph.input:
+            if input.name not in init_names:
+                param_names.append(input.name)
+
+        return param_names
+        
+
+def get_input_shapes(sample_case, param_names):
+    index = 0
+    param_shape_map = {}
+    for param_name in param_names:
+        file_name = sample_case + '/input_' + str(index) + '.pb'
+        data = read_pb_file(file_name)
+        param_shape_map[param_name] = list(data.shape)
+        index = index + 1
+
+    return param_shape_map
+
+
 def run_one_case(model, param_map):
     # convert np array to model argument
     pp = {}
@@ -142,15 +168,24 @@ def main():
     # get model full path
     model_name = get_model_name(test_loc)
     model_path_name = test_loc + '/' + model_name
+
+    # get param names
+    param_names = get_model_parameter_names(model_path_name)
+    print("param_name = {}".format(param_names))
+
+    # get test cases
+    cases = get_test_cases(test_loc)
+    sample_case = test_loc + '/' + cases[0]
+    param_shapes = get_input_shapes(sample_case, param_names)
+
     # read and compile model
-    model = migraphx.parse_onnx(model_path_name)
-    param_names = model.get_parameter_names()
+    model = migraphx.parse_onnx(model_path_name, map_input_dims = param_shapes)
+    # param_names = model.get_parameter_names()
     output_shapes = model.get_output_shapes()
 
     model.compile(migraphx.get_target(target))
 
     # get test cases
-    cases = get_test_cases(test_loc)
     case_num = len(cases)
     correct_num = 0
     for case_name in cases:
