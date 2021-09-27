@@ -35,9 +35,7 @@ auto get_inputs(module& m)
 {
     return [&](auto i) {
         auto inputs = i->inputs();
-        erase_if(inputs, [&](auto ins) {
-            return not m.has_instruction(ins);
-        });
+        erase_if(inputs, [&](auto ins) { return not m.has_instruction(ins); });
 
         return inputs;
     };

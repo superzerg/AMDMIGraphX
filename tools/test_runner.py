@@ -91,7 +91,7 @@ def get_model_parameter_names(model_file_name):
                 param_names.append(input.name)
 
         return param_names
-        
+
 
 def get_input_shapes(sample_case, param_names):
     index = 0
@@ -179,7 +179,7 @@ def main():
     param_shapes = get_input_shapes(sample_case, param_names)
 
     # read and compile model
-    model = migraphx.parse_onnx(model_path_name, map_input_dims = param_shapes)
+    model = migraphx.parse_onnx(model_path_name, map_input_dims=param_shapes)
     # param_names = model.get_parameter_names()
     output_shapes = model.get_output_shapes()
 
