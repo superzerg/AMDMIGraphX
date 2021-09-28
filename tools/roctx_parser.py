@@ -116,13 +116,14 @@ def main():
         os.chdir("/tmp/rocmProfileData/")
         os.chdir(curr)
         run()
-        os.chdir(curr+"/rocout/")
+        os.chdir(curr+"/roctxoutput/")
         out_path = os.popen("ls -td $PWD/*/*/ | head -1").read()
+        out_path = out_path.strip('\n')
         print("OUTPUT PATH: " + out_path)
         os.chdir(out_path)
         os.system("python -m rocpd.rocprofiler_import --ops_input_file hcc_ops_trace.txt --api_input_file hip_api_trace.txt --roctx_input_file roctx_trace.txt trace.rpd")
         os.system("python /tmp/rocmProfileData/rpd2tracing.py trace.rpd trace.json")
-        print("JSON FILE PATH: " + out_path + "/trace.json")
+        print("JSON FILE PATH: " + out_path + "trace.json")
         os.chdir(curr)
 
     
