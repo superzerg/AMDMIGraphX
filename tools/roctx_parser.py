@@ -5,18 +5,19 @@ import subprocess
 import pandas as pd
 import numpy as np
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="Parser for MIGraphX ROCTX Markers")
-    parser.add_argument('--json_path',
-                        type=str,
-                        metavar='json_path',
-                        help='path to json file')
+    parser = argparse.ArgumentParser(
+        description="Parser for MIGraphX ROCTX Markers")
+    parser.add_argument(
+        '--json_path', type=str, metavar='json_path', help='path to json file')
     parser.add_argument('--parse', default=False, action='store_true')
     parser.add_argument('--run', default=False, action='store_true')
     parser.add_argument('--onnx_file', type=str)
 
     args = parser.parse_args()
     return args
+
 
 def parse(file):
     with open(file, "r") as read_file:
@@ -26,7 +27,8 @@ def parse(file):
     list_names = []
     for i in data:
         if (i):
-            if("Marker start:" in i['name']) and (i['name'] not in list_names):
+            if ("Marker start:" in i['name']) and (
+                    i['name'] not in list_names):
                 list_names.append(i['name'])
 
     # Get timing information for each marker name
@@ -36,11 +38,17 @@ def parse(file):
         print(name)
         temp_list = []
         for entry in data:
-            if (entry) and (name == entry['name']): # name can match on gpu or cpu side, for gpu, we need data from gpu markers.
-                if(("gpu::" in name) and ("UserMarker frame:" in entry['args']['desc'])): #gpu side information
+            if (entry) and (
+                    name == entry['name']
+            ):  # name can match on gpu or cpu side, for gpu, we need data from gpu markers.
+                if (("gpu::" in name)
+                        and ("UserMarker frame:" in entry['args']['desc'])
+                    ):  #gpu side information
                     print(entry)
                     temp_list.append(int(entry.get('dur')))
-                elif(("gpu::" not in name) and ("Marker start:" in entry['args']['desc'])): #cpu side information
+                elif (("gpu::" not in name)
+                      and ("Marker start:" in entry['args']['desc'])
+                      ):  #cpu side information
                     print(entry)
                     temp_list.append(int(entry.get('dur')))
         list_times_per_names.append(temp_list)
@@ -67,19 +75,20 @@ def parse(file):
         except:
             min_per_name.append("ERR")
 
-    print("SUM: %s"%sum_per_name)
-    print("MAX: %s"%max_per_name)
-    print("MIN: %s"%min_per_name)
+    print("SUM: %s" % sum_per_name)
+    print("MAX: %s" % max_per_name)
+    print("MIN: %s" % min_per_name)
 
     total_time = sum(sum_per_name)
 
     d = {'SUM': sum_per_name, 'MIN': min_per_name, 'MAX': max_per_name}
     df2 = pd.DataFrame(d)
     df2.index = list_names
-    df2.sort_values(by=['SUM'], inplace=True, ascending = False)
+    df2.sort_values(by=['SUM'], inplace=True, ascending=False)
 
     print(df2)
-    print("\nTOTAL TIME: %s us\n"%total_time)
+    print("\nTOTAL TIME: %s us\n" % total_time)
+
 
 def run():
     args = parse_args()
@@ -91,13 +100,11 @@ def run():
     #configurations
     configs = '--hip-trace --roctx-trace --flush-rate 10ms --timestamp on'
     output_dir = '-d roctxoutput'
-    executable = '/opt/rocm/bin/migraphx-driver trace %s --onnx --gpu'%onnx_rpath
+    executable = '/opt/rocm/bin/migraphx-driver trace %s --onnx --gpu' % onnx_rpath
     process_args = configs + ' ' + output_dir + ' ' + executable
-    #run
-    #process = subprocess.run(['rocprof', process_args],stdout=subprocess.PIPE)
-    #print(process.stdout)
     os.system('rocprof ' + process_args)
     print("RUN COMPLETE.")
+
 
 def main():
 
@@ -105,32 +112,37 @@ def main():
     print(args)
     file = args.json_path
 
-    if(args.run):
+    if (args.run):
         curr = os.path.abspath(os.getcwd())
         if not os.path.exists('/tmp/rocmProfileData'):
-            print("rocmProfileData does not exist. Cloning.")        
-            os.system('git clone https://github.com/ROCmSoftwarePlatform/rocmProfileData.git /tmp/rocmProfileData')
-        
+            print("rocmProfileData does not exist. Cloning.")
+            os.system(
+                'git clone https://github.com/ROCmSoftwarePlatform/rocmProfileData.git /tmp/rocmProfileData'
+            )
+
         os.chdir("/tmp/rocmProfileData/rocpd_python/")
         os.system('python setup.py install')
         os.chdir("/tmp/rocmProfileData/")
         os.chdir(curr)
         run()
-        os.chdir(curr+"/roctxoutput/")
+        os.chdir(curr + "/roctxoutput/")
         out_path = os.popen("ls -td $PWD/*/*/ | head -1").read()
         out_path = out_path.strip('\n')
         print("OUTPUT PATH: " + out_path)
         os.chdir(out_path)
-        os.system("python -m rocpd.rocprofiler_import --ops_input_file hcc_ops_trace.txt --api_input_file hip_api_trace.txt --roctx_input_file roctx_trace.txt trace.rpd")
-        os.system("python /tmp/rocmProfileData/rpd2tracing.py trace.rpd trace.json")
+        os.system(
+            "python -m rocpd.rocprofiler_import --ops_input_file hcc_ops_trace.txt --api_input_file hip_api_trace.txt --roctx_input_file roctx_trace.txt trace.rpd"
+        )
+        os.system(
+            "python /tmp/rocmProfileData/rpd2tracing.py trace.rpd trace.json")
         print("JSON FILE PATH: " + out_path + "trace.json")
         os.chdir(curr)
 
-    
-    if(args.parse):
+    if (args.parse):
         if not (file):
             raise Exception("JSON path is not provided for parsing.")
         parse(file)
+
 
 if __name__ == "__main__":
     main()
