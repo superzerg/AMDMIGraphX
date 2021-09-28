@@ -2,6 +2,8 @@ import json
 import argparse
 import os
 import subprocess
+import pandas as pd
+import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parser for MIGraphX ROCTX Markers")
@@ -34,7 +36,7 @@ def parse(file):
         print(name)
         temp_list = []
         for entry in data:
-            if (entry) and (name == entry['name']):
+            if (entry) and (name == entry['name']): # name can match on gpu or cpu side, for gpu, we need data from gpu markers.
                 if(("gpu::" in name) and ("UserMarker frame:" in entry['args']['desc'])): #gpu side information
                     print(entry)
                     temp_list.append(int(entry.get('dur')))
@@ -51,18 +53,33 @@ def parse(file):
     for list in list_times_per_names:
         sum_per_name.append(sum(list))
 
-    print(sum_per_name)
-    dictionary = dict(zip(list_names, sum_per_name))
-    dictionary_sorted = {k: v for k, v in sorted(dictionary.items(), key=lambda item: item[1], reverse=True)}
-    print(dictionary)
-    print(dictionary_sorted)
-    #pprint.pprint(dictionary_sorted)
+    max_per_name = []
+    for list in list_times_per_names:
+        try:
+            max_per_name.append(max(list))
+        except:
+            max_per_name.append("ERR")
+
+    min_per_name = []
+    for list in list_times_per_names:
+        try:
+            min_per_name.append(min(list))
+        except:
+            min_per_name.append("ERR")
+
+    print("SUM: %s"%sum_per_name)
+    print("MAX: %s"%max_per_name)
+    print("MIN: %s"%min_per_name)
+
     total_time = sum(sum_per_name)
 
-    print("\t ---- SUMMARY ----")
-    for item in dictionary_sorted:
-        print("%d us\t:\t%s" % (dictionary_sorted[item], item))
-    print("TOTAL TIME: %s us"%total_time)
+    d = {'SUM': sum_per_name, 'MIN': min_per_name, 'MAX': max_per_name}
+    df2 = pd.DataFrame(d)
+    df2.index = list_names
+    df2.sort_values(by=['SUM'], inplace=True, ascending = False)
+
+    print(df2)
+    print("\nTOTAL TIME: %s us\n"%total_time)
 
 def run():
     args = parse_args()
@@ -83,12 +100,31 @@ def run():
     print("RUN COMPLETE.")
 
 def main():
+
     args = parse_args()
     print(args)
     file = args.json_path
 
     if(args.run):
+        curr = os.path.abspath(os.getcwd())
+        if not os.path.exists('/tmp/rocmProfileData'):
+            print("rocmProfileData does not exist. Cloning.")        
+            os.system('git clone https://github.com/ROCmSoftwarePlatform/rocmProfileData.git /tmp/rocmProfileData')
+        
+        os.chdir("/tmp/rocmProfileData/rocpd_python/")
+        os.system('python setup.py install')
+        os.chdir("/tmp/rocmProfileData/")
+        os.chdir(curr)
         run()
+        os.chdir(curr+"/rocout/")
+        out_path = os.popen("ls -td $PWD/*/*/ | head -1").read()
+        print("OUTPUT PATH: " + out_path)
+        os.chdir(out_path)
+        os.system("python -m rocpd.rocprofiler_import --ops_input_file hcc_ops_trace.txt --api_input_file hip_api_trace.txt --roctx_input_file roctx_trace.txt trace.rpd")
+        os.system("python /tmp/rocmProfileData/rpd2tracing.py trace.rpd trace.json")
+        print("JSON FILE PATH: " + out_path + "/trace.json")
+        os.chdir(curr)
+
     
     if(args.parse):
         if not (file):
