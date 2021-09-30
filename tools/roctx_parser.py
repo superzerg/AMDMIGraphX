@@ -11,6 +11,10 @@ def parse_args():
         description="Parser for MIGraphX ROCTX Markers")
     parser.add_argument(
         '--json_path', type=str, metavar='json_path', help='path to json file')
+    parser.add_argument(
+        '--migraphx_args', type=str, metavar='migraphx_args', help='args to pass to migraphx-driver')
+    parser.add_argument(
+        '--out', type=str, metavar='out', help='output directory for run')
     parser.add_argument('--parse', default=False, action='store_true')
     parser.add_argument('--run', default=False, action='store_true')
     parser.add_argument('--onnx_file', type=str)
@@ -93,14 +97,15 @@ def parse(file):
 def run():
     args = parse_args()
     onnx_path = args.onnx_file
+    migraphx_args = args.migraphx_args
     if not (onnx_path):
         raise Exception("No ONNX file is provided to run.")
     onnx_rpath = os.path.realpath(onnx_path)
     print(onnx_rpath)
     #configurations
     configs = '--hip-trace --roctx-trace --flush-rate 10ms --timestamp on'
-    output_dir = '-d roctxoutput'
-    executable = '/opt/rocm/bin/migraphx-driver trace %s --onnx --gpu' % onnx_rpath
+    output_dir = '-d %s'%args.out
+    executable = '/opt/rocm/bin/migraphx-driver trace %s --onnx --gpu %s' % (onnx_rpath, migraphx_args)
     process_args = configs + ' ' + output_dir + ' ' + executable
     os.system('rocprof ' + process_args)
     print("RUN COMPLETE.")
@@ -125,7 +130,7 @@ def main():
         os.chdir("/tmp/rocmProfileData/")
         os.chdir(curr)
         run()
-        os.chdir(curr + "/roctxoutput/")
+        os.chdir(curr + "/%s/"%args.out)
         out_path = os.popen("ls -td $PWD/*/*/ | head -1").read()
         out_path = out_path.strip('\n')
         print("OUTPUT PATH: " + out_path)
