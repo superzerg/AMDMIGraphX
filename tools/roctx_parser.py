@@ -103,7 +103,7 @@ def run():
     onnx_rpath = os.path.realpath(onnx_path)
     print(onnx_rpath)
     #configurations
-    configs = '--hip-trace --roctx-trace --flush-rate 10ms --timestamp on'
+    configs = '-i ./rocprofiler_pkg/counter_input_cagri.txt '
     output_dir = '-d %s'%args.out
     executable = '/opt/rocm/bin/migraphx-driver trace %s --onnx --gpu %s' % (onnx_rpath, migraphx_args)
     process_args = configs + ' ' + output_dir + ' ' + executable
@@ -118,6 +118,8 @@ def main():
     file = args.json_path
 
     if (args.run):
+        if not args.out:
+            raise Exception("Please provide an output directory")
         curr = os.path.abspath(os.getcwd())
         if not os.path.exists('/tmp/rocmProfileData'):
             print("rocmProfileData does not exist. Cloning.")

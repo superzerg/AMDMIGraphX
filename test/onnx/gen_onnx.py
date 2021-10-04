@@ -3903,8 +3903,8 @@ def slice_max_end_test():
 
 @onnx_test
 def softmax_test():
-    x = helper.make_tensor_value_info('0', TensorProto.FLOAT, [1, 3])
-    y = helper.make_tensor_value_info('1', TensorProto.FLOAT, [1, 3])
+    x = helper.make_tensor_value_info('0', TensorProto.FLOAT, [1, 16, 384, 384])
+    y = helper.make_tensor_value_info('1', TensorProto.FLOAT, [1, 16, 384, 384])
 
     node = onnx.helper.make_node('Softmax', inputs=['0'], outputs=['1'])
 
