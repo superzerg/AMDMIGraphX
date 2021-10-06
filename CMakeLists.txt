@@ -106,10 +106,15 @@ rocm_enable_clang_tidy(
         clang-analyzer-alpha.core.PointerArithm
         clang-analyzer-alpha.core.PointerSub
         clang-analyzer-alpha.core.TestAfterDivZero
-        clang-analyzer-alpha.cplusplus.InvalidIterator
+        clang-analyzer-alpha.cplusplus.ContainerModeling
+        clang-analyzer-alpha.cplusplus.DeleteWithNonVirtualDtor
+        clang-analyzer-alpha.cplusplus.EnumCastOutOfRange
+        clang-analyzer-alpha.cplusplus.InvalidatedIterator
+        clang-analyzer-alpha.cplusplus.IteratorModeling
         clang-analyzer-alpha.cplusplus.IteratorRange
         clang-analyzer-alpha.cplusplus.MismatchedIterator
-        clang-analyzer-alpha.cplusplus.MisusedMovedObject
+        clang-analyzer-alpha.cplusplus.STLAlgorithmModeling
+        clang-analyzer-alpha.cplusplus.SmartPtr
         -clang-analyzer-optin.performance.Padding
         -clang-diagnostic-deprecated-declarations
         -clang-diagnostic-extern-c-compat
@@ -157,9 +162,9 @@ rocm_enable_clang_tidy(
     HEADER_FILTER
         ".*hpp"
     EXTRA_ARGS
-        -UNDEBUG
-        -DMIGRAPHX_USE_CLANG_TIDY
-        "-Dmain\\\\(...\\\\)=main\\\\(__VA_ARGS__\\\\) // NOLINT"
+    -UNDEBUG
+    -DMIGRAPHX_USE_CLANG_TIDY
+    "-Dmain\\\\(...\\\\)=main\\\\(__VA_ARGS__\\\\) // NOLINT"
     CLANG_ARGS
         -analyzer-max-loop 10
         -analyzer-inline-max-stack-depth 10
@@ -168,6 +173,8 @@ rocm_enable_clang_tidy(
         -analyzer-config unroll-loops=true
         -analyzer-config cfg-lifetime=true
         -analyzer-config cfg-scopes=true
+        -analyzer-config aggressive-binary-operation-simplification=true
+    ENABLE_ALPHA_CHECKS
 )
 include(ROCMCppCheck)
 rocm_enable_cppcheck(
