@@ -9,7 +9,7 @@
 #include <utility>
 #include <migraphx/config.hpp>
 #include <migraphx/value.hpp>
-#include <migraphx/instruction_ref.hpp>
+#include <migraphx/instruction.hpp>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -22,11 +22,12 @@ inline namespace MIGRAPHX_INLINE_NS {
 
 <%
 interface('marker',
-           virtual('mark', st = 'std::string', returns = 'void'),
-           virtual('range_start', st = 'std::string', returns = 'size_t'),
-           virtual('range_stop', range_num = 'std::size_t', returns = 'void'),
-           virtual('trace_ins_start', st = 'std::string', returns = 'void'),
-           virtual('trace_ins_end', returns = 'void')
+           virtual('mark_range_start', range_id='std::size_t', returns = 'std::size_t'),
+           virtual('mark_ins_start', log='std::string', returns = 'void'),
+           virtual('mark_program_start', returns = 'void'),
+           virtual('mark_range_finish', range_id='std::size_t', returns = 'void'),
+           virtual('mark_ins_finish', returns = 'void'),
+           virtual('mark_program_finish', returns = 'void'),
         ) %>
 #endif
 
