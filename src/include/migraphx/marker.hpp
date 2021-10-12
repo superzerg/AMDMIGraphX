@@ -9,7 +9,8 @@
 #include <utility>
 #include <migraphx/config.hpp>
 #include <migraphx/instruction_ref.hpp>
-#include <migraphx/program.hpp>
+
+struct program;
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
