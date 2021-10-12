@@ -1,6 +1,9 @@
 #ifndef MIGRAPHX_GUARD_RTGLIB_GPU_GEMM_HPP
 #define MIGRAPHX_GUARD_RTGLIB_GPU_GEMM_HPP
 
+#include <migraphx/errors.hpp>
+#include <migraphx/operation.hpp>
+#include <migraphx/value.hpp>
 #include <migraphx/shape.hpp>
 #include <migraphx/reflect.hpp>
 #include <migraphx/gpu/context.hpp>
@@ -19,11 +22,17 @@ template <class Op>
 struct rocblas_gemm
 {
     Op op;
+    float alpha         = 1;
+    float beta          = 0;
+    bool int8_x4_format = true;
 
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
-        return migraphx::reflect(self.op, f);
+        return pack_join(migraphx::reflect(self.op, f),
+                         pack(f(self.alpha, "alpha"),
+                              f(self.beta, "beta"),
+                              f(self.int8_x4_format, "int8_x4_format")));
     }
 
     std::string name() const
@@ -42,14 +51,25 @@ struct rocblas_gemm
         check_shapes{in_shapes, *this}.not_broadcasted();
         batch_not_transposed(inputs[0].strides());
         batch_not_transposed(inputs[1].strides());
-
-        std::size_t kdim = inputs[0].lens().size() - 1;
-        // k be multiple of 4
-        if(op.name() == "quant_dot" && (inputs[0].lens()[kdim] % 4) != 0)
+        // if gemm and add are fused
+        if(not float_equal(beta, 0))
         {
-            MIGRAPHX_THROW("GPU_GEMM: size of A {" + to_string_range(inputs[0].lens()) +
-                           "} and B {" + to_string_range(inputs[1].lens()) +
-                           "} must be multiple of 4 for int8 type");
+            auto cmat_shape = in_shapes.back();
+            in_shapes.pop_back();
+            auto op_out_shape = op.compute_shape(in_shapes);
+            if(cmat_shape.lens() != op_out_shape.lens())
+            {
+                MIGRAPHX_THROW(this->name() + " : dimension mismatch, operand C: {" +
+                               to_string_range(cmat_shape.lens()) +
+                               "}, cannot add to operand A * B: {" +
+                               to_string_range(op_out_shape.lens()) + "}");
+            }
+            if(cmat_shape.type() != op_out_shape.type())
+            {
+                MIGRAPHX_THROW(this->name() + " : operand C type mismatch, operand C is of type: " +
+                               to_string(cmat_shape.type()) +
+                               ", it must be: " + to_string(op_out_shape.type()));
+            }
         }
 
         return op.compute_shape(in_shapes);
@@ -58,7 +78,14 @@ struct rocblas_gemm
     argument
     compute(context& ctx, const shape& output_shape, const std::vector<argument>& args) const
     {
-        gemm(ctx, output_shape, args, op.alpha, op.beta);
+        if(this->name() == "gpu::gemm")
+        {
+            gemm(ctx, output_shape, args, alpha, beta, int8_x4_format);
+        }
+        else
+        {
+            gemm(ctx, output_shape, args, int32_t(alpha), int32_t(beta), int8_x4_format);
+        }
         return args.back();
     }
 
