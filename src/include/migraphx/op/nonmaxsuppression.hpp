@@ -9,6 +9,7 @@
 #include <migraphx/float_equal.hpp>
 #include <migraphx/algorithm.hpp>
 #include <migraphx/tensor_view.hpp>
+#include <migraphx/shape_for_each.hpp>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -35,18 +36,18 @@ struct nonmaxsuppression
         return {shape::int64_type, out_lens};
     }
 
-    struct BoxInfoPtr
+    struct box_info_ptr
     {
-        float score_{};
-        int64_t index_{};
+        float score{};
+        int64_t index{};
 
-        inline bool operator<(const BoxInfoPtr& rhs) const
+        inline bool operator<(const box_info_ptr& rhs) const
         {
-            return score_ < rhs.score_ || (float_equal(score_, rhs.score_) && index_ > rhs.index_);
+            return score < rhs.score || (float_equal(score, rhs.score) && index > rhs.index);
         }
     };
 
-    void MaxMin(float lhs, float rhs, float& min, float& max) const
+    void max_min(float lhs, float rhs, float& min, float& max) const
     {
         if(lhs >= rhs)
         {
@@ -60,13 +61,10 @@ struct nonmaxsuppression
         }
     }
 
-#define HelperMin(a, b) std::min(a, b)
-#define HelperMax(a, b) std::max(a, b)
-
-    inline bool SuppressByIOU(const float* boxes_data,
-                              int64_t box_index1,
-                              int64_t box_index2,
-                              float iou_threshold) const
+    inline bool suppress_by_iou(const float* boxes_data,
+                                int64_t box_index1,
+                                int64_t box_index2,
+                                float iou_threshold) const
     {
         float x1_min{};
         float y1_min{};
@@ -87,18 +85,18 @@ struct nonmaxsuppression
         if(0 == center_point_box)
         {
             // boxes data format [y1, x1, y2, x2],
-            MaxMin(box1[1], box1[3], x1_min, x1_max);
-            MaxMin(box2[1], box2[3], x2_min, x2_max);
+            max_min(box1[1], box1[3], x1_min, x1_max);
+            max_min(box2[1], box2[3], x2_min, x2_max);
 
-            intersection_x_min = HelperMax(x1_min, x2_min);
-            intersection_x_max = HelperMin(x1_max, x2_max);
+            intersection_x_min = std::max(x1_min, x2_min);
+            intersection_x_max = std::min(x1_max, x2_max);
             if(intersection_x_max <= intersection_x_min)
                 return false;
 
-            MaxMin(box1[0], box1[2], y1_min, y1_max);
-            MaxMin(box2[0], box2[2], y2_min, y2_max);
-            intersection_y_min = HelperMax(y1_min, y2_min);
-            intersection_y_max = HelperMin(y1_max, y2_max);
+            max_min(box1[0], box1[2], y1_min, y1_max);
+            max_min(box2[0], box2[2], y2_min, y2_max);
+            intersection_y_min = std::max(y1_min, y2_min);
+            intersection_y_max = std::min(y1_max, y2_max);
             if(intersection_y_max <= intersection_y_min)
                 return false;
         }
@@ -115,8 +113,8 @@ struct nonmaxsuppression
             x2_min = box2[0] - box2_width_half;
             x2_max = box2[0] + box2_width_half;
 
-            intersection_x_min = HelperMax(x1_min, x2_min);
-            intersection_x_max = HelperMin(x1_max, x2_max);
+            intersection_x_min = std::max(x1_min, x2_min);
+            intersection_x_max = std::min(x1_max, x2_max);
             if(intersection_x_max <= intersection_x_min)
                 return false;
 
@@ -125,8 +123,8 @@ struct nonmaxsuppression
             y2_min = box2[1] - box2_height_half;
             y2_max = box2[1] + box2_height_half;
 
-            intersection_y_min = HelperMax(y1_min, y2_min);
-            intersection_y_max = HelperMin(y1_max, y2_max);
+            intersection_y_min = std::max(y1_min, y2_min);
+            intersection_y_max = std::min(y1_max, y2_max);
             if(intersection_y_max <= intersection_y_min)
                 return false;
         }
@@ -188,68 +186,63 @@ struct nonmaxsuppression
         auto class_num   = lens[1];
         auto box_num     = args.at(0).get_shape().lens()[1];
 
-        std::vector<BoxInfoPtr> selected_boxes_inside_class;
+        std::vector<box_info_ptr> selected_boxes_inside_class;
         std::vector<int64_t> selected_indices;
         selected_boxes_inside_class.reserve(output_shape.elements());
 
         auto scores = make_view<float>(args.at(1).get_shape(), args.at(1).cast<float>());
-        for(std::size_t bidx = 0; bidx < batch_num; ++bidx)
-        {
-            for(std::size_t cidx = 0; cidx < class_num; ++cidx)
+        shape comp_s{shape::float_type, {batch_num, class_num}};
+        shape_for_each(comp_s, [&](auto idx) {
+            auto bidx = idx[0];
+            auto cidx = idx[1];
+
+            std::size_t score_offset = (bidx * class_num + cidx) * box_num;
+            const float* batch_boxes = args.at(0).cast<float>() + bidx * box_num * 4;
+            std::vector<box_info_ptr> cand_boxes;
+            cand_boxes.reserve(box_num);
+
+            int64_t box_idx = 0;
+            transform_if(scores.begin() + score_offset,
+                         scores.begin() + score_offset + box_num,
+                         std::back_inserter(cand_boxes),
+                         [&](auto sc) {
+                             box_idx++;
+                             return sc >= score_threshold;
+                         },
+                         [&](auto sc) {
+                             return box_info_ptr{sc, box_idx - 1};
+                         });
+            std::priority_queue<box_info_ptr, std::vector<box_info_ptr>> sorted_boxes(
+                std::less<box_info_ptr>(), std::move(cand_boxes));
+
+            selected_boxes_inside_class.clear();
+            // Get the next box with top score, filter by iou_threshold
+            while(!sorted_boxes.empty() &&
+                  static_cast<int64_t>(selected_boxes_inside_class.size()) <
+                      max_output_boxes_per_class)
             {
-                std::size_t score_offset = (bidx * class_num + cidx) * box_num;
-                const float* batch_boxes = args.at(0).cast<float>() + bidx * box_num * 4;
-                std::vector<BoxInfoPtr> cand_boxes;
-                cand_boxes.reserve(box_num);
+                const box_info_ptr& next_top_score = sorted_boxes.top();
 
-                int64_t box_idx = 0;
-                transform_if(scores.begin() + score_offset,
-                             scores.begin() + score_offset + box_num,
-                             std::back_inserter(cand_boxes),
-                             [&](auto sc) {
-                                 box_idx++;
-                                 return sc >= score_threshold;
-                             },
-                             [&](auto sc) {
-                                 return BoxInfoPtr{sc, box_idx - 1};
-                             });
-                std::priority_queue<BoxInfoPtr, std::vector<BoxInfoPtr>> sorted_boxes(
-                    std::less<BoxInfoPtr>(), std::move(cand_boxes));
+                // Check with existing selected boxes for this class, suppress if exceed the IOU
+                // (Intersection Over Union) threshold
+                bool not_selected = std::any_of(
+                    selected_boxes_inside_class.begin(),
+                    selected_boxes_inside_class.end(),
+                    [&](auto selected_index) {
+                        return this->suppress_by_iou(
+                            batch_boxes, next_top_score.index, selected_index.index, iou_threshold);
+                    });
 
-                selected_boxes_inside_class.clear();
-                // Get the next box with top score, filter by iou_threshold
-                while(!sorted_boxes.empty() &&
-                      static_cast<int64_t>(selected_boxes_inside_class.size()) <
-                          max_output_boxes_per_class)
+                if(not not_selected)
                 {
-                    const BoxInfoPtr& next_top_score = sorted_boxes.top();
-
-                    bool selected = true;
-                    // Check with existing selected boxes for this class, suppress if exceed the IOU
-                    // (Intersection Over Union) threshold
-                    for(const auto& selected_index : selected_boxes_inside_class)
-                    {
-                        if(this->SuppressByIOU(batch_boxes,
-                                               next_top_score.index_,
-                                               selected_index.index_,
-                                               iou_threshold))
-                        {
-                            selected = false;
-                            break;
-                        }
-                    }
-
-                    if(selected)
-                    {
-                        selected_boxes_inside_class.push_back(next_top_score);
-                        selected_indices.push_back(bidx);
-                        selected_indices.push_back(cidx);
-                        selected_indices.push_back(next_top_score.index_);
-                    }
-                    sorted_boxes.pop();
-                } // while
+                    selected_boxes_inside_class.push_back(next_top_score);
+                    selected_indices.push_back(bidx);
+                    selected_indices.push_back(cidx);
+                    selected_indices.push_back(next_top_score.index);
+                }
+                sorted_boxes.pop();
             }
-        }
+        });
 
         result.visit([&](auto out) {
             std::copy(selected_indices.begin(), selected_indices.end(), out.begin());
