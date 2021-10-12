@@ -24,10 +24,7 @@
 #include <migraphx/simplify_algebra.hpp>
 #include <migraphx/simplify_reshapes.hpp>
 #include <migraphx/register_target.hpp>
-#include <migraphx/dynamic_loader.hpp>
-#include <migraphx/marker.hpp>
 
-#include <variant>
 #include <fstream>
 
 namespace migraphx {
@@ -487,7 +484,7 @@ struct perf : command<perf>
     }
 };
 
-struct trace : command<trace>
+struct roctx : command<roctx>
 {
     compiler c;
     void parse(argument_parser& ap) { c.parse(ap); }
@@ -499,9 +496,8 @@ struct trace : command<trace>
         std::cout << "Allocating params ... " << std::endl;
         auto m = c.params(p);
         std::cout << "rocTX:\tLoading rocTX library..." << std::endl;
-        marker_roctx rtx;
-        rtx.initalize_roctx();
-        p.trace(std::cout, m, rtx);
+        auto rtx = create_marker_roctx();
+        p.roctx(m, std::move(rtx));
     }
 };
 

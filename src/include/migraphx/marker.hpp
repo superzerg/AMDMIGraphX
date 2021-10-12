@@ -8,12 +8,11 @@
 #include <type_traits>
 #include <utility>
 #include <migraphx/config.hpp>
-#include <migraphx/instruction.hpp>
+#include <migraphx/instruction_ref.hpp>
+#include <migraphx/program.hpp>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
-
-struct program;
 
 #ifdef DOXYGEN
 
@@ -26,10 +25,10 @@ struct program;
  *
  * struct marker
  * {
- *      void mark_start(instruction_ref inst) ;
- *      std::size_t mark_start(const program& prog) ;
- *      void mark_stop(instruction_ref inst) ;
- *      void mark_stop(const program& prog,std::size_t range_id) ;
+ *      void mark_start(instruction_ref ins_ref) ;
+ *      void mark_start(const program& prog) ;
+ *      void mark_stop(instruction_ref ins) ;
+ *      void mark_stop(const program& prog) ;
  * };
  *
  */
@@ -97,28 +96,28 @@ struct marker
             return private_detail_te_get_handle().type();
     }
 
-    void mark_start(instruction_ref inst)
+    void mark_start(instruction_ref ins_ref)
     {
         assert((*this).private_detail_te_handle_mem_var);
-        (*this).private_detail_te_get_handle().mark_start(inst);
+        (*this).private_detail_te_get_handle().mark_start(ins_ref);
     }
 
-    std::size_t mark_start(const program& prog)
+    void mark_start(const program& prog)
     {
         assert((*this).private_detail_te_handle_mem_var);
-        return (*this).private_detail_te_get_handle().mark_start(prog);
+        (*this).private_detail_te_get_handle().mark_start(prog);
     }
 
-    void mark_stop(instruction_ref inst)
+    void mark_stop(instruction_ref ins)
     {
         assert((*this).private_detail_te_handle_mem_var);
-        (*this).private_detail_te_get_handle().mark_stop(inst);
+        (*this).private_detail_te_get_handle().mark_stop(ins);
     }
 
-    void mark_stop(const program& prog, std::size_t range_id)
+    void mark_stop(const program& prog)
     {
         assert((*this).private_detail_te_handle_mem_var);
-        (*this).private_detail_te_get_handle().mark_stop(prog, range_id);
+        (*this).private_detail_te_get_handle().mark_stop(prog);
     }
 
     friend bool is_shared(const marker& private_detail_x, const marker& private_detail_y)
@@ -134,10 +133,10 @@ struct marker
         virtual std::shared_ptr<private_detail_te_handle_base_type> clone() const = 0;
         virtual const std::type_info& type() const                                = 0;
 
-        virtual void mark_start(instruction_ref inst)                     = 0;
-        virtual std::size_t mark_start(const program& prog)               = 0;
-        virtual void mark_stop(instruction_ref inst)                      = 0;
-        virtual void mark_stop(const program& prog, std::size_t range_id) = 0;
+        virtual void mark_start(instruction_ref ins_ref) = 0;
+        virtual void mark_start(const program& prog)     = 0;
+        virtual void mark_stop(instruction_ref ins)      = 0;
+        virtual void mark_stop(const program& prog)      = 0;
     };
 
     template <typename PrivateDetailTypeErasedT>
@@ -168,21 +167,17 @@ struct marker
 
         const std::type_info& type() const override { return typeid(private_detail_te_value); }
 
-        void mark_start(instruction_ref inst) override { private_detail_te_value.mark_start(inst); }
-
-        std::size_t mark_start(const program& prog) override
+        void mark_start(instruction_ref ins_ref) override
         {
 
-            return private_detail_te_value.mark_start(prog);
+            private_detail_te_value.mark_start(ins_ref);
         }
 
-        void mark_stop(instruction_ref inst) override { private_detail_te_value.mark_stop(inst); }
+        void mark_start(const program& prog) override { private_detail_te_value.mark_start(prog); }
 
-        void mark_stop(const program& prog, std::size_t range_id) override
-        {
+        void mark_stop(instruction_ref ins) override { private_detail_te_value.mark_stop(ins); }
 
-            private_detail_te_value.mark_stop(prog, range_id);
-        }
+        void mark_stop(const program& prog) override { private_detail_te_value.mark_stop(prog); }
 
         PrivateDetailTypeErasedT private_detail_te_value;
     };
