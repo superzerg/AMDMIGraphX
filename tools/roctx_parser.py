@@ -9,12 +9,18 @@ import numpy as np
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Parser for MIGraphX ROCTX Markers")
-    parser.add_argument(
-        '--json_path', type=str, metavar='json_path', help='path to json file')
-    parser.add_argument(
-        '--migraphx_args', type=str, metavar='migraphx_args', help='args to pass to migraphx-driver')
-    parser.add_argument(
-        '--out', type=str, metavar='out', help='output directory for run')
+    parser.add_argument('--json_path',
+                        type=str,
+                        metavar='json_path',
+                        help='path to json file')
+    parser.add_argument('--migraphx_args',
+                        type=str,
+                        metavar='migraphx_args',
+                        help='args to pass to migraphx-driver')
+    parser.add_argument('--out',
+                        type=str,
+                        metavar='out',
+                        help='output directory for run')
     parser.add_argument('--parse', default=False, action='store_true')
     parser.add_argument('--run', default=False, action='store_true')
     parser.add_argument('--onnx_file', type=str)
@@ -31,8 +37,8 @@ def parse(file):
     list_names = []
     for i in data:
         if (i):
-            if ("Marker start:" in i['name']) and (
-                    i['name'] not in list_names):
+            if ("Marker start:" in i['name']) and (i['name']
+                                                   not in list_names):
                 list_names.append(i['name'])
 
     # Get timing information for each marker name
@@ -46,13 +52,13 @@ def parse(file):
                     name == entry['name']
             ):  # name can match on gpu or cpu side, for gpu, we need data from gpu markers.
                 if (("gpu::" in name)
-                        and ("UserMarker frame:" in entry['args']['desc'])
-                    ):  #gpu side information
+                        and ("UserMarker frame:"
+                             in entry['args']['desc'])):  #gpu side information
                     print(entry)
                     temp_list.append(int(entry.get('dur')))
                 elif (("gpu::" not in name)
-                      and ("Marker start:" in entry['args']['desc'])
-                      ):  #cpu side information
+                      and ("Marker start:"
+                           in entry['args']['desc'])):  #cpu side information
                     print(entry)
                     temp_list.append(int(entry.get('dur')))
         list_times_per_names.append(temp_list)
@@ -104,8 +110,9 @@ def run():
     print(onnx_rpath)
     #configurations
     configs = '--hip-trace --roctx-trace --flush-rate 10ms --timestamp on'
-    output_dir = '-d %s'%args.out
-    executable = '/opt/rocm/bin/migraphx-driver roctx %s %s' % (onnx_rpath, migraphx_args)
+    output_dir = '-d %s' % args.out
+    executable = '/opt/rocm/bin/migraphx-driver roctx %s %s' % (onnx_rpath,
+                                                                migraphx_args)
     process_args = configs + ' ' + output_dir + ' ' + executable
     os.system('rocprof ' + process_args)
     print("RUN COMPLETE.")
@@ -130,7 +137,7 @@ def main():
         os.chdir("/tmp/rocmProfileData/")
         os.chdir(curr)
         run()
-        os.chdir(curr + "/%s/"%args.out)
+        os.chdir(curr + "/%s/" % args.out)
         out_path = os.popen("ls -td $PWD/*/*/ | head -1").read()
         out_path = out_path.strip('\n')
         print("OUTPUT PATH: " + out_path)
