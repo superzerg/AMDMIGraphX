@@ -100,6 +100,7 @@ def get_input_shapes(sample_case, param_names):
         file_name = sample_case + '/input_' + str(index) + '.pb'
         data = read_pb_file(file_name)
         param_shape_map[param_name] = list(data.shape)
+        print("{}: {}".format(param_name, data.shape))
         index = index + 1
 
     return param_shape_map
