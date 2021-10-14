@@ -105,7 +105,7 @@ def run():
     #configurations
     configs = '--hip-trace --roctx-trace --flush-rate 10ms --timestamp on'
     output_dir = '-d %s'%args.out
-    executable = '/opt/rocm/bin/migraphx-driver trace %s --onnx --gpu %s' % (onnx_rpath, migraphx_args)
+    executable = '/opt/rocm/bin/migraphx-driver roctx %s %s' % (onnx_rpath, migraphx_args)
     process_args = configs + ' ' + output_dir + ' ' + executable
     os.system('rocprof ' + process_args)
     print("RUN COMPLETE.")
