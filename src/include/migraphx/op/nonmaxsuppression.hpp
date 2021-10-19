@@ -225,7 +225,7 @@ struct nonmaxsuppression
         });
 
         auto out_lens = output_shape.lens();
-        out_lens[0] = selected_indices.size() / 3;
+        out_lens[0]   = selected_indices.size() / 3;
         shape out_s{output_shape.type(), out_lens};
 
         argument result{out_s};

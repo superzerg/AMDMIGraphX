@@ -125,7 +125,7 @@ struct hip_copy_to_gpu
             return input;
 
         argument result = args[1].share();
-        auto in_s = args[0].get_shape();
+        auto in_s       = args[0].get_shape();
         if(result.get_shape() != in_s)
         {
             result = result.reshape(in_s);
