@@ -41,7 +41,7 @@ struct nonzero
         });
 
         auto out_lens = output_shape.lens();
-        out_lens[1] = vec_idx.size();
+        out_lens[1]   = vec_idx.size();
         shape out_s{output_shape.type(), out_lens};
         argument result{out_s};
         result.visit([&](auto output) {

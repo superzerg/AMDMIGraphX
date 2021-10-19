@@ -14,8 +14,8 @@ argument nonzero(hipStream_t stream, const argument& result, const argument& arg
     auto elem_num     = s.elements();
     auto out_elem_num = result.get_shape().elements();
 
-    int *nonzero_elem_num;
-    (void)hipHostMalloc(reinterpret_cast<void **>(&nonzero_elem_num), sizeof(int));
+    int* nonzero_elem_num;
+    (void)hipHostMalloc(reinterpret_cast<void**>(&nonzero_elem_num), sizeof(int));
     *nonzero_elem_num = 0;
 
     // call the prefix_sum function to do a prefix_sum to compute
@@ -58,8 +58,8 @@ argument nonzero(hipStream_t stream, const argument& result, const argument& arg
     });
 
     const auto& out_shape = result.get_shape();
-    auto out_lens = out_shape.lens();
-    out_lens[1] = *nonzero_elem_num;
+    auto out_lens         = out_shape.lens();
+    out_lens[1]           = *nonzero_elem_num;
     shape out_s{out_shape.type(), out_lens};
     (void)hipHostFree(nonzero_elem_num);
 
