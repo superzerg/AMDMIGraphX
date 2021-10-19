@@ -135,10 +135,6 @@ struct nonmaxsuppression
 
     argument compute(const shape& output_shape, std::vector<argument> args) const
     {
-        argument result{output_shape};
-
-        result.visit([&](auto out) { std::fill(out.begin(), out.end(), 0); });
-
         int64_t max_output_boxes_per_class = 0;
         float iou_threshold                = 0.0f;
         float score_threshold              = 0.0f;
@@ -150,7 +146,7 @@ struct nonmaxsuppression
         // max_output_boxes_per_class is 0, no output
         if(max_output_boxes_per_class == 0)
         {
-            return result;
+            return {};
         }
 
         if(args.size() > 3)
@@ -228,6 +224,11 @@ struct nonmaxsuppression
             }
         });
 
+        auto out_lens = output_shape.lens();
+        out_lens[0] = selected_indices.size() / 3;
+        shape out_s{output_shape.type(), out_lens};
+
+        argument result{out_s};
         result.visit([&](auto out) {
             std::copy(selected_indices.begin(), selected_indices.end(), out.begin());
         });
