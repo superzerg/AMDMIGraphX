@@ -72,7 +72,7 @@ TEST_CASE(loop_test1)
     auto ress                      = run_prog(10, true, 1);
     std::vector<int64_t> gold_last = {19};
     EXPECT(ress.front() == gold_last);
-    std::vector<int64_t> gold_concat = {4, 8, 13, 19, 0, 0, 0, 0, 0, 0};
+    std::vector<int64_t> gold_concat = {4, 8, 13, 19};
     EXPECT(ress.back() == gold_concat);
 }
 
@@ -81,7 +81,7 @@ TEST_CASE(loop_test2)
     auto ress                      = run_prog(4, true, 1);
     std::vector<int64_t> gold_last = {19};
     EXPECT(ress.front() == gold_last);
-    std::vector<int64_t> gold_concat = {4, 8, 13, 19, 0, 0, 0, 0, 0, 0};
+    std::vector<int64_t> gold_concat = {4, 8, 13, 19};
     EXPECT(ress.back() == gold_concat);
 }
 
@@ -90,7 +90,7 @@ TEST_CASE(loop_test3)
     auto ress                      = run_prog(3, true, 1);
     std::vector<int64_t> gold_last = {13};
     EXPECT(ress.front() == gold_last);
-    std::vector<int64_t> gold_concat = {4, 8, 13, 0, 0, 0, 0, 0, 0, 0};
+    std::vector<int64_t> gold_concat = {4, 8, 13};
     EXPECT(ress.back() == gold_concat);
 }
 
@@ -99,7 +99,7 @@ TEST_CASE(loop_test4)
     auto ress                      = run_prog(5, true, 2);
     std::vector<int64_t> gold_last = {20};
     EXPECT(ress.front() == gold_last);
-    std::vector<int64_t> gold_concat = {5, 9, 14, 20, 0, 0, 0, 0, 0, 0};
+    std::vector<int64_t> gold_concat = {5, 9, 14, 20};
     EXPECT(ress.back() == gold_concat);
 }
 

@@ -104,7 +104,19 @@ argument run_loop(const LoopModel& model,
 
     out_args.erase(out_args.begin());
     std::copy(in_args.begin() + 2, in_args.end(), out_args.begin());
-    model.set_zero(ctx, scan_outputs, iter);
+
+    // instead of set zeros at the end, we reshape the scan outputs
+    // model.set_zero(ctx, scan_outputs, iter);
+    std::size_t offset = out_args.size() - scan_outputs.size();
+    out_args.erase(out_args.begin() + offset, out_args.end());
+    for(auto& scan_out : scan_outputs)
+    {
+        auto scan_s = scan_out.get_shape();
+        auto lens = scan_s.lens();
+        lens[0] = iter;
+        shape scan_ss{scan_s.type(), lens};
+        out_args.push_back(scan_out.reshape(scan_ss));
+    }
 
     return argument(out_args);
 }

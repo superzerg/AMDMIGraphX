@@ -119,7 +119,7 @@ TEST_CASE(loop_test)
         auto result_vector       = run_prog(10);
         std::vector<float> gold0 = {2.0f};
         EXPECT(result_vector.at(0) == gold0);
-        std::vector<float> gold1 = {-2, 4, 0, 0, 0, 0, 0, 0, 0, 0};
+        std::vector<float> gold1 = {-2, 4};
         EXPECT(result_vector.at(1) == gold1);
     }
 
@@ -127,7 +127,7 @@ TEST_CASE(loop_test)
         auto result_vector       = run_prog(15);
         std::vector<float> gold0 = {2.0f};
         EXPECT(result_vector.at(0) == gold0);
-        std::vector<float> gold1 = {-2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        std::vector<float> gold1 = {-2, 4};
         EXPECT(result_vector.at(1) == gold1);
     }
 }

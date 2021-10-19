@@ -129,6 +129,8 @@ def create_backend_test(testname=None, target_device=None):
         backend_test.include(r'.*test_logsoftmax.*')
         backend_test.include(r'.*test_LogSoftmax.*')
         backend_test.include(r'.*test_log_softmax.*')
+        backend_test.include(r'.*test_Loop.*')
+        backend_test.include(r'.*test_loop.*')
         backend_test.include(r'.*test_lrn.*')
         backend_test.include(r'.*test_matmul.*')
         backend_test.include(r'.*test_max.*')
