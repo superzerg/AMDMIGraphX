@@ -112,8 +112,8 @@ argument run_loop(const LoopModel& model,
     for(auto& scan_out : scan_outputs)
     {
         auto scan_s = scan_out.get_shape();
-        auto lens = scan_s.lens();
-        lens[0] = iter;
+        auto lens   = scan_s.lens();
+        lens[0]     = iter;
         shape scan_ss{scan_s.type(), lens};
         out_args.push_back(scan_out.reshape(scan_ss));
     }
