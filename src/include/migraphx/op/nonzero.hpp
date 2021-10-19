@@ -40,13 +40,16 @@ struct nonzero
             });
         });
 
-        argument result{output_shape};
+        auto out_lens = output_shape.lens();
+        out_lens[1] = vec_idx.size();
+        shape out_s{output_shape.type(), out_lens};
+        argument result{out_s};
         result.visit([&](auto output) {
             std::fill(output.begin(), output.end(), 0);
             par_for(vec_idx.size(), [&](auto i) {
                 for(std::size_t j = 0; j < vec_idx.front().size(); ++j)
                 {
-                    output[output_shape.index({j, i})] = vec_idx[i][j];
+                    output[out_s.index({j, i})] = vec_idx[i][j];
                 }
             });
         });

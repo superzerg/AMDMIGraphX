@@ -145,13 +145,19 @@ struct hip_copy_from_gpu
         return inputs.at(0);
     }
     argument
-    compute(context& ctx, const shape& output_shape, const std::vector<argument>& args) const
+    compute(context& ctx, const shape&, const std::vector<argument>& args) const
     {
         if(args.size() == 1)
         {
-            argument result = allocate_gpu(output_shape, true);
+            argument result = allocate_gpu(args[0].get_shape(), true);
             gpu_copy(ctx, args[0], result);
             return result;
+        }
+
+        argument res = args[1];
+        if(args[0].get_shape() != args[1].get_shape())
+        {
+            res = args[1].reshape(args[0].get_shape());
         }
         copy_from_gpu(ctx, args[0], args[1]);
         return args[1];
