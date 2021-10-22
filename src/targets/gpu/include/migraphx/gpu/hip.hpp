@@ -132,6 +132,7 @@ struct hip_copy_to_gpu
         }
 
         gpu_copy(ctx, input, result);
+        
         // Associate the input since it was registered with hip
         return {result.get_shape(), [input, result]() mutable { return result.data(); }};
     }

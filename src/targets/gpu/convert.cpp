@@ -15,8 +15,9 @@ shape hip_convert::compute_shape(std::vector<shape> inputs) const
 
 argument hip_convert::compute(context& ctx, const shape&, const std::vector<argument>& args) const
 {
-    device::convert(ctx.get_stream().get(), args[1], args[0]);
-    return args[1];
+    auto result = args.at(1).share();
+    device::convert(ctx.get_stream().get(), result, args[0]);
+    return result;
 }
 
 } // namespace gpu
