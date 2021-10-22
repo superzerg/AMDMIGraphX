@@ -17,7 +17,7 @@ void convert(hipStream_t stream, argument& result, const argument& arg)
         });
     });
 
-    if (result.get_shape() != arg.get_shape())
+    if(result.get_shape() != arg.get_shape())
     {
         result = result.reshape(arg.get_shape());
     }
