@@ -19,7 +19,9 @@ void convert(hipStream_t stream, argument& result, const argument& arg)
 
     if(result.get_shape() != arg.get_shape())
     {
-        result = result.reshape(arg.get_shape());
+        auto lens = arg.get_shape().lens();
+        shape out_s{result.get_shape().type(), lens};
+        result = result.reshape(out_s);
     }
 }
 

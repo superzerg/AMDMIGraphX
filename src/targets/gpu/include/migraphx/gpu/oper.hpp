@@ -75,6 +75,12 @@ struct binary_device : device_base<Derived, 2>
           this->get_arg(args, 2),
           this->get_arg(args, 0),
           this->get_arg(args, 1));
+
+        if (args[2].get_shape() != args[0].get_shape())
+        {
+            return args[2].share().reshape(args[0].get_shape());
+        }
+
         return args[2];
     }
 };

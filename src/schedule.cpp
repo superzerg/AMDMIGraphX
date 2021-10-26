@@ -520,6 +520,7 @@ struct stream_info
 
 void schedule::apply(module& p) const
 {
+    return;
     if(not enable)
         return;
 
@@ -527,8 +528,14 @@ void schedule::apply(module& p) const
     si.calc_implicit_deps(p);
     auto last = std::prev(p.end());
     si.accumulate_weights(last, model);
+    std::cout << "before assign, p_name = " << p.name() << std::endl;
+    std::cout << p << std::endl << std::endl;
     auto nstreams = si.assign_streams(p, model.concurrency());
+    std::cout << "after assign, p_name = " << p.name() << std::endl;
+    std::cout << p << std::endl << std::endl;
     si.sort(p, model.concurrency());
+    std::cout << "after sort, p_name = " << p.name() << std::endl;
+    std::cout << p << std::endl << std::endl;
 
     if(enabled(MIGRAPHX_TRACE_COMPILE{}) or enabled(MIGRAPHX_TRACE_SCHEDULE{}))
     {

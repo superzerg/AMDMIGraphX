@@ -208,9 +208,9 @@ std::vector<argument> generic_eval(const module* mod,
                     if(not contains(params, param_name))
                         MIGRAPHX_THROW("Parameter not found: " + param_name);
                     auto param = params[param_name];
-                    if(param.get_shape() != ins->get_shape())
-                        MIGRAPHX_THROW("Incorrect shape {" + to_string(param.get_shape()) +
-                                       "} for parameter: " + param_name);
+                    // if(param.get_shape() != ins->get_shape())
+                    //     MIGRAPHX_THROW("Incorrect shape {" + to_string(param.get_shape()) +
+                    //                    "} for parameter: " + param_name);
                     return param;
                 }));
         }
@@ -252,8 +252,8 @@ std::vector<argument> generic_eval(const module* mod,
                                     ctx, ins->get_shape(), values, mod_args, module_eval);
                             }));
         }
-        std::cout << "ins_name: " << ins->name() << ", output_shape = " << results[ins].get_shape()
-                  << std::endl;
+        // std::cout << "ins_name: " << ins->name() << ", output_shape = " << results[ins].get_shape()
+        //           << std::endl;
         assert(results.find(ins) != results.end());
         // assert(results.at(ins).get_shape() == ins->get_shape());
     }
@@ -311,11 +311,32 @@ std::vector<argument> program::eval(parameter_map params) const
                                 ctx.finish();
                                 double t2 = t.record<milliseconds>();
                                 std::cout << "Time: " << t1 << "ms, " << t2 << "ms" << std::endl;
+                                // if(trace_level > 1 and not result.empty())
                                 if(trace_level > 1 and ins->name().front() != '@' and
                                    ins->name() != "load" and not result.empty())
                                 {
-                                    target tgt = make_target(this->impl->target_name);
-                                    std::cout << "Output: " << tgt.copy_from(result) << std::endl;
+                                    if (ins->name() != "hip::copy_from_gpu")
+                                    {
+                                        target tgt = make_target(this->impl->target_name);
+                                        auto ss = result.get_shape();
+                                        std::vector<argument> args;
+                                        if(ss.type() == shape::tuple_type)
+                                        {
+                                            args = result.get_sub_objects();
+                                        }
+                                        else
+                                        {
+                                            args = {result};
+                                        }
+
+                                        for(auto i : range(args.size()))
+                                        {
+                                            if(args[i].get_shape().elements() < 1000)
+                                            {
+                                                std::cout << "Output_" << i << ": " << tgt.copy_from(args[i]) << std::endl;
+                                            }
+                                        }
+                                    }
                                 }
                                 return result;
                             }));

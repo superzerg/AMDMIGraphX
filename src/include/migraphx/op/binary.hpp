@@ -70,6 +70,12 @@ struct binary : op_name<Derived>
                            output.begin(),
                            static_cast<const Derived&>(*this).apply());
         });
+
+        if(result.get_shape() != args.at(0).get_shape())
+        {
+            result = result.reshape(args.at(0).get_shape());
+        }
+
         return result;
     }
 };

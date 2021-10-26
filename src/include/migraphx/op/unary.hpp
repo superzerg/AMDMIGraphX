@@ -67,6 +67,14 @@ struct unary : op_name<Derived>
 
             });
         });
+
+        if(result.get_shape().lens() != args[0].get_shape().lens())
+        {
+            auto lens = args[0].get_shape().lens();
+            shape out_s{output_shape.type(), lens};
+            result = result.reshape(out_s);
+        }
+
         return result;
     }
 };

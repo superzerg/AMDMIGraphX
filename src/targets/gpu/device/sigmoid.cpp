@@ -10,7 +10,17 @@ namespace device {
 void sigmoid(hipStream_t stream, const argument& result, const argument& arg)
 {
     nary(stream, result, arg)([](auto x)
-                                  __device__ { return 1.f / (1.f + ::exp(to_hip_type(-x))); });
+                                  __device__ { 
+        if(x >= 0)
+        {
+            return 1.f / (1.f + ::exp(to_hip_type(-x)));
+        }
+        else
+        {
+            auto v = exp(to_hip_type(x));
+            return v / (1.0f + v);            
+        }
+    });
 }
 
 } // namespace device

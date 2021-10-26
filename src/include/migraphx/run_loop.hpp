@@ -79,6 +79,7 @@ argument run_loop(const LoopModel& model,
                 {
                     const auto& arg = out_args.at(output_index);
                     assert((iter + 1) * ps.bytes() <= arg.get_shape().bytes());
+                    std::cout << "offset = " << iter * ps.bytes() << std::endl;
                     params[name] = argument(ps, arg.data() + iter * ps.bytes());
                 }
                 else

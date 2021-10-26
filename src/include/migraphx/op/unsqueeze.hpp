@@ -35,6 +35,7 @@ struct unsqueeze
     }
 
     std::string name() const { return "unsqueeze"; }
+
     shape normalize_compute_shape(std::vector<shape> inputs) const
     {
         check_shapes{inputs, *this}.has(1).standard_or_scalar();
@@ -67,10 +68,16 @@ struct unsqueeze
         }
         return shape{type, new_lens};
     }
-    argument compute(shape output_shape, std::vector<argument> args) const
+
+    argument compute(shape, std::vector<argument> args) const
     {
-        return args[0].reshape(output_shape);
+        // recompute the output shape according to input shape
+        auto in_s = args.at(0).get_shape();
+        auto out_s = normalize_compute_shape({in_s});
+
+        return args[0].reshape(out_s);
     }
+
     lifetime get_lifetime() const { return lifetime::borrow; }
     std::ptrdiff_t output_alias(const std::vector<shape>&) const { return 0; }
 };
