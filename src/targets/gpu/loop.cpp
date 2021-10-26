@@ -33,7 +33,8 @@ struct gpu_loop
         copy_to_gpu(ctx, arg_src, dst);
     }
 
-    void append(const std::vector<argument>& iter_state,
+    void append(context& ctx,
+                const std::vector<argument>& iter_state,
                 const std::vector<argument>& concatenated_outputs,
                 int iter,
                 const std::vector<int>& indices) const
@@ -49,8 +50,11 @@ struct gpu_loop
             auto* out_data       = scan_out.data();
             std::size_t out_size = iter_stat.get_shape().bytes();
             assert((iter + 1) * out_size <= scan_out.get_shape().bytes());
-            (void)hipMemcpy(out_data + iter * out_size, in_data, out_size, hipMemcpyDeviceToDevice);
-            // std::copy(in_data, in_data + out_size, out_data + iter * out_size);
+            (void)hipMemcpyAsync(out_data + iter * out_size,
+                                 in_data,
+                                 out_size,
+                                 hipMemcpyDeviceToDevice,
+                                 ctx.get_stream().get());
         }
     }
 

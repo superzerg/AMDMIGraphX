@@ -73,7 +73,8 @@ struct loop
             *dst.cast<T>() = src;
         }
 
-        void append(const std::vector<argument>& iter_state,
+        void append(context&,
+                    const std::vector<argument>& iter_state,
                     const std::vector<argument>& concatenated_outputs,
                     int iter,
                     const std::vector<int>&) const

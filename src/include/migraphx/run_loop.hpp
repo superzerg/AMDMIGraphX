@@ -102,7 +102,7 @@ argument run_loop(const LoopModel& model,
         std::copy(dep_out.begin(), dep_out.end(), out_args.begin());
 
         std::vector<argument> mod_scan_outs(mod_args.begin() + 1 + dep_num, mod_args.end());
-        model.append(mod_scan_outs, scan_outputs, iter, set_indices);
+        model.append(ctx, mod_scan_outs, scan_outputs, iter, set_indices);
     }
 
     out_args.erase(out_args.begin());
