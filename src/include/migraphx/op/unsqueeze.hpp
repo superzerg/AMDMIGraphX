@@ -72,7 +72,7 @@ struct unsqueeze
     argument compute(shape, std::vector<argument> args) const
     {
         // recompute the output shape according to input shape
-        auto in_s = args.at(0).get_shape();
+        auto in_s  = args.at(0).get_shape();
         auto out_s = normalize_compute_shape({in_s});
 
         return args[0].reshape(out_s);

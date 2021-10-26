@@ -202,17 +202,18 @@ std::vector<argument> generic_eval(const module* mod,
         }
         else if(name == "@param")
         {
-            results.emplace(
-                ins, trace(ins, [&] {
-                    auto param_name = any_cast<builtin::param>(ins->get_operator()).parameter;
-                    if(not contains(params, param_name))
-                        MIGRAPHX_THROW("Parameter not found: " + param_name);
-                    auto param = params[param_name];
-                    // if(param.get_shape() != ins->get_shape())
-                    //     MIGRAPHX_THROW("Incorrect shape {" + to_string(param.get_shape()) +
-                    //                    "} for parameter: " + param_name);
-                    return param;
-                }));
+            results.emplace(ins, trace(ins, [&] {
+                                auto param_name =
+                                    any_cast<builtin::param>(ins->get_operator()).parameter;
+                                if(not contains(params, param_name))
+                                    MIGRAPHX_THROW("Parameter not found: " + param_name);
+                                auto param = params[param_name];
+                                // if(param.get_shape() != ins->get_shape())
+                                //     MIGRAPHX_THROW("Incorrect shape {" +
+                                //     to_string(param.get_shape()) +
+                                //                    "} for parameter: " + param_name);
+                                return param;
+                            }));
         }
         else if(name == "@outline")
         {
@@ -252,7 +253,8 @@ std::vector<argument> generic_eval(const module* mod,
                                     ctx, ins->get_shape(), values, mod_args, module_eval);
                             }));
         }
-        // std::cout << "ins_name: " << ins->name() << ", output_shape = " << results[ins].get_shape()
+        // std::cout << "ins_name: " << ins->name() << ", output_shape = " <<
+        // results[ins].get_shape()
         //           << std::endl;
         assert(results.find(ins) != results.end());
         // assert(results.at(ins).get_shape() == ins->get_shape());
@@ -315,10 +317,10 @@ std::vector<argument> program::eval(parameter_map params) const
                                 if(trace_level > 1 and ins->name().front() != '@' and
                                    ins->name() != "load" and not result.empty())
                                 {
-                                    if (ins->name() != "hip::copy_from_gpu")
+                                    if(ins->name() != "hip::copy_from_gpu")
                                     {
                                         target tgt = make_target(this->impl->target_name);
-                                        auto ss = result.get_shape();
+                                        auto ss    = result.get_shape();
                                         std::vector<argument> args;
                                         if(ss.type() == shape::tuple_type)
                                         {
@@ -333,7 +335,8 @@ std::vector<argument> program::eval(parameter_map params) const
                                         {
                                             if(args[i].get_shape().elements() < 1000)
                                             {
-                                                std::cout << "Output_" << i << ": " << tgt.copy_from(args[i]) << std::endl;
+                                                std::cout << "Output_" << i << ": "
+                                                          << tgt.copy_from(args[i]) << std::endl;
                                             }
                                         }
                                     }
