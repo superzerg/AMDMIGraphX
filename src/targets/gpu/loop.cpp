@@ -33,7 +33,26 @@ struct gpu_loop
         copy_to_gpu(ctx, arg_src, dst);
     }
 
-    void append(const std::vector<argument>&, const std::vector<argument>&, int) const {}
+    void append(const std::vector<argument>& iter_state,
+                const std::vector<argument>& concatenated_outputs,
+                int iter,
+                const std::vector<int>& indices) const
+    {
+        for(auto i : range(iter_state.size()))
+        {
+            if(contains(indices, i))
+                continue;
+            const auto& iter_stat = iter_state.at(i);
+            const auto& scan_out  = concatenated_outputs.at(i);
+
+            auto* in_data        = iter_stat.data();
+            auto* out_data       = scan_out.data();
+            std::size_t out_size = iter_stat.get_shape().bytes();
+            assert((iter + 1) * out_size <= scan_out.get_shape().bytes());
+            (void)hipMemcpy(out_data + iter * out_size, in_data, out_size, hipMemcpyDeviceToDevice);
+            // std::copy(in_data, in_data + out_size, out_data + iter * out_size);
+        }
+    }
 
     void set_zero(context& ctx, const std::vector<argument>& concatenated_outputs, int iter) const
     {

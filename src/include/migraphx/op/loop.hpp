@@ -75,7 +75,8 @@ struct loop
 
         void append(const std::vector<argument>& iter_state,
                     const std::vector<argument>& concatenated_outputs,
-                    int iter) const
+                    int iter,
+                    const std::vector<int>&) const
         {
             assert(iter_state.size() == concatenated_outputs.size());
             for(auto i : range(iter_state.size()))
