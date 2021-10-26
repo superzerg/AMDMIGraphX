@@ -48,6 +48,7 @@ argument run_loop(const LoopModel& model,
     std::vector<argument> scan_outputs(ins_outputs.begin() + dep_num, ins_outputs.end());
 
     auto out_param_indices = model.get_output_params(*mod);
+    std::vector<int> set_indices;
 
     int64_t iter = 0;
     for(iter = 0; iter < iter_num and cond; ++iter)
@@ -77,6 +78,7 @@ argument run_loop(const LoopModel& model,
                 auto output_index = out_param_indices[name];
                 if(output_index > dep_num)
                 {
+                    set_indices.push_back(output_index - dep_num);
                     const auto& arg = out_args.at(output_index);
                     assert((iter + 1) * ps.bytes() <= arg.get_shape().bytes());
                     params[name] = argument(ps, arg.data() + iter * ps.bytes());
@@ -99,7 +101,7 @@ argument run_loop(const LoopModel& model,
         std::copy(dep_out.begin(), dep_out.end(), out_args.begin());
 
         std::vector<argument> mod_scan_outs(mod_args.begin() + 1 + dep_num, mod_args.end());
-        model.append(mod_scan_outs, scan_outputs, iter);
+        model.append(mod_scan_outs, scan_outputs, iter, set_indices);
     }
 
     out_args.erase(out_args.begin());
