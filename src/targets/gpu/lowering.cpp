@@ -475,6 +475,7 @@ struct miopen_apply
     void add_roialign()
     {
         apply_map.emplace("roialign", [=](instruction_ref ins) {
+
             auto s      = ins->get_shape();
             auto op_val = ins->get_operator().to_value();
             auto output = insert_allocation(ins, s);
@@ -484,19 +485,6 @@ struct miopen_apply
             auto io_shapes = to_shapes(args);
             auto co        = compile_roialign(get_context(), io_shapes, op_val);
             return mod->replace_instruction(ins, co, args);
-        });
-    }
-
-    void add_nonzero_op()
-    {
-        apply_map.emplace("nonzero", [=](instruction_ref ins) {
-            auto input          = ins->inputs().front();
-            const auto& in_lens = input->get_shape().lens();
-            shape idx_s{shape::int64_type, in_lens};
-            auto idx = mod->insert_instruction(
-                ins, make_op("hip::allocate", {{"shape", to_value(idx_s)}}));
-            auto output = insert_allocation(ins, ins->get_shape());
-            return mod->replace_instruction(ins, make_op("gpu::nonzero"), input, idx, output);
         });
     }
 
