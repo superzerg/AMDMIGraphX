@@ -55,6 +55,17 @@ def onnx_options_type_wrap(p):
         p.read = '${name} == nullptr ? migraphx::onnx_options{} : migraphx::to_onnx_options(*${name})'
 
 
+@api.cwrap('migraphx::tf_options')
+def tf_options_type_wrap(p):
+    if p.returns:
+        p.add_param('migraphx_tf_options *')
+        p.bad_param('${name} == nullptr', 'Null pointer')
+        p.write = ['*${name} = migraphx::to_tf_options(${result})']
+    else:
+        p.add_param('migraphx_tf_options *')
+        p.read = '${name} == nullptr ? migraphx::tf_options{} : migraphx::to_tf_options(*${name})'
+
+
 def auto_handle(*args, **kwargs):
     def with_handle(f):
         return api.handle('migraphx_' + f.__name__, 'migraphx::' + f.__name__,
@@ -201,7 +212,9 @@ def program(h):
 @auto_handle()
 def operation(h):
     h.constructor('create',
-                  api.params(name='const char*', attributes='const char*'),
+                  api.params(name='const char*',
+                             attributes='const char*',
+                             vlist='...'),
                   fname='migraphx::create_op')
     h.method('name', returns='std::string')
 
@@ -232,6 +245,30 @@ def onnx_options(h):
         api.params(value='size_t'),
         invoke='migraphx::set_default_dim_value($@)',
     )
+    h.method(
+        'set_default_loop_iterations',
+        api.params(value='int64_t'),
+        invoke='migraphx::set_default_loop_iterations($@)',
+    )
+
+
+@auto_handle()
+def file_options(h):
+    h.constructor('create')
+    h.method('set_file_format',
+             api.params(format='const char*'),
+             invoke='migraphx::set_file_format($@)')
+
+
+@auto_handle()
+def compile_options(h):
+    h.constructor('create')
+    h.method('set_offload_copy',
+             api.params(value='bool'),
+             invoke='migraphx::set_offload_copy($@)')
+    h.method('set_fast_math',
+             api.params(value='bool'),
+             invoke='migraphx::set_fast_math($@)')
 
 
 api.add_function('migraphx_parse_onnx',
@@ -245,6 +282,38 @@ api.add_function('migraphx_parse_onnx_buffer',
                             size='size_t',
                             options='migraphx::onnx_options'),
                  fname='migraphx::parse_onnx_buffer',
+                 returns='migraphx::program')
+
+
+@auto_handle()
+def tf_options(h):
+    h.constructor('create')
+    h.method(
+        'set_nhwc',
+        api.params(is_nhwc='bool'),
+        invoke='migraphx::set_nhwc($@)',
+    )
+    h.method(
+        'set_input_parameter_shape',
+        api.params(name='const char*', dims='std::vector<size_t>'),
+        invoke='migraphx::set_input_parameter_shape($@)',
+    )
+    h.method(
+        'set_default_dim_value',
+        api.params(value='size_t'),
+        invoke='migraphx::set_default_dim_value($@)',
+    )
+    h.method(
+        'set_output_names',
+        api.params(names='std::vector<const char*>'),
+        invoke='migraphx::set_output_names($@)',
+    )
+
+
+api.add_function('migraphx_parse_tf',
+                 api.params(name='const char*',
+                            options='migraphx::tf_options'),
+                 fname='migraphx::parse_tf',
                  returns='migraphx::program')
 
 

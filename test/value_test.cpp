@@ -1,5 +1,6 @@
 #include <migraphx/value.hpp>
 #include <migraphx/float_equal.hpp>
+#include <migraphx/ranges.hpp>
 #include <test.hpp>
 
 enum class enum_type
@@ -485,6 +486,12 @@ TEST_CASE(value_emplace_object)
     EXPECT(v["three"].get_key() == "three");
 }
 
+TEST_CASE(value_bracket_convert_throws)
+{
+    migraphx::value v1;
+    EXPECT(test::throws([&] { v1["key"].to<std::string>(); }));
+}
+
 TEST_CASE(value_construct_object_string_value)
 {
     migraphx::value v = {{"one", "onev"}, {"two", "twov"}};
@@ -753,6 +760,79 @@ TEST_CASE(value_init_from_vector)
     std::vector<int> v     = {1, 2, 3};
     migraphx::value values = {{"a", v}};
     EXPECT(values.at("a").to_vector<int>() == v);
+}
+
+TEST_CASE(value_binary_default)
+{
+    migraphx::value v;
+    v = migraphx::value::binary{};
+    EXPECT(v.is_binary());
+    EXPECT(v.get_key().empty());
+}
+
+TEST_CASE(value_binary)
+{
+    migraphx::value v;
+    std::vector<std::uint8_t> data(20);
+    std::iota(data.begin(), data.end(), 0);
+    v = migraphx::value::binary{data};
+    EXPECT(v.is_binary());
+    EXPECT(v.get_binary().size() == data.size());
+    EXPECT(v.get_binary() == data);
+    EXPECT(v.get_key().empty());
+}
+
+TEST_CASE(value_binary_object)
+{
+    std::vector<std::uint8_t> data(20);
+    std::iota(data.begin(), data.end(), 0);
+    migraphx::value v = {{"data", migraphx::value::binary{data}}};
+
+    EXPECT(v["data"].is_binary());
+    EXPECT(v["data"].get_binary().size() == data.size());
+    EXPECT(v["data"].get_binary() == data);
+}
+
+TEST_CASE(value_binary_object_conv)
+{
+    std::vector<std::int8_t> data(20);
+    std::iota(data.begin(), data.end(), 0);
+    migraphx::value v = {{"data", migraphx::value::binary{data}}};
+
+    EXPECT(v["data"].is_binary());
+    EXPECT(v["data"].get_binary().size() == data.size());
+    EXPECT(migraphx::equal(v["data"].get_binary(), data));
+}
+
+template <class T>
+bool is_null_type(T)
+{
+    return false;
+}
+
+bool is_null_type(std::nullptr_t) { return true; }
+
+TEST_CASE(visit_null)
+{
+    migraphx::value v;
+    EXPECT(v.is_null());
+    bool visited = false;
+    v.visit([&](auto&& x) { visited = is_null_type(x); });
+    EXPECT(visited);
+}
+
+TEST_CASE(value_or_convert)
+{
+    migraphx::value v = 1;
+    EXPECT(v.is_int64());
+    EXPECT(v.value_or(3) == 1);
+}
+
+TEST_CASE(value_or_null)
+{
+    migraphx::value v;
+    EXPECT(v.is_null());
+    EXPECT(v.value_or(3) == 3);
 }
 
 int main(int argc, const char* argv[]) { test::run(argc, argv); }

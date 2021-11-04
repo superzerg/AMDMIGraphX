@@ -22,16 +22,16 @@ struct value_base_impl : cloneable<value_base_impl>
     value_base_impl()                       = default;
     value_base_impl(const value_base_impl&) = default;
     value_base_impl& operator=(const value_base_impl&) = default;
-    virtual ~value_base_impl() {}
+    virtual ~value_base_impl() override {}
 };
 
-#define MIGRAPHX_VALUE_GENERATE_BASE_TYPE(vt, cpp_type)               \
-    struct vt##_value_holder : value_base_impl::share                 \
-    {                                                                 \
-        vt##_value_holder(cpp_type d) : data(std::move(d)) {}         \
-        virtual value::type_t get_type() { return value::vt##_type; } \
-        virtual const cpp_type* if_##vt() const { return &data; }     \
-        cpp_type data;                                                \
+#define MIGRAPHX_VALUE_GENERATE_BASE_TYPE(vt, cpp_type)                        \
+    struct vt##_value_holder : value_base_impl::share                          \
+    {                                                                          \
+        vt##_value_holder(cpp_type d) : data(std::move(d)) {}                  \
+        virtual value::type_t get_type() override { return value::vt##_type; } \
+        virtual const cpp_type* if_##vt() const override { return &data; }     \
+        cpp_type data;                                                         \
     };
 MIGRAPHX_VISIT_VALUE_TYPES(MIGRAPHX_VALUE_GENERATE_BASE_TYPE)
 
@@ -39,8 +39,8 @@ struct array_value_holder : value_base_impl::derive<array_value_holder>
 {
     array_value_holder() {}
     array_value_holder(std::vector<value> d) : data(std::move(d)) {}
-    virtual value::type_t get_type() { return value::array_type; }
-    virtual std::vector<value>* if_array() { return &data; }
+    virtual value::type_t get_type() override { return value::array_type; }
+    virtual std::vector<value>* if_array() override { return &data; }
     std::vector<value> data;
 };
 
@@ -51,9 +51,9 @@ struct object_value_holder : value_base_impl::derive<object_value_holder>
         : data(std::move(d)), lookup(std::move(l))
     {
     }
-    virtual value::type_t get_type() { return value::object_type; }
-    virtual std::vector<value>* if_array() { return &data; }
-    virtual std::unordered_map<std::string, std::size_t>* if_object() { return &lookup; }
+    virtual value::type_t get_type() override { return value::object_type; }
+    virtual std::vector<value>* if_array() override { return &data; }
+    virtual std::unordered_map<std::string, std::size_t>* if_object() override { return &lookup; }
     std::vector<value> data;
     std::unordered_map<std::string, std::size_t> lookup;
 };
@@ -204,7 +204,7 @@ const std::string& value::get_key() const { return key; }
 
 std::vector<value>* if_array_impl(const std::shared_ptr<value_base_impl>& x)
 {
-    if(!x)
+    if(x == nullptr)
         return nullptr;
     return x->if_array();
 }
@@ -224,23 +224,24 @@ std::vector<value>& get_array_throw(const std::shared_ptr<value_base_impl>& x)
     return *a;
 }
 
-value* find_impl(const std::shared_ptr<value_base_impl>& x, const std::string& key)
+template <class T>
+T* find_impl(const std::shared_ptr<value_base_impl>& x, const std::string& key, T* end)
 {
     auto* a = if_array_impl(x);
     if(a == nullptr)
-        return nullptr;
+        return end;
     auto* lookup = x->if_object();
     if(lookup == nullptr)
-        return nullptr;
+        return end;
     auto it = lookup->find(key);
     if(it == lookup->end())
-        return a->data() + a->size();
+        return end;
     return std::addressof((*a)[it->second]);
 }
 
-value* value::find(const std::string& pkey) { return find_impl(x, pkey); }
+value* value::find(const std::string& pkey) { return find_impl(x, pkey, this->end()); }
 
-const value* value::find(const std::string& pkey) const { return find_impl(x, pkey); }
+const value* value::find(const std::string& pkey) const { return find_impl(x, pkey, this->end()); }
 bool value::contains(const std::string& pkey) const
 {
     const auto* it = find(pkey);
@@ -286,10 +287,26 @@ const value* value::begin() const
 value* value::end() { return begin() + size(); }
 const value* value::end() const { return begin() + size(); }
 
-value& value::front() { return *begin(); }
-const value& value::front() const { return *begin(); }
-value& value::back() { return *std::prev(end()); }
-const value& value::back() const { return *std::prev(end()); }
+value& value::front()
+{
+    assert(this->size() > 0);
+    return *begin();
+}
+const value& value::front() const
+{
+    assert(this->size() > 0);
+    return *begin();
+}
+value& value::back()
+{
+    assert(this->size() > 0);
+    return *std::prev(end());
+}
+const value& value::back() const
+{
+    assert(this->size() > 0);
+    return *std::prev(end());
+}
 value& value::at(std::size_t i)
 {
     auto* a = if_array_impl(x);
@@ -322,8 +339,16 @@ const value& value::at(const std::string& pkey) const
         MIGRAPHX_THROW("Key not found: " + pkey);
     return *r;
 }
-value& value::operator[](std::size_t i) { return *(begin() + i); }
-const value& value::operator[](std::size_t i) const { return *(begin() + i); }
+value& value::operator[](std::size_t i)
+{
+    assert(i < this->size());
+    return *(begin() + i);
+}
+const value& value::operator[](std::size_t i) const
+{
+    assert(i < this->size());
+    return *(begin() + i);
+}
 value& value::operator[](const std::string& pkey) { return *emplace(pkey, nullptr).first; }
 
 void value::clear() { get_array_throw(x).clear(); }
@@ -409,8 +434,8 @@ template <class F>
 bool compare(const value& x, const value& y, F f)
 {
     bool result = false;
-    x.visit([&](auto&& a) {
-        y.visit([&](auto&& b) {
+    x.visit_value([&](auto&& a) {
+        y.visit_value([&](auto&& b) {
             result = compare_common_impl(rank<1>{}, f, x.get_key(), a, y.get_key(), b);
         });
     });
@@ -436,6 +461,8 @@ bool operator<=(const value& x, const value& y) { return x == y or x < y; }
 bool operator>(const value& x, const value& y) { return y < x; }
 bool operator>=(const value& x, const value& y) { return x == y or x > y; }
 
+void print_value(std::ostream& os, std::nullptr_t) { os << "null"; }
+
 template <class T>
 void print_value(std::ostream& os, const T& x)
 {
@@ -450,11 +477,19 @@ void print_value(std::ostream& os, const std::pair<T, U>& x)
     print_value(os, x.second);
 }
 
-void print_value(std::ostream& os, const std::nullptr_t&) { os << "null"; }
 void print_value(std::ostream& os, const std::vector<value>& x)
 {
     os << "{";
     os << to_string_range(x);
+    os << "}";
+}
+
+void print_value(std::ostream& os, const value::binary& x)
+{
+    // Convert binary to integers
+    std::vector<int> v(x.begin(), x.end());
+    os << "{";
+    os << to_string_range(v);
     os << "}";
 }
 

@@ -63,13 +63,12 @@ TEST_CASE(int8_quantization)
     auto create_program = [] {
         migraphx::program p;
         auto* mm = p.get_main_module();
-        migraphx::shape sa{migraphx::shape::float_type, {2, 16}};
+        migraphx::shape sa{migraphx::shape::float_type, {5, 16}};
         migraphx::shape sb{migraphx::shape::float_type, {16, 8}};
-        migraphx::shape sc{migraphx::shape::float_type, {2, 8}};
+        migraphx::shape sc{migraphx::shape::float_type, {5, 8}};
         auto pa = mm->add_parameter("a", sa);
         auto pb = mm->add_parameter("b", sb);
-        auto pc = mm->add_parameter("c", sc);
-        mm->add_instruction(migraphx::op::dot{}, pa, pb, pc);
+        mm->add_instruction(migraphx::op::dot{}, pa, pb);
 
         return p;
     };
@@ -77,12 +76,11 @@ TEST_CASE(int8_quantization)
     {
         auto p = create_program();
         migraphx::parameter_map m;
-        migraphx::shape sa{migraphx::shape::float_type, {2, 16}};
+        migraphx::shape sa{migraphx::shape::float_type, {5, 16}};
         migraphx::shape sb{migraphx::shape::float_type, {16, 8}};
-        migraphx::shape sc{migraphx::shape::float_type, {2, 8}};
+        migraphx::shape sc{migraphx::shape::float_type, {5, 8}};
         m["a"] = migraphx::generate_argument(sa);
         m["b"] = migraphx::generate_argument(sb);
-        m["c"] = migraphx::generate_argument(sc);
         std::vector<float> ref_result;
         migraphx::target ref_t = migraphx::ref::target{};
         run_prog(p, ref_t, m, ref_result);

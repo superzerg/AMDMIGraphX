@@ -34,21 +34,12 @@ typedef enum {
 } migraphx_status;
 
 #define MIGRAPHX_SHAPE_GENERATE_ENUM_TYPES(x, t) migraphx_shape_##x,
+/// An enum to represent the different data type inputs
 typedef enum {
+    migraphx_shape_tuple_type,
     MIGRAPHX_SHAPE_VISIT_TYPES(MIGRAPHX_SHAPE_GENERATE_ENUM_TYPES)
 } migraphx_shape_datatype_t;
 #undef MIGRAPHX_SHAPE_GENERATE_ENUM_TYPES
-
-typedef struct
-{
-    bool offload_copy;
-    bool fast_math;
-} migraphx_compile_options;
-
-typedef struct
-{
-    const char* format;
-} migraphx_file_options;
 
 <% generate_c_header() %>
 

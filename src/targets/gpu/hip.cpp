@@ -15,6 +15,7 @@ namespace gpu {
 
 MIGRAPHX_REGISTER_OP(hip_allocate)
 MIGRAPHX_REGISTER_OP(hip_sync_device)
+MIGRAPHX_REGISTER_OP(hip_sync_stream)
 MIGRAPHX_REGISTER_OP(hip_copy_to_gpu)
 MIGRAPHX_REGISTER_OP(hip_copy_from_gpu)
 MIGRAPHX_REGISTER_OP(hip_copy)
@@ -146,6 +147,8 @@ void gpu_sync()
         MIGRAPHX_THROW("hip device synchronization failed: " + hip_error(status));
 }
 
+void gpu_sync(const context& ctx) { ctx.finish(); }
+
 void hip_async_copy(context& ctx, const argument& src, const argument& dst, hipMemcpyKind kind)
 {
     std::size_t src_size = src.get_shape().bytes();
@@ -166,12 +169,26 @@ void gpu_copy(context& ctx, const argument& src, const argument& dst)
 
 void copy_to_gpu(context& ctx, const argument& src, const argument& dst)
 {
-    gpu_copy(ctx, register_on_gpu(src), dst);
+    if(src.get_shape() == dst.get_shape() and dst.get_shape().packed())
+    {
+        hip_async_copy(ctx, src, dst, hipMemcpyHostToDevice);
+    }
+    else
+    {
+        gpu_copy(ctx, register_on_gpu(src), dst);
+    }
 }
 
 void copy_from_gpu(context& ctx, const argument& src, const argument& dst)
 {
-    gpu_copy(ctx, src, register_on_gpu(dst));
+    if(src.get_shape() == dst.get_shape() and dst.get_shape().packed())
+    {
+        hip_async_copy(ctx, src, dst, hipMemcpyDeviceToHost);
+    }
+    else
+    {
+        gpu_copy(ctx, src, register_on_gpu(dst));
+    }
 }
 
 argument get_preallocation(context& ctx, const std::string& id)

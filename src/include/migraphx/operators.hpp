@@ -35,9 +35,11 @@
 #include <migraphx/op/flatten.hpp>
 #include <migraphx/op/floor.hpp>
 #include <migraphx/op/gather.hpp>
+#include <migraphx/op/get_tuple_elem.hpp>
 #include <migraphx/op/greater.hpp>
 #include <migraphx/op/gru.hpp>
 #include <migraphx/op/identity.hpp>
+#include <migraphx/op/if_op.hpp>
 #include <migraphx/op/im2col.hpp>
 #include <migraphx/op/leaky_relu.hpp>
 #include <migraphx/op/less.hpp>
@@ -47,6 +49,7 @@
 #include <migraphx/op/logical_or.hpp>
 #include <migraphx/op/logical_xor.hpp>
 #include <migraphx/op/logsoftmax.hpp>
+#include <migraphx/op/loop.hpp>
 #include <migraphx/op/lrn.hpp>
 #include <migraphx/op/lstm.hpp>
 #include <migraphx/op/max.hpp>
@@ -54,13 +57,16 @@
 #include <migraphx/op/mul.hpp>
 #include <migraphx/op/multibroadcast.hpp>
 #include <migraphx/op/neg.hpp>
+#include <migraphx/op/nonmaxsuppression.hpp>
+#include <migraphx/op/nonzero.hpp>
 #include <migraphx/op/outline.hpp>
 #include <migraphx/op/pad.hpp>
 #include <migraphx/op/pooling.hpp>
+#include <migraphx/op/pow.hpp>
+#include <migraphx/op/prefix_scan_sum.hpp>
 #include <migraphx/op/prelu.hpp>
 #include <migraphx/op/quant_convolution.hpp>
 #include <migraphx/op/quant_dot.hpp>
-#include <migraphx/op/pow.hpp>
 #include <migraphx/op/recip.hpp>
 #include <migraphx/op/reduce_max.hpp>
 #include <migraphx/op/reduce_mean.hpp>
@@ -69,14 +75,17 @@
 #include <migraphx/op/reduce_sum.hpp>
 #include <migraphx/op/relu.hpp>
 #include <migraphx/op/reshape.hpp>
+#include <migraphx/op/reverse.hpp>
 #include <migraphx/op/rnn.hpp>
 #include <migraphx/op/rnn_last_cell_output.hpp>
 #include <migraphx/op/rnn_last_hs_output.hpp>
 #include <migraphx/op/rnn_variable_seq_lens.hpp>
 #include <migraphx/op/rnn_var_sl_last_output.hpp>
+#include <migraphx/op/roialign.hpp>
 #include <migraphx/op/round.hpp>
 #include <migraphx/op/rsqrt.hpp>
 #include <migraphx/op/scalar.hpp>
+#include <migraphx/op/scatter.hpp>
 #include <migraphx/op/sigmoid.hpp>
 #include <migraphx/op/sign.hpp>
 #include <migraphx/op/sinh.hpp>
@@ -86,13 +95,17 @@
 #include <migraphx/op/sqrt.hpp>
 #include <migraphx/op/sqdiff.hpp>
 #include <migraphx/op/squeeze.hpp>
+#include <migraphx/op/step.hpp>
 #include <migraphx/op/sub.hpp>
 #include <migraphx/op/tanh.hpp>
 #include <migraphx/op/tan.hpp>
+#include <migraphx/op/topk.hpp>
 #include <migraphx/op/transpose.hpp>
 #include <migraphx/op/unary.hpp>
+#include <migraphx/op/unary_not.hpp>
 #include <migraphx/op/undefined.hpp>
 #include <migraphx/op/unknown.hpp>
 #include <migraphx/op/unsqueeze.hpp>
+#include <migraphx/op/where.hpp>
 
 #endif

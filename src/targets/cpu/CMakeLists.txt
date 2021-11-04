@@ -1,33 +1,58 @@
 
+include(CheckCXXCompilerFlag)
+
 add_library(migraphx_cpu
-    allocation_model.cpp
     allocate.cpp
-    add.cpp
-    contiguous.cpp
+    allocation_model.cpp
+    binary.cpp
     concat.cpp
     convolution.cpp
     copy.cpp
-    mul.cpp
-    pooling.cpp
-    relu.cpp
+    deconvolution.cpp
+    dnnl.cpp
+    eltwise.cpp
+    erf.cpp
+    fuse_ops.cpp
+    gather.cpp
     gemm.cpp
-    target.cpp
+    layernorm.cpp
+    logsoftmax.cpp
     lowering.cpp
-    migemm.cpp
+    lrn.cpp
+    preallocate.cpp
+    pooling.cpp
+    reduction.cpp
+    reorder.cpp
+    softmax.cpp
+    sub.cpp
+    target.cpp
+    write_literals.cpp
 )
 set_target_properties(migraphx_cpu PROPERTIES EXPORT_NAME cpu)
 rocm_set_soversion(migraphx_cpu ${MIGRAPHX_SO_VERSION})
 
-find_path(BLAZE_INCLUDE blaze/Blaze.h)
-find_package(Threads)
-find_package(dnnl REQUIRED)
+set(MIGRAPHX_ENABLE_ZENDNN Off CACHE BOOL "")
+
+if(MIGRAPHX_ENABLE_ZENDNN)
+    find_path(ZENDNN_INC_PATH zendnn.hpp)
+    find_library(ZENDNN_LIB amdZenDNN)
+    find_library(BLIS_LIB blis)
+else()
+    find_package(dnnl REQUIRED)
+endif()
 
 rocm_clang_tidy_check(migraphx_cpu)
-target_link_libraries(migraphx_cpu PRIVATE migraphx Threads::Threads)
-target_include_directories(migraphx_cpu PRIVATE ${BLAZE_INCLUDE})
-target_compile_definitions(migraphx_cpu PRIVATE -DBLAZE_USE_CPP_THREADS)
-target_link_libraries(migraphx_cpu PRIVATE DNNL::dnnl)
-target_compile_definitions(migraphx_cpu PUBLIC -DUSE_DNNL)
+if(MIGRAPHX_ENABLE_ZENDNN)
+    target_compile_definitions(migraphx_cpu PRIVATE -DMIGRAPHX_ENABLE_ZENDNN)
+    target_include_directories(migraphx_cpu PRIVATE ${ZENDNN_INC_PATH})
+    message(STATUS "ZENDNN_LIB: ${ZENDNN_LIB}")
+    target_link_libraries(migraphx_cpu PRIVATE ${BLIS_LIB})
+    target_link_libraries(migraphx_cpu PRIVATE ${ZENDNN_LIB})
+else()
+    target_link_libraries(migraphx_cpu PRIVATE DNNL::dnnl)
+endif()
+target_link_libraries(migraphx_cpu PRIVATE migraphx)
+
 find_package(OpenMP)
 target_link_libraries(migraphx_cpu PUBLIC OpenMP::OpenMP_CXX)
 # Add library path to rpath to workaround issues with our broken packages

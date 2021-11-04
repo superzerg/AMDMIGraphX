@@ -1,26 +1,19 @@
 #include <migraphx/simplify_algebra.hpp>
 #include <migraphx/dead_code_elimination.hpp>
 #include <migraphx/program.hpp>
-#include <migraphx/op/add.hpp>
-#include <migraphx/op/mul.hpp>
 #include <migraphx/op/concat.hpp>
 #include <migraphx/op/slice.hpp>
 #include <migraphx/op/convolution.hpp>
-#include <migraphx/op/contiguous.hpp>
-#include <migraphx/op/as_shape.hpp>
 #include <migraphx/op/broadcast.hpp>
-#include <migraphx/op/neg.hpp>
-#include <migraphx/op/recip.hpp>
 #include <migraphx/op/reshape.hpp>
-#include <migraphx/op/rsqrt.hpp>
 #include <migraphx/op/transpose.hpp>
 #include <migraphx/matcher.hpp>
 #include <migraphx/literal.hpp>
 #include <migraphx/make_op.hpp>
-
 #include <migraphx/serialize.hpp>
 
 #include <migraphx/algorithm.hpp>
+#include <unordered_set>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -39,12 +32,7 @@ auto conv_const_weights()
                                       match::args(match::any(), match::is_constant().bind("w")));
 }
 
-template <class... Ms>
-auto pointwise(Ms... ms)
-{
-    return match::has_attribute("pointwise")(match::any_of(match::nargs(1), match::nargs(2)),
-                                             ms...);
-}
+auto reduction() { return match::name_contains("reduce"); }
 
 struct find_mul_conv
 {
@@ -67,7 +55,7 @@ struct find_mul_conv
 
         auto new_a = p.insert_instruction(
             ins,
-            make_op("broadcast", {{"axis", 0}, {"dims", w_ins->get_shape().lens()}}),
+            make_op("broadcast", {{"axis", 0}, {"out_lens", w_ins->get_shape().lens()}}),
             a_ins->inputs().front());
         auto new_mul  = p.insert_instruction(ins, make_op("mul"), new_a, w_ins);
         auto new_conv = p.insert_instruction(
@@ -132,7 +120,7 @@ struct find_mul_slice_conv
 
         auto new_a = p.insert_instruction(
             ins,
-            make_op("broadcast", {{"axis", 0}, {"dims", slice_w_ins->get_shape().lens()}}),
+            make_op("broadcast", {{"axis", 0}, {"out_lens", slice_w_ins->get_shape().lens()}}),
             a_ins->inputs().front());
         auto new_mul = p.insert_instruction(ins, make_op("mul"), new_a, slice_w_ins);
 
@@ -161,7 +149,8 @@ struct find_mul_slice_conv
         assert(ins->get_shape().lens() == slice1->get_shape().lens());
         p.replace_instruction(ins, slice1);
         // TODO: Check each slice doesn't overlap and that it occurs after slice_ins
-        for(auto output : conv_ins->outputs())
+        auto outputs = conv_ins->outputs();
+        for(auto output : outputs)
             if(output != slice_ins)
                 instruction::replace_argument(output, conv_ins, new_conv);
     }
@@ -285,7 +274,7 @@ struct find_concat_op
     auto matcher() const
     {
         return match::name("concat")(match::any_of[match::inputs()](
-            match::any_of(pointwise(), match::name("broadcast")), match::used_once()));
+            match::any_of(match::pointwise(), match::name("broadcast")), match::used_once()));
     }
 
     template <class Iterator>
@@ -405,12 +394,31 @@ struct find_splits
 {
     auto matcher() const
     {
-        return match::any(match::any_of[match::outputs()](
-            match::name("slice")(match::any_of[match::outputs()](pointwise()))));
+        return match::any(match::any_of[match::outputs()](match::name("slice")(
+            match::any_of[match::outputs()](match::pointwise(), reduction()))));
+    }
+
+    static bool is_dependent(const module& m, instruction_ref ins1, instruction_ref ins2)
+    {
+
+        std::unordered_set<instruction_ref> traversed;
+        return fix<bool>([&](auto self, auto ins) -> bool {
+            if(ins == ins2)
+                return true;
+
+            if(contains(traversed, ins))
+                return false;
+
+            traversed.insert(ins);
+            const auto& inputs = ins->inputs();
+            return std::any_of(inputs.begin(), inputs.end(), [&](auto in) {
+                return m.has_instruction(in) and self(in);
+            });
+        })(ins1);
     }
 
     static std::vector<std::vector<instruction_ref>>
-    get_split_groups(const std::vector<instruction_ref>& splits)
+    get_split_groups(const module& m, const std::vector<instruction_ref>& splits)
     {
         std::vector<std::vector<instruction_ref>> groups;
         for(auto out : splits.front()->outputs())
@@ -427,9 +435,16 @@ struct find_splits
                 if(it == split->outputs().end())
                     break;
                 assert((*it)->name() != "slice");
+
                 // If there is a duplicate bail
-                if(contains(group, *it))
+                // there are should be no dependency between instructions in the group
+                if(std::any_of(group.begin(), group.end(), [&](auto i) {
+                       return is_dependent(m, *it, i) or is_dependent(m, i, *it);
+                   }))
+                {
                     return {};
+                }
+
                 group.push_back(*it);
             }
             if(group.size() != splits.size())
@@ -439,19 +454,47 @@ struct find_splits
         return groups;
     }
 
+    bool is_fusable(instruction_ref start, instruction_ref split_front) const
+    {
+        auto op = start->get_operator();
+        if(contains(op.name(), "reduce"))
+        {
+            auto slc         = any_cast<op::slice>(split_front->get_operator());
+            auto slc_axes    = slc.axes;
+            auto reduce_axes = start->get_operator().to_value()["axes"].to_vector<int64_t>();
+            // axes of slice and reduce op cannot have overlap
+            if(std::any_of(slc_axes.begin(), slc_axes.end(), [&](auto axis) {
+                   return (std::find(reduce_axes.begin(), reduce_axes.end(), axis) !=
+                           reduce_axes.end());
+               }))
+            {
+                return false;
+            }
+        }
+        else if(not op.attributes().contains("pointwise"))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     void apply(module& p, const match::matcher_result& r) const
     {
-        auto ins = r.result;
-
+        auto ins    = r.result;
         auto splits = get_splits(ins);
         if(splits.empty())
             return;
-        for(const auto& group : get_split_groups(splits))
+
+        for(const auto& group : get_split_groups(p, splits))
         {
-            auto start = group.front();
-            auto op    = start->get_operator();
-            if(op.name() == "slice")
+            auto start       = group.front();
+            auto split_front = splits.front();
+            auto op          = start->get_operator();
+            if(not is_fusable(start, split_front))
+            {
                 continue;
+            }
 
             // Make sure there is no duplicates
             assert(std::none_of(
@@ -512,7 +555,8 @@ struct find_splits
                     auto split = i->inputs()[split_idx];
                     assert(split->name() == "slice");
                     // Insert contiguous for reshapes
-                    for(auto output : i->outputs())
+                    auto outputs = i->outputs();
+                    for(auto output : outputs)
                     {
                         if(not contains({"reshape", "squeeze", "unsqueeze"}, output->name()))
                             continue;
@@ -621,19 +665,6 @@ struct find_add_convs
         return x.stride[0] / y.stride[0];
     }
 
-    static shape compute_stride_shape(const shape& input, std::size_t n)
-    {
-        return {input.type(),
-                {input.lens()[0],
-                 input.lens()[1],
-                 std::size_t(std::max<std::ptrdiff_t>(1, (input.lens()[2] - 1) / n + 1)),
-                 std::size_t(std::max<std::ptrdiff_t>(1, (input.lens()[3] - 1) / n + 1))},
-                {input.strides()[0],
-                 input.strides()[1],
-                 input.strides()[2] * n,
-                 input.strides()[3] * n}};
-    }
-
     void apply(module& p, match::matcher_result r) const
     {
         auto ins       = r.result;
@@ -664,11 +695,7 @@ struct find_add_convs
                         return;
                     new_op  = a_op;
                     b_input = p.insert_instruction(
-                        ins,
-                        make_op(
-                            "as_shape",
-                            {{"shape", to_value(compute_stride_shape(b_input->get_shape(), n))}}),
-                        b_input);
+                        ins, make_op("step", {{"axes", {2, 3}}, {"steps", {n, n}}}), b_input);
                 }
                 else if(b_op.stride < a_op.stride)
                 {
@@ -677,11 +704,7 @@ struct find_add_convs
                         return;
                     new_op  = b_op;
                     a_input = p.insert_instruction(
-                        ins,
-                        make_op(
-                            "as_shape",
-                            {{"shape", to_value(compute_stride_shape(a_input->get_shape(), n))}}),
-                        a_input);
+                        ins, make_op("step", {{"axes", {2, 3}}, {"steps", {n, n}}}), a_input);
                 }
                 else
                     return;
@@ -966,8 +989,8 @@ struct find_split_transpose
         }
 
         // insert an transpose instruction
-        auto tr =
-            p.insert_instruction(std::next(input), make_op("transpose", {{"dims", perm}}), input);
+        auto tr = p.insert_instruction(
+            std::next(input), make_op("transpose", {{"permutation", perm}}), input);
 
         // compute the axis in the slice
         auto axis = any_cast<op::slice>(slc->get_operator()).axes.front();

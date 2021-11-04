@@ -8,6 +8,7 @@
 #include <migraphx/literal.hpp>
 #include <migraphx/shape_for_each.hpp>
 #include <migraphx/config.hpp>
+#include <migraphx/lifetime.hpp>
 #include <cmath>
 #include <utility>
 
@@ -37,8 +38,9 @@ struct scalar
 
     argument compute(shape output_shape, std::vector<argument> args) const
     {
-        return {std::move(output_shape), std::move(args.at(0).data)};
+        return args[0].reshape(output_shape);
     }
+    lifetime get_lifetime() const { return lifetime::borrow; }
     std::ptrdiff_t output_alias(const std::vector<shape>&) const { return 0; }
 };
 

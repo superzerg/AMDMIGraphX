@@ -254,7 +254,6 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
         .def("__repr__", [](const migraphx::module& mm) { return migraphx::to_string(mm); });
 
     py::class_<migraphx::program>(m, "program")
-        .def("clone", [](migraphx::program& p) { return *(new migraphx::program(p)); })
         .def("get_parameter_names", &migraphx::program::get_parameter_names)
         .def("get_parameter_shapes", &migraphx::program::get_parameter_shapes)
         .def("get_output_shapes", &migraphx::program::get_output_shapes)
@@ -305,25 +304,35 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
         .def("name", &migraphx::operation::name);
 
     m.def("parse_tf",
-          [](const std::string& filename, bool is_nhwc, unsigned int batch_size) {
-              return migraphx::parse_tf(filename, migraphx::tf_options{is_nhwc, batch_size});
+          [](const std::string& filename,
+             bool is_nhwc,
+             unsigned int batch_size,
+             std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims,
+             std::vector<std::string> output_names) {
+              return migraphx::parse_tf(
+                  filename,
+                  migraphx::tf_options{is_nhwc, batch_size, map_input_dims, output_names});
           },
           "Parse tf protobuf (default format is nhwc)",
           py::arg("filename"),
-          py::arg("is_nhwc")    = true,
-          py::arg("batch_size") = 1);
+          py::arg("is_nhwc")        = true,
+          py::arg("batch_size")     = 1,
+          py::arg("map_input_dims") = std::unordered_map<std::string, std::vector<std::size_t>>(),
+          py::arg("output_names")   = std::vector<std::string>());
 
     m.def("parse_onnx",
           [](const std::string& filename,
              unsigned int default_dim_value,
              std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims,
              bool skip_unknown_operators,
-             bool print_program_on_error) {
+             bool print_program_on_error,
+             int64_t max_loop_iterations) {
               migraphx::onnx_options options;
               options.default_dim_value      = default_dim_value;
               options.map_input_dims         = map_input_dims;
               options.skip_unknown_operators = skip_unknown_operators;
               options.print_program_on_error = print_program_on_error;
+              options.max_loop_iterations    = max_loop_iterations;
               return migraphx::parse_onnx(filename, options);
           },
           "Parse onnx file",
@@ -331,7 +340,8 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
           py::arg("default_dim_value") = 1,
           py::arg("map_input_dims") = std::unordered_map<std::string, std::vector<std::size_t>>(),
           py::arg("skip_unknown_operators") = false,
-          py::arg("print_program_on_error") = false);
+          py::arg("print_program_on_error") = false,
+          py::arg("max_loop_iterations")    = 10);
 
     m.def("parse_onnx_buffer",
           [](const std::string& onnx_buffer,
@@ -391,7 +401,7 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
     m.def("allocate_gpu", &migraphx::gpu::allocate_gpu, py::arg("s"), py::arg("host") = false);
     m.def("to_gpu", &migraphx::gpu::to_gpu, py::arg("arg"), py::arg("host") = false);
     m.def("from_gpu", &migraphx::gpu::from_gpu);
-    m.def("gpu_sync", &migraphx::gpu::gpu_sync);
+    m.def("gpu_sync", [] { migraphx::gpu::gpu_sync(); });
 #endif
 
 #ifdef VERSION_INFO

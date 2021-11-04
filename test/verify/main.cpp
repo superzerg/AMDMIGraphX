@@ -31,9 +31,6 @@ inline void check_gpu_streams(const migraphx::program& p)
 void validate_gpu(const migraphx::program& p, const migraphx::parameter_map& m)
 {
     check_gpu_streams(p);
-    // Program should have an output parameter
-    EXPECT(std::any_of(
-        m.begin(), m.end(), [](auto& x) { return migraphx::contains(x.first, "output"); }));
 
     // Ensure the program doesn't modify the context in a dry run
     auto ctx = p.get_context();
@@ -47,5 +44,15 @@ int main(int argc, const char* argv[])
 {
     run_verify rv;
     rv.add_validation_for("gpu", &validate_gpu);
+    rv.disable_test_for("cpu", {"test_if_lp", "test_if_param", "test_if_literal"});
+    rv.disable_test_for("gpu",
+                        {"batch_quant_dot_2",
+                         "batch_quant_dot_3",
+                         "batch_quant_dot_5",
+                         "quant_dot_3args_1",
+                         "quant_dot_3args_2",
+                         "quant_dot_3args_3",
+                         "quant_dot_3args_4",
+                         "quant_dot_3args_5"});
     rv.run(argc, argv);
 }

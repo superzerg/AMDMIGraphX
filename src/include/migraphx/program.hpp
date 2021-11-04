@@ -23,6 +23,8 @@ MIGRAPHX_DECLARE_ENV_VAR(MIGRAPHX_TRACE_EVAL)
 
 struct program_impl;
 
+struct marker;
+
 /**
  * @brief Stores the instruction stream
  */
@@ -67,13 +69,16 @@ struct program
 
     void perf_report(std::ostream& os, std::size_t n, parameter_map params) const;
 
+    void mark(const parameter_map& params, marker&& m);
+
     value to_value() const;
     void from_value(const value& v);
 
     void debug_print() const;
     void debug_print(instruction_ref ins) const;
-    void print(const std::function<void(instruction_ref,
-                                        const std::unordered_map<instruction_ref, std::string>&)>&
+    void print(std::unordered_map<instruction_ref, std::string>& names,
+               const std::function<void(instruction_ref,
+                                        std::unordered_map<instruction_ref, std::string>)>&
                    print_func) const;
 
     void print_graph(std::ostream& os, bool brief = false) const;
@@ -89,8 +94,19 @@ struct program
     friend bool operator==(const program& x, const program& y);
     friend bool operator!=(const program& x, const program& y) { return !(x == y); }
 
+    // module related api
+    module* create_module(const std::string& name);
+    module* get_module(const std::string& name);
+    const module* get_module(const std::string& name) const;
+
     module* get_main_module();
     const module* get_main_module() const;
+
+    std::vector<const module*> get_modules() const;
+    std::vector<module*> get_modules();
+
+    void remove_module(const std::string& name);
+    void remove_unused_modules();
 
     private:
     void assign(const program& p);
