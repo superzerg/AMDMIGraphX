@@ -6,7 +6,8 @@ ARG PREFIX=/usr/local
 RUN dpkg --add-architecture i386
 
 # Add rocm repository
-RUN curl -sL http://repo.radeon.com/rocm/rocm.gpg.key | apt-key add - && \
+RUN apt-get update && apt-get install -y curl gnupg2 && \
+    curl -sL http://repo.radeon.com/rocm/rocm.gpg.key | apt-key add - && \
     sh -c 'echo deb [arch=amd64 trusted=yes] http://repo.radeon.com/rocm/apt/4.5/ ubuntu main > /etc/apt/sources.list.d/rocm.list'
 
 # Install dependencies
