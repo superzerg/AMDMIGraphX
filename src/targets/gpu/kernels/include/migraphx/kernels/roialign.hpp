@@ -5,10 +5,6 @@
 #include <migraphx/kernels/dfor.hpp>
 #include <migraphx/kernels/basic_ops.hpp>
 #include <args.hpp>
-<<<<<<< HEAD
-#include <numeric>
-=======
->>>>>>> cf0b6d6ddcfde3fbe49dab57245e48728d5161a5
 
 namespace migraphx
 {
