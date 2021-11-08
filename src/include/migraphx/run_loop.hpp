@@ -121,7 +121,7 @@ argument run_loop(const LoopModel& model,
         out_args.push_back(scan_out.reshape(scan_ss));
     }
 
-    return argument(out_args);
+    return {out_args};
 }
 
 } // namespace MIGRAPHX_INLINE_NS
