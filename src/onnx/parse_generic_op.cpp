@@ -30,7 +30,7 @@ struct parse_generic_op : op_parser<parse_generic_op>
                 {"Identity", "identity"},
                 {"LeakyRelu", "leaky_relu"},
                 {"Log", "log"},
-                {"LRN", "lrn"},
+                // {"LRN", "lrn"},
                 {"Neg", "neg"},
                 {"NonMaxSuppression", "nonmaxsuppression"},
                 {"Reciprocal", "recip"},

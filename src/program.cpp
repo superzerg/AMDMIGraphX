@@ -253,9 +253,7 @@ std::vector<argument> generic_eval(const module* mod,
                                     ctx, ins->get_shape(), values, mod_args, module_eval);
                             }));
         }
-        // std::cout << "ins_name: " << ins->name() << ", output_shape = " <<
-        // results[ins].get_shape()
-        //           << std::endl;
+
         assert(results.find(ins) != results.end());
         // assert(results.at(ins).get_shape() == ins->get_shape());
     }
