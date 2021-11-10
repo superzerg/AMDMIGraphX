@@ -118,7 +118,8 @@ operation compile_hip_code_object(const std::string& content, hip_compile_option
     auto cos = compile_hip_src(srcs, std::move(options.params), get_device_name());
     if(cos.size() != 1)
         MIGRAPHX_THROW("No code object");
-    return code_object_op{value::binary{cos.front()},
+    return code_object_op{options.op_name,
+                          value::binary{cos.front()},
                           options.kernel_name,
                           options.global,
                           options.local,

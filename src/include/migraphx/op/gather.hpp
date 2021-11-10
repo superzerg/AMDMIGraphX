@@ -1,12 +1,14 @@
 #ifndef MIGRAPHX_GUARD_OPERATORS_GATHER_HPP
 #define MIGRAPHX_GUARD_OPERATORS_GATHER_HPP
 
+#include <algorithm>
 #include <array>
 #include <migraphx/check_shapes.hpp>
 #include <migraphx/stringutils.hpp>
 #include <migraphx/streamutils.hpp>
 #include <migraphx/literal.hpp>
 #include <migraphx/shape_for_each.hpp>
+#include <migraphx/to_shapes.hpp>
 #include <migraphx/config.hpp>
 #include <migraphx/value.hpp>
 #include <migraphx/op/normalize_attribute.hpp>
@@ -57,16 +59,19 @@ struct gather
         return {type, lens};
     }
 
-    argument compute(const shape& output_shape, std::vector<argument> args) const
+    argument compute(const shape&, std::vector<argument> args) const
     {
-        argument result{output_shape};
+        std::vector<shape> vec_s = to_shapes(args);
+        auto out_s = normalize_compute_shape(vec_s);
+        
+        argument result{out_s};
         // negative axis means counting dimensions from back
         auto lens                 = args[0].get_shape().lens();
         std::size_t axis_dim_size = lens[axis];
         // max dimension in axis
         visit_all(result, args[0])([&](auto output, auto data) {
             args[1].visit([&](auto indices) {
-                if(output_shape.scalar())
+                if(out_s.scalar())
                 {
                     auto in_index = indices.front();
                     in_index      = (in_index < 0) ? in_index + axis_dim_size : in_index;

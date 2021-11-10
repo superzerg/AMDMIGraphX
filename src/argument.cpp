@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <migraphx/argument.hpp>
 #include <migraphx/functional.hpp>
+#include <migraphx/to_shapes.hpp>
 #include <unordered_map>
 
 namespace migraphx {
@@ -81,14 +83,14 @@ void argument::assign_buffer(std::function<char*()> d)
     })(s);
 }
 
-std::vector<shape> to_shapes(const std::vector<argument>& args)
-{
-    std::vector<shape> shapes;
-    std::transform(args.begin(), args.end(), std::back_inserter(shapes), [](auto&& arg) {
-        return arg.get_shape();
-    });
-    return shapes;
-}
+// std::vector<shape> to_shapes(const std::vector<argument>& args)
+// {
+//     std::vector<shape> shapes;
+//     std::transform(args.begin(), args.end(), std::back_inserter(shapes), [](auto&& arg) {
+//         return arg.get_shape();
+//     });
+//     return shapes;
+// }
 
 argument::argument(const std::vector<argument>& args)
     : m_shape(to_shapes(args)), m_data(data_t::from_args(args))

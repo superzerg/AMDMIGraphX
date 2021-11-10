@@ -14,6 +14,7 @@ struct hip_compile_options
     std::size_t local;
     std::vector<shape> inputs;
     shape output;
+    std::string op_name           = "";
     std::string kernel_name           = "kernel";
     std::string params                = "";
     std::vector<shape> reduced_inputs = {};

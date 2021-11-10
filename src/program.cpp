@@ -194,6 +194,8 @@ std::vector<argument> generic_eval(const module* mod,
     auto trace = make_trace(mod);
     for(auto ins : iterator_for(*mod))
     {
+        auto compile_s = ins->get_shape();
+        std::cout << "ins_name0 = " << ins->name() << ", shape = " << compile_s << std::endl;
         assert(results.find(ins) == results.end());
         const auto& name = ins->name();
         if(name == "@literal")
@@ -252,6 +254,19 @@ std::vector<argument> generic_eval(const module* mod,
                                 return ins->normalized_operator().compute(
                                     ctx, ins->get_shape(), values, mod_args, module_eval);
                             }));
+        }
+
+        // if(ins->name() == "nonmaxsuppression")
+        // {
+        //     std::cout << "nms_op = " << results[ins].get_shape() << ", val = " << results[ins] << std::endl;    
+        // }
+        std::cout << "ins_name1 = " << ins->name() << ", shape = " << results[ins].get_shape() << std::endl << std::endl;
+
+        auto compute_s = results[ins].get_shape();
+        if (compile_s != compute_s)
+        {
+            std::cout << "Reshape later ins is called ......" << std::endl;
+            ins->replace(compute_s);
         }
 
         assert(results.find(ins) != results.end());

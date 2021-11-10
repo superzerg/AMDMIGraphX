@@ -15,6 +15,7 @@ struct context;
 
 struct code_object_op
 {
+    std::string op_name;
     value::binary code_object;
     std::string symbol_name;
     std::size_t global;
@@ -26,7 +27,8 @@ struct code_object_op
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
-        return pack(f(self.code_object, "code_object"),
+        return pack(f(self.op_name, "op_name"),
+                    f(self.code_object, "code_object"),
                     f(self.symbol_name, "symbol_name"),
                     f(self.global, "global"),
                     f(self.local, "local"),
@@ -47,6 +49,7 @@ struct code_object_op
     friend std::ostream& operator<<(std::ostream& os, const code_object_op& op)
     {
         os << op.name() << "[";
+        os << "op_name=" << op.op_name << ",";
         os << "code_object=" << op.code_object.size() << ",";
         os << "symbol_name=" << op.symbol_name << ",";
         os << "global=" << op.global << ",";

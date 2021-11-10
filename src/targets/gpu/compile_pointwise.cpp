@@ -32,6 +32,7 @@ int main() {}
 operation compile_pointwise(context&, const std::vector<shape>& inputs, const std::string& lambda)
 {
     hip_compile_options options;
+    options.op_name        = "pointwise";
     options.global         = compute_global(inputs.front().elements());
     options.local          = 1024;
     options.inputs         = inputs;

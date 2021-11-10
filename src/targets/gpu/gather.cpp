@@ -1,6 +1,7 @@
 #include <migraphx/gpu/gather.hpp>
 #include <migraphx/gpu/context.hpp>
 #include <migraphx/gpu/device/gather.hpp>
+#include <migraphx/to_shapes.hpp>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -14,7 +15,10 @@ shape hip_gather::compute_shape(std::vector<shape> inputs) const
 
 argument hip_gather::compute(context& ctx, const shape&, const std::vector<argument>& args) const
 {
-    return device::gather(ctx.get_stream().get(), args.back(), args[0], args[1], op.axis);
+    auto vec_s = to_shapes(args);
+    auto out_s = compute_shape(vec_s);
+
+    return device::gather(ctx.get_stream().get(), args.back().reshape(out_s), args[0], args[1], op.axis);
 }
 
 } // namespace gpu

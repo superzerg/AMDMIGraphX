@@ -33,6 +33,7 @@ operation compile_roialign(context&, const std::vector<shape>& io_shapes, const 
 {
     hip_compile_options options;
     auto out_s             = io_shapes.back();
+    options.op_name        = "roialign";
     options.local          = 128;
     options.global         = compute_global(out_s.elements(), options.local);
     options.inputs         = io_shapes;

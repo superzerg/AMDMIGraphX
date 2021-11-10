@@ -64,6 +64,7 @@ add_library(migraphx
     simplify_algebra.cpp
     simplify_reshapes.cpp
     tmp_dir.cpp
+    to_shapes.cpp
     value.cpp
     verify_args.cpp
 )

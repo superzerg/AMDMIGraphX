@@ -120,6 +120,8 @@ struct instruction
                       instruction_ref ins,
                       const std::unordered_map<instruction_ref, std::string>& names);
 
+    void replace(const shape& r, bool stop = false);
+
     private:
     // internal
     void replace(operation o, const shape& r, std::vector<instruction_ref> args);
@@ -142,7 +144,6 @@ struct instruction
     // internal
     void replace_mod_argument(module_ref old, module_ref new_mod);
 
-    void replace(const shape& r, bool stop = false);
 
     operation op;
     shape result{};
