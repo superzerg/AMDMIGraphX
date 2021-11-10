@@ -18,7 +18,8 @@ argument hip_gather::compute(context& ctx, const shape&, const std::vector<argum
     auto vec_s = to_shapes(args);
     auto out_s = compute_shape(vec_s);
 
-    return device::gather(ctx.get_stream().get(), args.back().reshape(out_s), args[0], args[1], op.axis);
+    return device::gather(
+        ctx.get_stream().get(), args.back().reshape(out_s), args[0], args[1], op.axis);
 }
 
 } // namespace gpu

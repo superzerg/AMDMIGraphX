@@ -62,8 +62,8 @@ struct gather
     argument compute(const shape&, std::vector<argument> args) const
     {
         std::vector<shape> vec_s = to_shapes(args);
-        auto out_s = normalize_compute_shape(vec_s);
-        
+        auto out_s               = normalize_compute_shape(vec_s);
+
         argument result{out_s};
         // negative axis means counting dimensions from back
         auto lens                 = args[0].get_shape().lens();

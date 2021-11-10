@@ -144,7 +144,6 @@ struct instruction
     // internal
     void replace_mod_argument(module_ref old, module_ref new_mod);
 
-
     operation op;
     shape result{};
     std::vector<instruction_ref> output;

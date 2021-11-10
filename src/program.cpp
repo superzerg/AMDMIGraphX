@@ -258,12 +258,15 @@ std::vector<argument> generic_eval(const module* mod,
 
         // if(ins->name() == "nonmaxsuppression")
         // {
-        //     std::cout << "nms_op = " << results[ins].get_shape() << ", val = " << results[ins] << std::endl;    
+        //     std::cout << "nms_op = " << results[ins].get_shape() << ", val = " << results[ins] <<
+        //     std::endl;
         // }
-        std::cout << "ins_name1 = " << ins->name() << ", shape = " << results[ins].get_shape() << std::endl << std::endl;
+        std::cout << "ins_name1 = " << ins->name() << ", shape = " << results[ins].get_shape()
+                  << std::endl
+                  << std::endl;
 
         auto compute_s = results[ins].get_shape();
-        if (compile_s != compute_s)
+        if(compile_s != compute_s)
         {
             std::cout << "Reshape later ins is called ......" << std::endl;
             ins->replace(compute_s);
