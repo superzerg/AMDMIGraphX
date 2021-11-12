@@ -16,11 +16,12 @@ argument scatter(
     auto ds            = arg0.get_shape();
     auto inds          = arg1.get_shape();
     auto axis_dim_size = ds.lens()[axis];
-    hip_visit_all(result, arg0, inds)([&](auto output, auto data, auto s1) {
+    shape comps{arg0.get_shape().type(), inds.lens()};
+    hip_visit_all(result, arg0, arg2, comps)([&](auto output, auto data, auto update, auto s1) {
         auto* output_ptr     = device_cast(output.data());
         const auto* data_ptr = device_cast(data.data());
         gs_launch(stream, ds.elements())([=](auto i) __device__ { output_ptr[i] = data_ptr[i]; });
-        hip_visit_all(arg1, arg2)([&](auto indices, auto update) {
+        arg1.visit([&](auto indices) {
             const auto* upd_ptr     = device_cast(update.data());
             const auto* indices_ptr = device_cast(indices.data());
             gs_launch(stream, inds.elements())([=](auto i) __device__ {
