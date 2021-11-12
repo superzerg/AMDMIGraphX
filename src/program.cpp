@@ -192,10 +192,11 @@ std::vector<argument> generic_eval(const module* mod,
     std::vector<argument> values;
     values.reserve(16);
     auto trace = make_trace(mod);
+    std::size_t ins_index = 0;
     for(auto ins : iterator_for(*mod))
     {
         auto compile_s = ins->get_shape();
-        std::cout << "ins_name0 = " << ins->name() << ", shape = " << compile_s << std::endl;
+        std::cout << "index = " << ins_index++ << ", name = " << ins->name() << ", shape = " << compile_s << std::endl;
         assert(results.find(ins) == results.end());
         const auto& name = ins->name();
         if(name == "@literal")
@@ -266,11 +267,11 @@ std::vector<argument> generic_eval(const module* mod,
                   << std::endl;
 
         auto compute_s = results[ins].get_shape();
-        if(compile_s != compute_s)
-        {
-            std::cout << "Reshape later ins is called ......" << std::endl;
-            ins->replace(compute_s);
-        }
+        // if(compile_s != compute_s)
+        // {
+        //     std::cout << "Reshape later ins is called ......" << std::endl;
+        //     ins->replace(compute_s);
+        // }
 
         assert(results.find(ins) != results.end());
         // assert(results.at(ins).get_shape() == ins->get_shape());
