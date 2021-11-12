@@ -8,6 +8,7 @@
 #include <migraphx/literal.hpp>
 #include <migraphx/shape_for_each.hpp>
 #include <migraphx/config.hpp>
+#include <migraphx/to_shapes.hpp>
 #include <cmath>
 #include <utility>
 
@@ -33,10 +34,12 @@ struct contiguous
         auto t    = inputs.at(0).type();
         return {t, lens};
     }
-    argument compute(const shape& output_shape, std::vector<argument> args) const
+    argument compute(const shape&, std::vector<argument> args) const
     {
         assert(output_shape.standard());
-        argument result{output_shape};
+        auto in_ss = to_shapes(args);
+        auto out_s = compute_shape(in_ss);
+        argument result{out_s};
         visit_all(result, args[0])([&](auto output, auto input) {
             shape_for_each(output.get_shape(), [&](const auto& idx) {
                 output(idx.begin(), idx.end()) = input(idx.begin(), idx.end());

@@ -67,9 +67,10 @@ struct reshape
         return s;
     }
 
-    argument compute(shape output_shape, std::vector<argument> args) const
+    argument compute(shape, std::vector<argument> args) const
     {
-        return args[0].reshape(output_shape);
+        auto out_s = compute_shape({args.front().get_shape()});
+        return args[0].reshape(out_s);
     }
 
     lifetime get_lifetime() const { return lifetime::borrow; }

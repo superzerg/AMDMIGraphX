@@ -7,6 +7,7 @@
 #include <migraphx/functional.hpp>
 #include <migraphx/config.hpp>
 #include <migraphx/lifetime.hpp>
+#include <migraphx/to_shapes.hpp>
 #include <cmath>
 #include <utility>
 
@@ -52,9 +53,11 @@ struct transpose
         }
         return {t, output_lens, output_strides};
     }
-    argument compute(shape output_shape, std::vector<argument> args) const
+    argument compute(shape, std::vector<argument> args) const
     {
-        return args[0].reshape(output_shape);
+        auto in_ss = to_shapes(args);
+        auto out_s = compute_shape(in_ss);
+        return args[0].reshape(out_s);
     }
     lifetime get_lifetime() const { return lifetime::borrow; }
     std::ptrdiff_t output_alias(const std::vector<shape>&) const { return 0; }
