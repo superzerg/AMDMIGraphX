@@ -25,9 +25,7 @@ struct shape_op
         argument result{output_shape};
         auto lens = args.front().get_shape().lens();
 
-        result.visit([&](auto v) {
-            std::copy(lens.begin(), lens.end(), v.begin());
-        });
+        result.visit([&](auto v) { std::copy(lens.begin(), lens.end(), v.begin()); });
 
         return result;
     }
