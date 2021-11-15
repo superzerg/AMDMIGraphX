@@ -9,6 +9,7 @@
 #include <migraphx/dfor.hpp>
 #include <migraphx/ranges.hpp>
 #include <migraphx/shape_for_each.hpp>
+#include <migraphx/to_shapes.hpp>
 #include <cmath>
 #include <numeric>
 #include <utility>
@@ -177,10 +178,12 @@ struct roialign
         return {output_val, index};
     }
 
-    argument compute(const shape& output_shape, std::vector<argument> args) const
+    argument compute(const shape&, std::vector<argument> args) const
     {
-        argument result{output_shape};
-        const auto& out_lens = output_shape.lens();
+        auto in_ss = to_shapes(args);
+        auto out_s = compute_shape(in_ss);
+        argument result{out_s};
+        const auto& out_lens = out_s.lens();
         int64_t n_rois       = out_lens[0];
         std::size_t channels = out_lens[1];
         // output dims of height and width, in all 2-dim arrays, the first dim

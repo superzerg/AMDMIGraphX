@@ -36,7 +36,6 @@ struct contiguous
     }
     argument compute(const shape&, std::vector<argument> args) const
     {
-        assert(output_shape.standard());
         auto in_ss = to_shapes(args);
         auto out_s = compute_shape(in_ss);
         argument result{out_s};

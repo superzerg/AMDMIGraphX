@@ -105,11 +105,12 @@ struct slice
         return shape{t, new_lens, old_strides};
     }
 
-    argument compute(shape output_shape, std::vector<argument> args) const
+    argument compute(shape, std::vector<argument> args) const
     {
         auto input  = args[0];
-        auto offset = compute_offset(input.get_shape()) * output_shape.type_size();
-        return {std::move(output_shape), [=] { return input.data() + offset; }};
+        auto out_s = normalize_compute_shape({input.get_shape()});
+        auto offset = compute_offset(input.get_shape()) * out_s.type_size();
+        return {std::move(out_s), [=] { return input.data() + offset; }};
     }
     std::ptrdiff_t output_alias(const std::vector<shape>&) const { return 0; }
 };
