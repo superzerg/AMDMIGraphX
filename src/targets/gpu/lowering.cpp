@@ -574,11 +574,11 @@ struct miopen_apply
             if(type == shape::half_type)
             {
                 shape s32{shape::float_type, s.lens()};
-                auto cout32    = insert_allocation(ins, s32);
+                auto cout32    = mod->insert_instruction(ins, make_op("hip::allocate", {{"shape", to_value(s32)}}));
                 auto cop32     = make_op("convert", {{"target_type", shape::float_type}});
                 auto convert32 = mod->insert_instruction(
                     ins, make_op("gpu::convert", cop32.to_value()), in, cout32);
-                auto lout32 = insert_allocation(ins, s32);
+                auto lout32 = mod->insert_instruction(ins, make_op("hip::allocate", {{"shape", to_value(s32)}}));
                 auto lrn32  = mod->insert_instruction(
                     ins, make_op("gpu::lrn", ins->get_operator().to_value()), convert32, lout32);
                 auto cop16  = make_op("convert", {{"target_type", shape::half_type}});
