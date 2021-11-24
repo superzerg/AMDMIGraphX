@@ -10,7 +10,7 @@ struct test_mul_lrn : verify_program<test_mul_lrn>
     {
         migraphx::program p;
         auto* mm = p.get_main_module();
-        migraphx::shape s{migraphx::shape::half_type, {1, 5, 2, 2}};
+        migraphx::shape s{migraphx::shape::half_type, {1, 3, 224, 224}};
         auto x = mm->add_parameter("x", s);
         std::vector<float> vec(s.elements(), 500.0f);
         auto l  = mm->add_literal(migraphx::literal(s, vec));
@@ -18,7 +18,7 @@ struct test_mul_lrn : verify_program<test_mul_lrn>
         auto y  = mm->add_instruction(migraphx::make_op("relu"), xl);
         mm->add_instruction(
             migraphx::make_op("lrn",
-                              {{"alpha", 0.0001}, {"beta", 0.75}, {"bias", 1.0}, {"size", 5}}),
+                              {{"alpha", 0.0001}, {"beta", 0.75}, {"bias", 1.0}, {"size", 50}}),
             y);
         return p;
     }
