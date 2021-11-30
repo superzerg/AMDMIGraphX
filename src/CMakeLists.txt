@@ -12,6 +12,7 @@ add_library(migraphx
     auto_contiguous.cpp
     common.cpp
     compile_src.cpp
+    contiguous_reshape_input.cpp
     convert_to_json.cpp
     cpp_generator.cpp
     dead_code_elimination.cpp
