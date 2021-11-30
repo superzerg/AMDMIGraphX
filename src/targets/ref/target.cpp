@@ -4,6 +4,7 @@
 #include <migraphx/register_target.hpp>
 #include <migraphx/pass.hpp>
 #include <migraphx/auto_contiguous.hpp>
+#include <migraphx/contiguous_reshape_input.hpp>
 #include <migraphx/rewrite_rnn.hpp>
 #include <migraphx/eliminate_pad.hpp>
 #include <migraphx/insert_pad.hpp>
@@ -20,6 +21,8 @@ std::string target::name() const { return "ref"; }
 std::vector<pass> target::get_passes(migraphx::context&, const compile_options&) const
 {
     return {normalize_ops{},
+            contiguous_reshape_input{},
+            dead_code_elimination{},
             eliminate_pad{},
             dead_code_elimination{},
             insert_pad{},

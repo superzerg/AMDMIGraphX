@@ -1,6 +1,7 @@
 #include <migraphx/adjust_allocation.hpp>
 #include <migraphx/auto_contiguous.hpp>
 #include <migraphx/check_context.hpp>
+#include <migraphx/contiguous_reshape_input.hpp>
 #include <migraphx/dead_code_elimination.hpp>
 #include <migraphx/eliminate_allocation.hpp>
 #include <migraphx/eliminate_common_subexpression.hpp>
@@ -73,6 +74,8 @@ std::vector<pass> target::get_passes(migraphx::context& gctx, const compile_opti
     return
     {
         normalize_ops{},
+        dead_code_elimination{},
+        contiguous_reshape_input{},
         dead_code_elimination{},
         simplify_qdq{},
         rewrite_quantization{},
