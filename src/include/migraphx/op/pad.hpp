@@ -46,8 +46,8 @@ struct pad
             rdims[i] += pads[i] + pads[i + num_dims];
         }
 
-        shape s{inputs.front().type(), rdims};
-        return s;
+        auto in_s = inputs.front();
+        return in_s.with_lens(rdims);
     }
 
     std::size_t pad_ndims() const
