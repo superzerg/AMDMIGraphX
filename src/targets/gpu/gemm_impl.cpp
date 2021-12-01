@@ -65,6 +65,13 @@ void gemm_impl(context& ctx,
         output_type = rocblas_datatype_i32_r;
     }
     auto compute_type = output_type;
+    if(args[0].get_shape().type() == shape::half_type)
+        compute_type = rocblas_datatype_f32_r;
+        // if(ctx.get_stream().get_device_name() == "gfx908")
+        // {
+        //     if(args[0].get_shape().type() == shape::half_type)
+        //         compute_type = rocblas_datatype_f32_r;
+        // }
 
 #if ROCBLAS_VERSION_MAJOR >= 2 && ROCBLAS_VERSION_MINOR >= 38
     rocblas_gemm_flags flag =
@@ -77,8 +84,6 @@ void gemm_impl(context& ctx,
     auto a_lens = args[0].get_shape().lens();
     auto b_lens = args[1].get_shape().lens();
     output_shape.visit_type([&](auto as) {
-        auto alpha_r    = as(alpha);
-        auto beta_r     = as(beta);
         auto out_lens   = output_shape.lens();
         rocblas_int m   = out_lens[dim_0];
         rocblas_int n   = out_lens[dim_1];
@@ -104,14 +109,14 @@ void gemm_impl(context& ctx,
                            n,
                            m,
                            k,
-                           &alpha_r,
+                           &alpha,
                            to_pointer(args.at(1)),
                            arg_type,
                            ldb,
                            to_pointer(args.at(0)),
                            arg_type,
                            lda,
-                           &beta_r,
+                           &beta,
                            to_pointer(args[2]),
                            output_type,
                            ldc,
@@ -132,7 +137,7 @@ void gemm_impl(context& ctx,
                            n,
                            m,
                            k,
-                           &alpha_r,
+                           &alpha,
                            to_pointer(args.at(1)),
                            arg_type,
                            ldb,
@@ -141,7 +146,7 @@ void gemm_impl(context& ctx,
                            arg_type,
                            lda,
                            m * k,
-                           &beta_r,
+                           &beta,
                            to_pointer(args[2]),
                            output_type,
                            ldc,
