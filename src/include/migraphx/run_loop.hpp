@@ -53,6 +53,7 @@ argument run_loop(const LoopModel& model,
     int64_t iter = 0;
     for(iter = 0; iter < iter_num and cond; ++iter)
     {
+        std::cout << "begin,iter = " << iter << ", cond = " << cond << std::endl;
         // copy iter num and cond to device memory
         model.copy(ctx, iter, in_args.at(0));
         model.copy(ctx, cond, in_args.at(1));
@@ -81,7 +82,6 @@ argument run_loop(const LoopModel& model,
                     set_indices.push_back(output_index - dep_num);
                     const auto& arg = out_args.at(output_index);
                     assert((iter + 1) * ps.bytes() <= arg.get_shape().bytes());
-                    std::cout << "offset = " << iter * ps.bytes() << std::endl;
                     params[name] = argument(ps, arg.data() + iter * ps.bytes());
                 }
                 else
@@ -103,6 +103,7 @@ argument run_loop(const LoopModel& model,
 
         std::vector<argument> mod_scan_outs(mod_args.begin() + 1 + dep_num, mod_args.end());
         model.append(ctx, mod_scan_outs, scan_outputs, iter, set_indices);
+        std::cout << "end,iter = " << iter << ", cond = " << cond << std::endl;
     }
 
     out_args.erase(out_args.begin());

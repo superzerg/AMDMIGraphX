@@ -258,11 +258,51 @@ std::vector<argument> generic_eval(const module* mod,
                             }));
         }
 
-        // if(ins->name() == "nonmaxsuppression")
+        // if (contains(ins->name(), "gather"))
         // {
-        //     std::cout << "nms_op = " << results[ins].get_shape() << ", val = " << results[ins] <<
-        //     std::endl;
+        //     target tgt = make_target("ref");
+        //     std::cout << "gather = " << tgt.copy_from(results[ins]) << std::endl;
         // }
+        // if (contains(ins->name(), "topk"))
+        // {
+        //     auto args = results[ins].get_sub_objects();
+        //     target tgt = make_target("ref");
+        //     std::cout << "topk_data = " << tgt.copy_from(args.front()) << std::endl;
+        //     std::cout << "topk_idx = " << tgt.copy_from(args.back()) << std::endl;
+        // }
+        if (contains(ins->name(), "concat"))
+        {
+            target tgt = make_target("ref");
+            auto arg = tgt.copy_from(results[ins]);
+            std::vector<float> vec;
+            arg.visit([&](auto out) {
+                vec.assign(out.begin(), out.end());
+            });
+            std::cout << "concat_value_1_index = ";
+            for (int i = 0; i < vec.size(); ++i)
+            {
+                if ((vec[i] - 1.0f) < 0.001f and (vec[i] - 1.0f) > -0.001f)
+                {
+                    std::cout << i << ", ";
+                }
+            }
+            std::cout << std::endl;
+            std::cout << "concat = " << arg << std::endl;
+            auto inputs = ins->inputs();
+            if (inputs.size() == 81)
+                inputs.pop_back();
+            if (inputs.size() == 80)
+            {
+                int index = 0;
+                for (auto in : inputs)
+                {
+                    auto& arg_in = results[in];
+                    std::cout << "index_" << index++ << ":shape = " << arg_in.get_shape() << ", val = ";
+                    std::cout << tgt.copy_from(arg_in) << std::endl;
+                }
+            }
+        }
+
         std::cout << "ins_name1 = " << ins->name() << ", shape = " << results[ins].get_shape()
                   << std::endl
                   << std::endl;

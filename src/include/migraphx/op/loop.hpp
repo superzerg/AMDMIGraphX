@@ -132,7 +132,6 @@ struct loop
         cpy_args.push_back(argument(s_cond));
         cpy_args.push_back(argument(out_shape));
 
-        // run loop
         return run_loop(ref_loop{max_iterations}, ctx, cpy_args, mods, run);
     }
 };

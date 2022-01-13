@@ -937,8 +937,9 @@ struct find_split_reshape
         rsp_out_lens[rsp_axis] = std::accumulate(vec_dims.begin(), vec_dims.end(), std::int64_t{0});
 
         // insert the reshape instruction
+        auto cinput = p.insert_instruction(std::next(input), make_op("contiguous"), input);
         auto rsp_ins = p.insert_instruction(
-            std::next(input), make_op("reshape", {{"dims", rsp_out_lens}}), input);
+            std::next(cinput), make_op("reshape", {{"dims", rsp_out_lens}}), cinput);
 
         // replace the original reshape with slice
         int64_t start = 0;

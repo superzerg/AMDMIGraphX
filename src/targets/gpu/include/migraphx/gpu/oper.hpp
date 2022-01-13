@@ -61,8 +61,12 @@ struct unary_device : device_base<Derived, 1>
 {
     argument compute(context& ctx, const shape&, const std::vector<argument>& args) const
     {
-        F(ctx.get_stream().get(), this->get_arg(args, 1), this->get_arg(args, 0));
-        return args[1];
+        auto s = args[0].get_shape();
+        auto lens = s.lens();
+        auto type = s.type();
+        shape so{type, lens};
+        F(ctx.get_stream().get(), args[1].reshape(so), args[0]);
+        return args[1].reshape(so);
     }
 };
 

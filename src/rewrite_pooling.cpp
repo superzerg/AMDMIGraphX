@@ -33,8 +33,9 @@ void rewrite_pooling::apply(module& prog) const
             continue;
         std::int64_t n = s.lens()[0];
         std::int64_t c = s.lens()[1];
+        auto c_in = prog.insert_instruction(ins, make_op("contiguous"), ins->inputs().front());
         auto reshape   = prog.insert_instruction(
-            ins, make_op("reshape", {{"dims", {n * c, -1}}}), ins->inputs().front());
+            ins, make_op("reshape", {{"dims", {n * c, -1}}}), c_in);
         instruction_ref pooling{};
 
         // average pooling

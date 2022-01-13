@@ -418,10 +418,12 @@ struct find_resize
         }
 
         auto in_rsp   = ins_rsp->inputs().front();
+        auto cin_rsp = p.insert_instruction(
+            std::next(ins_rsp), migraphx::make_op("contiguous"), in_rsp);
         auto rsp_data = p.insert_instruction(
-            ins_rsp, migraphx::make_op("reshape", {{"dims", in_dims}}), in_rsp);
+            std::next(cin_rsp), migraphx::make_op("reshape", {{"dims", in_dims}}), cin_rsp);
         auto mb_rsp = p.insert_instruction(
-            ins_rsp, migraphx::make_op("multibroadcast", {{"out_lens", out_dims}}), rsp_data);
+            ins, migraphx::make_op("multibroadcast", {{"out_lens", out_dims}}), rsp_data);
         auto std_mb = p.insert_instruction(ins, migraphx::make_op("contiguous"), mb_rsp);
         std::vector<int64_t> rsp_dims(out_lens.begin(), out_lens.end());
         p.replace_instruction(ins, migraphx::make_op("reshape", {{"dims", rsp_dims}}), std_mb);
@@ -502,7 +504,6 @@ struct find_reshape_cont
         auto ins      = r.result;
         auto ins_cont = r.instructions["cont"];
         auto in_ins   = r.instructions["rsp"];
-
         auto cont_input = ins_cont->inputs().front();
         auto lens       = cont_input->get_shape().lens();
         std::vector<int64_t> dims(lens.begin(), lens.end());
@@ -530,12 +531,14 @@ struct find_reshape_cont
             }
             else
             {
+                auto cin = p.insert_instruction(ins, make_op("contiguous"), in);
                 inputs.push_back(
-                    p.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), in));
+                    p.insert_instruction(ins, make_op("reshape", {{"dims", dims}}), cin));
             }
         }
         auto out = p.insert_instruction(ins, ins->get_operator(), inputs);
-        p.replace_instruction(ins, make_op("reshape", {{"dims", out_dims}}), out);
+        auto cou = p.insert_instruction(ins, make_op("contiguous"), out);
+        p.replace_instruction(ins, make_op("reshape", {{"dims", out_dims}}), cou);
     }
 };
 

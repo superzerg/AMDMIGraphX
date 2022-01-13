@@ -130,6 +130,7 @@ struct nonmaxsuppression
 
     argument compute(const shape& output_shape, std::vector<argument> args) const
     {
+        std::cout << "input = " << args[0] << std::endl;
         std::size_t max_output_boxes_per_class = 0;
         float iou_threshold                    = 0.0f;
         float score_threshold                  = 0.0f;
@@ -223,6 +224,8 @@ struct nonmaxsuppression
         result.visit([&](auto out) {
             std::copy(selected_indices.begin(), selected_indices.end(), out.begin());
         });
+
+        std::cout << "nonmax = " << result << std::endl;
 
         return result;
     }

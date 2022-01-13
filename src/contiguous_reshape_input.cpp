@@ -18,7 +18,7 @@ void contiguous_reshape_input::apply(module& p) const
         if(input->name() == "contiguous")
             continue;
 
-        auto cinput = p.insert_instruction(ins, make_op("contiguous"), input);
+        auto cinput = p.insert_instruction(std::next(input), make_op("contiguous"), input);
         p.replace_instruction(input, cinput);
     }
 }

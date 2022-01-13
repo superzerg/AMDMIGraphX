@@ -98,9 +98,11 @@ void run_passes(program& prog, const std::vector<pass>& passes, tracer trace)
         trace = tracer{std::cout};
     for(const auto& p : passes)
     {
+        std::cout << "pass_name: " << p.name() << std::endl;
         auto mods = prog.get_modules();
         for(const auto& mod : reverse(mods))
         {
+            std::cout << "mod_name: " << mod->name() << std::endl;
             if(mod->bypass())
                 continue;
             module_pm{mod, &prog, &trace}.run_pass(p);

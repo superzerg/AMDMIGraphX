@@ -503,7 +503,7 @@ instruction_ref module::validate() const
         impl->instructions.begin(), impl->instructions.end(), [&](const instruction& i) {
             auto inputs      = i.inputs();
             bool check_order = std::all_of(inputs.begin(), inputs.end(), [&](auto in) {
-                return contains(impl->instructions, *in);
+                return has_instruction(in);
             });
             return !i.valid(impl->instructions.begin(), check_order);
         });

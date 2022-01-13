@@ -422,7 +422,8 @@ struct miopen_apply
             std::transform(ins->inputs().begin() + 1,
                            ins->inputs().end(),
                            std::back_inserter(reshapes),
-                           [&](auto i) { return mod->insert_instruction(ins, reshape_op, i); });
+                           [&](auto i) { auto ci = mod->insert_instruction(ins, make_op("contiguous"), i); 
+                            return mod->insert_instruction(ins, reshape_op, ci); });
 
             return mod->replace_instruction(ins,
                                             miopen_batch_norm_inference{op},

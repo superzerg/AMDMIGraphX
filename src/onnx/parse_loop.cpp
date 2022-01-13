@@ -32,6 +32,7 @@ struct parse_loop : op_parser<parse_loop>
             if(not arg_iters.empty())
             {
                 max_iterations = arg_iters.at<int64_t>();
+                max_iterations = max_iterations < 100 ? max_iterations : 100;
             }
         }
 
