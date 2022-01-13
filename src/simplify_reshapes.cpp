@@ -417,9 +417,9 @@ struct find_resize
             out_dims.push_back(isp.second);
         }
 
-        auto in_rsp   = ins_rsp->inputs().front();
-        auto cin_rsp = p.insert_instruction(
-            std::next(ins_rsp), migraphx::make_op("contiguous"), in_rsp);
+        auto in_rsp = ins_rsp->inputs().front();
+        auto cin_rsp =
+            p.insert_instruction(std::next(ins_rsp), migraphx::make_op("contiguous"), in_rsp);
         auto rsp_data = p.insert_instruction(
             std::next(cin_rsp), migraphx::make_op("reshape", {{"dims", in_dims}}), cin_rsp);
         auto mb_rsp = p.insert_instruction(
@@ -501,9 +501,9 @@ struct find_reshape_cont
 
     void apply(module& p, match::matcher_result r) const
     {
-        auto ins      = r.result;
-        auto ins_cont = r.instructions["cont"];
-        auto in_ins   = r.instructions["rsp"];
+        auto ins        = r.result;
+        auto ins_cont   = r.instructions["cont"];
+        auto in_ins     = r.instructions["rsp"];
         auto cont_input = ins_cont->inputs().front();
         auto lens       = cont_input->get_shape().lens();
         std::vector<int64_t> dims(lens.begin(), lens.end());

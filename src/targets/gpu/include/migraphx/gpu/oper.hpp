@@ -61,7 +61,7 @@ struct unary_device : device_base<Derived, 1>
 {
     argument compute(context& ctx, const shape&, const std::vector<argument>& args) const
     {
-        auto s = args[0].get_shape();
+        auto s    = args[0].get_shape();
         auto lens = s.lens();
         auto type = s.type();
         shape so{type, lens};

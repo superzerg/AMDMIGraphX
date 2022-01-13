@@ -270,18 +270,16 @@ std::vector<argument> generic_eval(const module* mod,
         //     std::cout << "topk_data = " << tgt.copy_from(args.front()) << std::endl;
         //     std::cout << "topk_idx = " << tgt.copy_from(args.back()) << std::endl;
         // }
-        if (contains(ins->name(), "concat"))
+        if(contains(ins->name(), "concat"))
         {
             target tgt = make_target("ref");
-            auto arg = tgt.copy_from(results[ins]);
+            auto arg   = tgt.copy_from(results[ins]);
             std::vector<float> vec;
-            arg.visit([&](auto out) {
-                vec.assign(out.begin(), out.end());
-            });
+            arg.visit([&](auto out) { vec.assign(out.begin(), out.end()); });
             std::cout << "concat_value_1_index = ";
-            for (int i = 0; i < vec.size(); ++i)
+            for(int i = 0; i < vec.size(); ++i)
             {
-                if ((vec[i] - 1.0f) < 0.001f and (vec[i] - 1.0f) > -0.001f)
+                if((vec[i] - 1.0f) < 0.001f and (vec[i] - 1.0f) > -0.001f)
                 {
                     std::cout << i << ", ";
                 }
@@ -289,15 +287,16 @@ std::vector<argument> generic_eval(const module* mod,
             std::cout << std::endl;
             std::cout << "concat = " << arg << std::endl;
             auto inputs = ins->inputs();
-            if (inputs.size() == 81)
+            if(inputs.size() == 81)
                 inputs.pop_back();
-            if (inputs.size() == 80)
+            if(inputs.size() == 80)
             {
                 int index = 0;
-                for (auto in : inputs)
+                for(auto in : inputs)
                 {
                     auto& arg_in = results[in];
-                    std::cout << "index_" << index++ << ":shape = " << arg_in.get_shape() << ", val = ";
+                    std::cout << "index_" << index++ << ":shape = " << arg_in.get_shape()
+                              << ", val = ";
                     std::cout << tgt.copy_from(arg_in) << std::endl;
                 }
             }
