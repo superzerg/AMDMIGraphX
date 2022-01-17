@@ -143,6 +143,7 @@ add_library(migraphx_gpu
     fuse_ops.cpp
     gather.cpp
     gemm_impl.cpp
+    get_tuple_elem.cpp
     hip.cpp
     int8_conv_pack.cpp
     int8_gemm_pack.cpp
@@ -200,6 +201,7 @@ register_migraphx_gpu_ops(hip_
     exp
     floor
     gather
+    get_tuple_elem
     greater
     less
     log
