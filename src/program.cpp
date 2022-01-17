@@ -191,7 +191,7 @@ std::vector<argument> generic_eval(const module* mod,
     results.reserve(mod->size() * 2);
     std::vector<argument> values;
     values.reserve(16);
-    auto trace            = make_trace(mod);
+    auto trace = make_trace(mod);
     // std::size_t ins_index = 0;
     for(auto ins : iterator_for(*mod))
     {
