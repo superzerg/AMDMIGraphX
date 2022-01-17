@@ -1563,6 +1563,105 @@ TEST_CASE(group_conv_test)
     EXPECT(p == prog);
 }
 
+TEST_CASE(hardsigmoid_default_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    std::vector<std::size_t> input_lens{1, 3, 4, 5};
+    auto input_type = migraphx::shape::float_type;
+    migraphx::shape s{input_type, input_lens};
+    auto x = mm->add_parameter("x", s);
+
+    float alpha = 0.2;
+    float beta  = 0.5;
+
+    auto mb_alpha = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+        mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {alpha}}));
+    auto mb_beta = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+        mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {beta}}));
+    auto mb_zero =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+                            mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {0}}));
+    auto mb_one =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+                            mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {1}}));
+
+    auto mul = mm->add_instruction(migraphx::make_op("mul"), mb_alpha, x);
+    auto add = mm->add_instruction(migraphx::make_op("add"), mb_beta, mul);
+    mm->add_instruction(migraphx::make_op("clip"), add, mb_zero, mb_one);
+
+    auto prog = optimize_onnx("hardsigmoid_default_test.onnx");
+    EXPECT(p == prog);
+}
+
+TEST_CASE(hardsigmoid_double_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    std::vector<std::size_t> input_lens{1, 3, 4, 5};
+    auto input_type = migraphx::shape::double_type;
+    migraphx::shape s{input_type, input_lens};
+    auto x = mm->add_parameter("x", s);
+
+    float alpha = 0.3;
+    float beta  = 0.7;
+
+    auto mb_alpha = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+        mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {alpha}}));
+    auto mb_beta = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+        mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {beta}}));
+    auto mb_zero =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+                            mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {0}}));
+    auto mb_one =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+                            mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {1}}));
+
+    auto mul = mm->add_instruction(migraphx::make_op("mul"), mb_alpha, x);
+    auto add = mm->add_instruction(migraphx::make_op("add"), mb_beta, mul);
+    mm->add_instruction(migraphx::make_op("clip"), add, mb_zero, mb_one);
+
+    auto prog = optimize_onnx("hardsigmoid_double_test.onnx");
+    EXPECT(p == prog);
+}
+
+TEST_CASE(hardsigmoid_half_test)
+{
+    migraphx::program p;
+    auto* mm = p.get_main_module();
+    std::vector<std::size_t> input_lens{1, 3, 4, 5};
+    auto input_type = migraphx::shape::half_type;
+    migraphx::shape s{input_type, input_lens};
+    auto x = mm->add_parameter("x", s);
+
+    float alpha = 0.2;
+    float beta  = 0.5;
+
+    auto mb_alpha = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+        mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {alpha}}));
+    auto mb_beta = mm->add_instruction(
+        migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+        mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {beta}}));
+    auto mb_zero =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+                            mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {0}}));
+    auto mb_one =
+        mm->add_instruction(migraphx::make_op("multibroadcast", {{"out_lens", input_lens}}),
+                            mm->add_literal(migraphx::literal{migraphx::shape{input_type}, {1}}));
+
+    auto mul = mm->add_instruction(migraphx::make_op("mul"), mb_alpha, x);
+    auto add = mm->add_instruction(migraphx::make_op("add"), mb_beta, mul);
+    mm->add_instruction(migraphx::make_op("clip"), add, mb_zero, mb_one);
+
+    auto prog = optimize_onnx("hardsigmoid_half_test.onnx");
+    EXPECT(p == prog);
+}
+
 TEST_CASE(if_else_test)
 {
     migraphx::program p;
@@ -2388,6 +2487,14 @@ TEST_CASE(multinomial_dtype_error_test)
     EXPECT(test::throws([&] { migraphx::parse_onnx("multinomial_dtype_error_test.onnx"); }));
 }
 
+TEST_CASE(multinomial_generated_seed_test)
+{
+    auto p1 = optimize_onnx("multinomial_generated_seed_test.onnx");
+    auto p2 = optimize_onnx("multinomial_generated_seed_test.onnx");
+
+    EXPECT(p1 != p2);
+}
+
 TEST_CASE(multinomial_int64_test)
 {
     migraphx::program p;
@@ -2891,6 +2998,14 @@ TEST_CASE(randomnormal_dtype_error_test)
     EXPECT(test::throws([&] { migraphx::parse_onnx("randomnormal_dtype_error_test.onnx"); }));
 }
 
+TEST_CASE(randomnormal_generated_seed_test)
+{
+    auto p1 = optimize_onnx("randomnormal_generated_seed_test.onnx");
+    auto p2 = optimize_onnx("randomnormal_generated_seed_test.onnx");
+
+    EXPECT(p1 != p2);
+}
+
 TEST_CASE(randomnormal_shape_error_test)
 {
     EXPECT(test::throws([&] { migraphx::parse_onnx("randomnormal_shape_error_test.onnx"); }));
@@ -2951,6 +3066,14 @@ TEST_CASE(randomuniform_test)
 TEST_CASE(randomuniform_dtype_error_test)
 {
     EXPECT(test::throws([&] { migraphx::parse_onnx("randomuniform_dtype_error_test.onnx"); }));
+}
+
+TEST_CASE(randomuniform_generated_seed_test)
+{
+    auto p1 = optimize_onnx("randomuniform_generated_seed_test.onnx");
+    auto p2 = optimize_onnx("randomuniform_generated_seed_test.onnx");
+
+    EXPECT(p1 != p2);
 }
 
 TEST_CASE(randomuniform_shape_error_test)

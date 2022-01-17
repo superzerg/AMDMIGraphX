@@ -27,6 +27,7 @@
 #include <migraphx/gpu/elu.hpp>
 #include <migraphx/gpu/equal.hpp>
 #include <migraphx/gpu/gemm.hpp>
+#include <migraphx/gpu/get_tuple_elem.hpp>
 #include <migraphx/gpu/greater.hpp>
 #include <migraphx/gpu/int8_conv_pack.hpp>
 #include <migraphx/gpu/leaky_relu.hpp>
@@ -162,6 +163,7 @@ struct miopen_apply
         add_extend_op("convert");
         add_extend_op("elu");
         add_extend_op("gather");
+        add_extend_op("get_tuple_elem");
         add_extend_op("leaky_relu");
         add_extend_op("logsoftmax");
         add_extend_op("lrn");

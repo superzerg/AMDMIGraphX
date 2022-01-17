@@ -1,4 +1,4 @@
-import os
+import os, sys
 import numpy as np
 import argparse
 import onnx
@@ -54,27 +54,53 @@ def read_pb_file(filename):
         tensor.ParseFromString(data_str)
         np_array = numpy_helper.to_array(tensor)
 
-    return np_array
+    return tensor.name, np_array
 
 
-def wrapup_inputs(io_folder, parameter_names):
-    index = 0
+def wrapup_inputs(io_folder, param_names):
     param_map = {}
-    for param_name in parameter_names:
-        file_name = io_folder + '/input_' + str(index) + '.pb'
-        data = read_pb_file(file_name)
-        param_map[param_name] = data
-        index = index + 1
+    data_array = []
+    name_array = []
+    for i in range(len(param_names)):
+        file_name = io_folder + '/input_' + str(i) + '.pb'
+        name, data = read_pb_file(file_name)
+        param_map[name] = data
+        data_array.append(data)
+        if name:
+            name_array.append(name)
+
+    if len(name_array) < len(data_array):
+        param_map = {}
+        for i in range(len(param_names)):
+            param_map[param_names[i]] = data_array[i]
+
+        return param_map
+
+    for name in param_names:
+        if not name in param_map.keys():
+            print("Input {} does not exist!".format(name))
+            sys.exit()
 
     return param_map
 
 
-def read_outputs(io_folder, out_num):
+def read_outputs(io_folder, out_names):
     outputs = []
-    for i in range(out_num):
+    data_array = []
+    name_array = []
+    for i in range(len(out_names)):
         file_name = io_folder + '/output_' + str(i) + '.pb'
-        data = read_pb_file(file_name)
-        outputs.append(data)
+        name, data = read_pb_file(file_name)
+        data_array.append(data)
+        if name:
+            name_array.append(name)
+
+    if len(name_array) < len(data_array):
+        return data_array
+
+    for name in out_names:
+        index = name_array.index(name)
+        outputs.append(data_array[index])
 
     return outputs
 
@@ -110,7 +136,6 @@ def run_one_case(model, param_map):
     # convert np array to model argument
     pp = {}
     for key, val in param_map.items():
-        print("input = {}".format(val))
         pp[key] = migraphx.argument(val)
 
     # run the model
@@ -133,12 +158,11 @@ def check_correctness(gold_outputs, outputs, rtol=1e-3, atol=1e-3):
     out_num = len(gold_outputs)
     ret = True
     for i in range(out_num):
-        print("Expected value: \n{}".format(gold_outputs[i]))
-        print("Actual value: \n{}".format(outputs[i]))
         if not np.allclose(gold_outputs[i], outputs[i], rtol, atol):
-            print("Output {} is incorrect ...".format(i))
+            print("\nOutput {} is incorrect ...".format(i))
             print("Expected value: \n{}".format(gold_outputs[i]))
-            print("Actual value: \n{}".format(outputs[i]))
+            print("......")
+            print("Actual value: \n{}\n".format(outputs[i]))
             ret = False
 
     return ret
@@ -184,7 +208,11 @@ def main():
     # param_names = model.get_parameter_names()
     output_shapes = model.get_output_shapes()
 
-    model.compile(migraphx.get_target(target))
+    # get param names
+    param_names = model_parameter_names(model_path_name)
+
+    # get output names
+    output_names = model_output_names(model_path_name)
 
     # get test cases
     case_num = len(cases)
@@ -192,7 +220,7 @@ def main():
     for case_name in cases:
         io_folder = test_loc + '/' + case_name
         input_data = wrapup_inputs(io_folder, param_names)
-        gold_output_data = read_outputs(io_folder, len(output_shapes))
+        gold_outputs = read_outputs(io_folder, output_names)
 
         # if input shape is different from model shape, reload and recompile
         # model
@@ -206,7 +234,7 @@ def main():
         output_data = run_one_case(model, input_data)
 
         # check output correctness
-        ret = check_correctness(gold_output_data, output_data)
+        ret = check_correctness(gold_outputs, output_data)
         if ret:
             correct_num += 1
 
