@@ -263,16 +263,21 @@ std::vector<argument> generic_eval(const module* mod,
         //     target tgt = make_target("ref");
         //     std::cout << "gather = " << tgt.copy_from(results[ins]) << std::endl;
         // }
-        // if (contains(ins->name(), "topk"))
-        // {
-        //     auto args = results[ins].get_sub_objects();
-        //     target tgt = make_target("ref");
-        //     std::cout << "topk_data = " << tgt.copy_from(args.front()) << std::endl;
-        //     std::cout << "topk_idx = " << tgt.copy_from(args.back()) << std::endl;
-        // }
+        std::string tgt_name = "gpu";
+        target tgt = make_target(tgt_name);
+        if (contains(ins->name(), "get_tuple_elem"))
+        {
+            std::cout << "get_tuple_elem = " << tgt.copy_from(results[ins]) << std::endl;
+        }
+        
+        if (contains(ins->name(), "topk"))
+        {
+            auto args = results[ins].get_sub_objects();
+            std::cout << "topk_data = " << tgt.copy_from(args.front()) << std::endl;
+            std::cout << "topk_idx = " << tgt.copy_from(args.back()) << std::endl;
+        }
         if(contains(ins->name(), "concat"))
         {
-            target tgt = make_target("ref");
             auto arg   = tgt.copy_from(results[ins]);
             std::vector<float> vec;
             arg.visit([&](auto out) { vec.assign(out.begin(), out.end()); });

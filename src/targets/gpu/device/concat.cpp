@@ -9,7 +9,7 @@ namespace gpu {
 namespace device {
 
 argument concat(hipStream_t stream,
-                const migraphx::shape&,
+                const migraphx::shape& out_shape,
                 std::vector<migraphx::argument> args,
                 std::vector<std::size_t> offsets)
 {
@@ -24,7 +24,7 @@ argument concat(hipStream_t stream,
         auto output = argument{output_shape, args.back().data() + byte_offset};
         contiguous(stream, output, arg);
     }
-    return args.back();
+    return args.back().reshape(out_shape);
 }
 
 } // namespace device

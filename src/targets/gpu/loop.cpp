@@ -1,3 +1,4 @@
+#include "migraphx/gpu/hip.hpp"
 #include <migraphx/run_loop.hpp>
 #include <migraphx/gpu/loop.hpp>
 #include <migraphx/gpu/context.hpp>
@@ -39,6 +40,12 @@ struct gpu_loop
                 int iter,
                 const std::vector<int>& indices) const
     {
+        for (int j = 0; j < concatenated_outputs.size(); ++j)
+        {
+            std::cout << "concat_data_ptr = " << (void*)concatenated_outputs[j].data() << std::endl;
+            std::cout << "concat_scan_out_" << j << " = " << migraphx::gpu::from_gpu(concatenated_outputs[j]) << std::endl;
+        }
+
         for(auto i : range(iter_state.size()))
         {
             if(contains(indices, i))
@@ -112,7 +119,22 @@ hip_loop::compute(context& ctx,
                   const std::function<std::vector<argument>(
                       module_ref&, const std::unordered_map<std::string, argument>&)>& run) const
 {
-    return run_loop(gpu_loop{op.max_iterations}, ctx, args, mods, run);
+    auto out_args = run_loop(gpu_loop{op.max_iterations}, ctx, args, mods, run);
+
+    for (int i = 0; i < args.size() - 1; ++i)
+    {
+        std::cout << "loop_args_" << i << " = " << migraphx::gpu::from_gpu(args[i]) << std::endl;
+    }
+
+    auto&& oargs = out_args.get_sub_objects();
+    for (int i = 0; i < oargs.size(); ++i)
+    {
+        std::cout << "loop_out_" << i << " = " << migraphx::gpu::from_gpu(oargs[i]) << std::endl;
+    }
+
+    return {out_args};
+
+    // return run_loop(gpu_loop{op.max_iterations}, ctx, args, mods, run);
 }
 
 } // namespace gpu

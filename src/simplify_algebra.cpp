@@ -1030,7 +1030,7 @@ void simplify_algebra::apply(module& p) const
                             find_div_const{},
                             find_sub_const{},
                             find_rsqrt{},
-                            find_concat_op{},
+                            // find_concat_op{},
                             find_split_concat{},
                             find_splits{},
                             find_split_reshape{},

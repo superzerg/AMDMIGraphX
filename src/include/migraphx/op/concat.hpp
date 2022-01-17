@@ -1,6 +1,7 @@
 #ifndef MIGRAPHX_GUARD_OPERATORS_CONCAT_HPP
 #define MIGRAPHX_GUARD_OPERATORS_CONCAT_HPP
 
+#include "migraphx/to_shapes.hpp"
 #include <array>
 #include <migraphx/check_shapes.hpp>
 #include <migraphx/stringutils.hpp>
@@ -83,8 +84,10 @@ struct concat
         new_lens[axis] = new_dim_axis;
         return shape::from_permutation(type, new_lens, find_permutation(inputs));
     }
-    argument compute(const shape& output_shape, std::vector<argument> args) const
+    argument compute(const shape&, std::vector<argument> args) const
     {
+        auto vec_ss = to_shapes(args);
+        auto output_shape = normalize_compute_shape(vec_ss);
         argument result{output_shape};
         std::vector<std::size_t> coffsets = compute_offsets(output_shape, args);
         for(std::size_t l = 0; l < args.size(); l++)
