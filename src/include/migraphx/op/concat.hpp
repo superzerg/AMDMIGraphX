@@ -86,7 +86,7 @@ struct concat
     }
     argument compute(const shape&, std::vector<argument> args) const
     {
-        auto vec_ss = to_shapes(args);
+        auto vec_ss       = to_shapes(args);
         auto output_shape = normalize_compute_shape(vec_ss);
         argument result{output_shape};
         std::vector<std::size_t> coffsets = compute_offsets(output_shape, args);

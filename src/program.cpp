@@ -264,13 +264,13 @@ std::vector<argument> generic_eval(const module* mod,
         //     std::cout << "gather = " << tgt.copy_from(results[ins]) << std::endl;
         // }
         std::string tgt_name = "gpu";
-        target tgt = make_target(tgt_name);
-        if (contains(ins->name(), "get_tuple_elem"))
+        target tgt           = make_target(tgt_name);
+        if(contains(ins->name(), "get_tuple_elem"))
         {
             std::cout << "get_tuple_elem = " << tgt.copy_from(results[ins]) << std::endl;
         }
-        
-        if (contains(ins->name(), "topk"))
+
+        if(contains(ins->name(), "topk"))
         {
             auto args = results[ins].get_sub_objects();
             std::cout << "topk_data = " << tgt.copy_from(args.front()) << std::endl;
@@ -278,7 +278,7 @@ std::vector<argument> generic_eval(const module* mod,
         }
         if(contains(ins->name(), "concat"))
         {
-            auto arg   = tgt.copy_from(results[ins]);
+            auto arg = tgt.copy_from(results[ins]);
             std::vector<float> vec;
             arg.visit([&](auto out) { vec.assign(out.begin(), out.end()); });
             std::cout << "concat_value_1_index = ";
