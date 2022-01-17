@@ -263,7 +263,7 @@ std::vector<argument> generic_eval(const module* mod,
         //     target tgt = make_target("ref");
         //     std::cout << "gather = " << tgt.copy_from(results[ins]) << std::endl;
         // }
-        std::string tgt_name = "gpu";
+        std::string tgt_name = "ref";
         target tgt           = make_target(tgt_name);
         if(contains(ins->name(), "get_tuple_elem"))
         {
