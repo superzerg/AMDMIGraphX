@@ -192,12 +192,12 @@ std::vector<argument> generic_eval(const module* mod,
     std::vector<argument> values;
     values.reserve(16);
     auto trace            = make_trace(mod);
-    std::size_t ins_index = 0;
+    // std::size_t ins_index = 0;
     for(auto ins : iterator_for(*mod))
     {
-        auto compile_s = ins->get_shape();
-        std::cout << "index = " << ins_index++ << ", name = " << ins->name()
-                  << ", shape = " << compile_s << std::endl;
+        // auto compile_s = ins->get_shape();
+        // std::cout << "index = " << ins_index++ << ", name = " << ins->name()
+        //           << ", shape = " << compile_s << std::endl;
         assert(results.find(ins) == results.end());
         const auto& name = ins->name();
         if(name == "@literal")
@@ -263,53 +263,53 @@ std::vector<argument> generic_eval(const module* mod,
         //     target tgt = make_target("ref");
         //     std::cout << "gather = " << tgt.copy_from(results[ins]) << std::endl;
         // }
-        std::string tgt_name = "ref";
-        target tgt           = make_target(tgt_name);
-        if(contains(ins->name(), "get_tuple_elem"))
-        {
-            std::cout << "get_tuple_elem = " << tgt.copy_from(results[ins]) << std::endl;
-        }
+        // std::string tgt_name = "ref";
+        // target tgt           = make_target(tgt_name);
+        // if(contains(ins->name(), "get_tuple_elem"))
+        // {
+        //     std::cout << "get_tuple_elem = " << tgt.copy_from(results[ins]) << std::endl;
+        // }
 
-        if(contains(ins->name(), "topk"))
-        {
-            auto args = results[ins].get_sub_objects();
-            std::cout << "topk_data = " << tgt.copy_from(args.front()) << std::endl;
-            std::cout << "topk_idx = " << tgt.copy_from(args.back()) << std::endl;
-        }
-        if(contains(ins->name(), "concat"))
-        {
-            auto arg = tgt.copy_from(results[ins]);
-            std::vector<float> vec;
-            arg.visit([&](auto out) { vec.assign(out.begin(), out.end()); });
-            std::cout << "concat_value_1_index = ";
-            for(int i = 0; i < vec.size(); ++i)
-            {
-                if((vec[i] - 1.0f) < 0.001f and (vec[i] - 1.0f) > -0.001f)
-                {
-                    std::cout << i << ", ";
-                }
-            }
-            std::cout << std::endl;
-            std::cout << "concat = " << arg << std::endl;
-            auto inputs = ins->inputs();
-            if(inputs.size() == 81)
-                inputs.pop_back();
-            if(inputs.size() == 80)
-            {
-                int index = 0;
-                for(auto in : inputs)
-                {
-                    auto& arg_in = results[in];
-                    std::cout << "index_" << index++ << ":shape = " << arg_in.get_shape()
-                              << ", val = ";
-                    std::cout << tgt.copy_from(arg_in) << std::endl;
-                }
-            }
-        }
+        // if(contains(ins->name(), "topk"))
+        // {
+        //     auto args = results[ins].get_sub_objects();
+        //     std::cout << "topk_data = " << tgt.copy_from(args.front()) << std::endl;
+        //     std::cout << "topk_idx = " << tgt.copy_from(args.back()) << std::endl;
+        // }
+        // if(contains(ins->name(), "concat"))
+        // {
+        //     auto arg = tgt.copy_from(results[ins]);
+        //     std::vector<float> vec;
+        //     arg.visit([&](auto out) { vec.assign(out.begin(), out.end()); });
+        //     std::cout << "concat_value_1_index = ";
+        //     for(int i = 0; i < vec.size(); ++i)
+        //     {
+        //         if((vec[i] - 1.0f) < 0.001f and (vec[i] - 1.0f) > -0.001f)
+        //         {
+        //             std::cout << i << ", ";
+        //         }
+        //     }
+        //     std::cout << std::endl;
+        //     std::cout << "concat = " << arg << std::endl;
+        //     auto inputs = ins->inputs();
+        //     if(inputs.size() == 81)
+        //         inputs.pop_back();
+        //     if(inputs.size() == 80)
+        //     {
+        //         int index = 0;
+        //         for(auto in : inputs)
+        //         {
+        //             auto& arg_in = results[in];
+        //             std::cout << "index_" << index++ << ":shape = " << arg_in.get_shape()
+        //                       << ", val = ";
+        //             std::cout << tgt.copy_from(arg_in) << std::endl;
+        //         }
+        //     }
+        // }
 
-        std::cout << "ins_name1 = " << ins->name() << ", shape = " << results[ins].get_shape()
-                  << std::endl
-                  << std::endl;
+        // std::cout << "ins_name1 = " << ins->name() << ", shape = " << results[ins].get_shape()
+        //           << std::endl
+        //           << std::endl;
 
         auto compute_s = results[ins].get_shape();
         // if(compile_s != compute_s)
