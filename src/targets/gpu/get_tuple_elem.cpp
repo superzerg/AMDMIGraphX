@@ -12,7 +12,8 @@ shape hip_get_tuple_elem::compute_shape(std::vector<shape> inputs) const
     return op.compute_shape(inputs);
 }
 
-argument hip_get_tuple_elem::compute(context& ctx, const shape&, const std::vector<argument>& args) const
+argument
+hip_get_tuple_elem::compute(context& ctx, const shape&, const std::vector<argument>& args) const
 {
     auto sub_args = args.front().get_sub_objects();
     device::contiguous(ctx.get_stream().get(), args.back(), sub_args[op.index]);
