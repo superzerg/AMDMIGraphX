@@ -105,29 +105,53 @@ def read_outputs(io_folder, out_names):
     return outputs
 
 
-def get_model_parameter_names(model_file_name):
+def model_parameter_names(model_file_name):
     with open(model_file_name, 'rb') as pfile:
         data_str = pfile.read()
         model_proto = onnx.ModelProto()
         model_proto.ParseFromString(data_str)
         init_names = set([(i.name) for i in model_proto.graph.initializer])
-        param_names = []
-        for input in model_proto.graph.input:
-            if input.name not in init_names:
-                param_names.append(input.name)
+        param_names = [
+            input.name for input in model_proto.graph.input
+            if input.name not in init_names
+        ]
 
         return param_names
 
 
+def model_output_names(model_file_name):
+    with open(model_file_name, 'rb') as pfile:
+        data_str = pfile.read()
+        model_proto = onnx.ModelProto()
+        model_proto.ParseFromString(data_str)
+        output_names = [out.name for out in model_proto.graph.output]
+
+        return output_names
+
+
 def get_input_shapes(sample_case, param_names):
-    index = 0
     param_shape_map = {}
-    for param_name in param_names:
-        file_name = sample_case + '/input_' + str(index) + '.pb'
-        data = read_pb_file(file_name)
-        param_shape_map[param_name] = list(data.shape)
-        print("{}: {}".format(param_name, data.shape))
-        index = index + 1
+    name_array = []
+    shape_array = []
+    for i in range(len(param_names)):
+        file_name = sample_case + '/input_' + str(i) + '.pb'
+        name, data = read_pb_file(file_name)
+        param_shape_map[name] = data.shape
+        shape_array.append(data.shape)
+        if name:
+            name_array.append(name)
+
+    if len(name_array) < len(shape_array):
+        param_shape_map = {}
+        for i in range(len(param_names)):
+            param_shape_map[param_names[i]] = shape_array[i]
+
+        return param_shape_map
+
+    for name in param_names:
+        if not name in param_shape_map:
+            print("Input {} does not exist!".format(name))
+            sys.exit()
 
     return param_shape_map
 
@@ -195,24 +219,22 @@ def main():
     model_path_name = test_loc + '/' + model_name
 
     # get param names
-    param_names = get_model_parameter_names(model_path_name)
-    print("param_name = {}".format(param_names))
+    param_names = model_parameter_names(model_path_name)
+
+    # get output names
+    output_names = model_output_names(model_path_name)
 
     # get test cases
     cases = get_test_cases(test_loc)
     sample_case = test_loc + '/' + cases[0]
     param_shapes = get_input_shapes(sample_case, param_names)
+    for name, dims in param_shapes.items():
+        print("Input: {}, shape: {}".format(name, dims))
+    print()
 
     # read and compile model
     model = migraphx.parse_onnx(model_path_name, map_input_dims=param_shapes)
-    # param_names = model.get_parameter_names()
-    output_shapes = model.get_output_shapes()
-
-    # get param names
-    param_names = model_parameter_names(model_path_name)
-
-    # get output names
-    output_names = model_output_names(model_path_name)
+    model.compile(migraphx.get_target(target))
 
     # get test cases
     case_num = len(cases)

@@ -30,6 +30,7 @@ struct reshape
     shape compute_shape(std::vector<shape> inputs) const
     {
         check_shapes{inputs, *this}.has(1).standard();
+        // check_shapes{inputs, *this}.has(1);
         auto&& idims = inputs.front().lens();
         std::vector<std::size_t> rdims(dims.begin(), dims.end());
         auto n_neg_dims = std::count(dims.begin(), dims.end(), -1);

@@ -30,8 +30,8 @@ struct parse_reshape : op_parser<parse_reshape>
             s.visit([&](auto v) { copy(v, std::back_inserter(dims)); });
         }
 
-        auto cin = info.add_instruction(make_op("contiguous"), args[0]);
-        return info.add_instruction(make_op("reshape", {{"dims", dims}}), cin);
+        return info.add_instruction(make_op("reshape", {{"dims", dims}}),
+                                    info.make_contiguous(args[0]));
     }
 };
 
