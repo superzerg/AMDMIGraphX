@@ -82,9 +82,9 @@ struct binary_device : device_base<Derived, 2>
 
         if(args[2].get_shape().lens() != args[0].get_shape().lens())
         {
-            if (args[0].get_shape().standard())
+            if(args[0].get_shape().standard())
                 return args[2].share().reshape(args[0].get_shape());
-            else if (args[1].get_shape().standard())
+            else if(args[1].get_shape().standard())
                 return args[2].share().reshape(args[1].get_shape());
         }
 

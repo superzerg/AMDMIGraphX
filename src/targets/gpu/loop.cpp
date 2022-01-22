@@ -42,8 +42,8 @@ struct gpu_loop
     {
         // for(int j = 0; j < concatenated_outputs.size(); ++j)
         // {
-        //     std::cout << "concat_data_ptr = " << (void*)concatenated_outputs[j].data() << std::endl;
-        //     std::cout << "concat_scan_out_" << j << " = "
+        //     std::cout << "concat_data_ptr = " << (void*)concatenated_outputs[j].data() <<
+        //     std::endl; std::cout << "concat_scan_out_" << j << " = "
         //               << migraphx::gpu::from_gpu(concatenated_outputs[j]) << std::endl;
         // }
 
