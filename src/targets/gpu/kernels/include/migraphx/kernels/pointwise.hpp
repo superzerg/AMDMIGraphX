@@ -3,11 +3,37 @@
 
 #include <migraphx/kernels/index.hpp>
 #include <migraphx/kernels/functional.hpp>
+#include <migraphx/kernels/math.hpp>
 #include <migraphx/kernels/preload.hpp>
 #include <migraphx/kernels/vectorize.hpp>
 #include <migraphx/kernels/args.hpp>
 
 namespace migraphx {
+
+template <class T>
+struct implicit_conversion_op
+{
+    T x;
+
+    template <index_int N, class U>
+    constexpr operator vec<U, N>() const
+    {
+        static_assert(vec_size<T>() == N, "Vector mismatch size");
+        return __builtin_convertvector(x, vec<U, N>);
+    }
+
+    template <class U>
+    constexpr operator U() const
+    {
+        return x;
+    }
+};
+
+template <class T>
+constexpr implicit_conversion_op<T> implicit_conversion(T x)
+{
+    return {x};
+}
 
 template <class F, class T, class... Ts>
 __device__ void pointwise_tensor(index idx, F f, T out, Ts... xs)
@@ -15,7 +41,7 @@ __device__ void pointwise_tensor(index idx, F f, T out, Ts... xs)
     preload<typename T::type>(idx, xs...)([&](auto... ps) {
         idx.global_stride(out.get_shape().elements(), [&](auto i) {
             auto multi_idx = out.get_shape().multi(i);
-            out[multi_idx] = f(ps[multi_idx]...);
+            out[multi_idx] = implicit_conversion(f(ps[multi_idx]...));
         });
     });
 }

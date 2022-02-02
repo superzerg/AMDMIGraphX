@@ -13,6 +13,7 @@
 #include <migraphx/algorithm.hpp>
 #include <migraphx/output_iterator.hpp>
 #include <migraphx/make_op.hpp>
+#include <migraphx/marker.hpp>
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -179,6 +180,63 @@ void program::finalize()
     mm->finalize(this->impl->ctx);
 }
 
+template <class T>
+std::string classify(T x)
+{
+    switch(std::fpclassify(x))
+    {
+    case FP_INFINITE: return "inf";
+    case FP_NAN: return "nan";
+    case FP_NORMAL: return "normal";
+    case FP_SUBNORMAL: return "subnormal";
+    case FP_ZERO: return "zero";
+    default: return "unknown";
+    }
+}
+
+std::unordered_set<std::string> classify_argument(const argument& a)
+{
+    std::unordered_set<std::string> result;
+    a.visit(
+        [&](auto t) {
+            for(const auto& x : t)
+                result.insert(classify(x));
+        },
+        [&](const auto& xs) {
+            for(const auto& x : xs)
+            {
+                auto r = classify_argument(x);
+                result.insert(r.begin(), r.end());
+            }
+        });
+    return result;
+}
+
+void preview_argument(std::ostream& os, const argument& a)
+{
+    a.visit(
+        [&](auto t) {
+            if(t.size() <= 10)
+            {
+                os << t;
+            }
+            else
+            {
+                os << to_string_range(t.begin(), t.begin() + 5);
+                os << ", ..., ";
+                os << to_string_range(t.end() - 5, t.end());
+            }
+        },
+        [&](const auto& xs) {
+            for(const auto& x : xs)
+            {
+                os << '{';
+                preview_argument(os, x);
+                os << '}';
+            }
+        });
+}
+
 template <class F>
 std::vector<argument> generic_eval(const module* mod,
                                    context& ctx,
@@ -309,8 +367,24 @@ std::vector<argument> program::eval(parameter_map params) const
                                 double t2 = t.record<milliseconds>();
                                 std::cout << "Time: " << t1 << "ms, " << t2 << "ms" << std::endl;
                                 if(trace_level > 1 and ins->name().front() != '@' and
-                                   ins->name() != "load")
-                                    std::cout << "Output: " << result << std::endl;
+                                   ins->name() != "load" and not result.empty())
+                                {
+                                    target tgt  = make_target(this->impl->target_name);
+                                    auto buffer = tgt.copy_from(result);
+                                    if(trace_level == 2)
+                                    {
+                                        std::cout << "Output has "
+                                                  << to_string_range(classify_argument(buffer))
+                                                  << std::endl;
+                                        std::cout << "Output: ";
+                                        preview_argument(std::cout, buffer);
+                                        std::cout << std::endl;
+                                    }
+                                    else
+                                    {
+                                        std::cout << "Output: " << buffer << std::endl;
+                                    }
+                                }
                                 return result;
                             }));
     }
@@ -504,7 +578,28 @@ std::string perf_group(const operation& op)
     return op.name();
 }
 
-void program::perf_report(std::ostream& os, std::size_t n, parameter_map params) const
+void program::mark(const parameter_map& params, marker&& m)
+{
+    auto& ctx = this->impl->ctx;
+    // Run once by itself
+    eval(params);
+    ctx.finish();
+    // Start marking
+    m.mark_start(*this);
+    generic_eval(*this, ctx, params, always([&](auto ins, auto f) {
+        argument result;
+        m.mark_start(ins);
+        result = f();
+        m.mark_stop(ins);
+        return result;
+    }));
+    m.mark_stop(*this);
+}
+
+void program::perf_report(std::ostream& os,
+                          std::size_t n,
+                          parameter_map params,
+                          std::size_t batch) const
 {
     auto& ctx = this->impl->ctx;
     // Run once by itself
@@ -597,7 +692,8 @@ void program::perf_report(std::ostream& os, std::size_t n, parameter_map params)
 
     os << std::endl;
 
-    os << "Rate: " << rate << "/sec" << std::endl;
+    os << "Batch size: " << batch << std::endl;
+    os << "Rate: " << rate * batch << "/sec" << std::endl;
     os << "Total time: " << total_time << "ms" << std::endl;
     os << "Total instructions time: " << total_instruction_time << "ms" << std::endl;
     os << "Overhead time: " << overhead_time << "ms"

@@ -1,3 +1,4 @@
+#include <iterator>
 #include <migraphx/module.hpp>
 #include <migraphx/stringutils.hpp>
 #include <migraphx/instruction.hpp>
@@ -178,6 +179,7 @@ instruction_ref module::insert_instruction(instruction_ref ins,
                                            const operation& op,
                                            std::vector<instruction_ref> args)
 {
+    assert(has_instruction(ins) or is_end(ins, this->end()));
     assert(not starts_with(op.name(), "@"));
     shape r     = compute_shape(op, args);
     auto result = impl->insert(ins, {op, r, std::move(args)});
@@ -199,6 +201,7 @@ instruction_ref module::insert_instruction(instruction_ref ins,
                                            std::vector<instruction_ref> args,
                                            std::vector<module_ref> module_args)
 {
+    assert(has_instruction(ins) or is_end(ins, this->end()));
     assert(not starts_with(op.name(), "@"));
     auto out_shape = compute_shape(op, args, module_args);
     auto result    = impl->insert(ins, {op, out_shape, std::move(args), std::move(module_args)});
@@ -211,6 +214,7 @@ instruction_ref module::replace_instruction(instruction_ref ins,
                                             const operation& op,
                                             std::vector<instruction_ref> args) MIGRAPHX_TIDY_CONST
 {
+    assert(has_instruction(ins));
     assert(not starts_with(op.name(), "@"));
 
     shape r = compute_shape(op, args);
@@ -224,6 +228,7 @@ instruction_ref module::replace_instruction(instruction_ref ins,
                                             std::vector<instruction_ref> args,
                                             std::vector<module_ref> module_args) MIGRAPHX_TIDY_CONST
 {
+    assert(has_instruction(ins));
     assert(not starts_with(op.name(), "@"));
     auto out_shape = compute_shape(op, args, module_args);
     instruction::replace(ins, op, out_shape, std::move(args), std::move(module_args));
@@ -290,6 +295,8 @@ instruction_ref module::remove_instructions(instruction_ref first, instruction_r
 
 instruction_ref module::move_instruction(instruction_ref src, instruction_ref dst)
 {
+    assert(has_instruction(src));
+    assert(has_instruction(dst) or is_end(dst, this->end()));
     impl->instructions.splice(dst, impl->instructions, src);
     return src;
 }
@@ -300,6 +307,55 @@ instruction_ref module::move_instructions(instruction_ref src, instruction_ref d
     for(auto ins : src->inputs())
         this->move_instruction(ins, src);
     return src;
+}
+
+std::vector<instruction_ref> module::insert_module_instructions(
+    instruction_ref ins, module_ref m, std::unordered_map<instruction_ref, instruction_ref> map_ins)
+{
+    std::vector<instruction_ref> mod_outputs;
+    for(auto sins : iterator_for(*m))
+    {
+        if(contains(map_ins, sins))
+            continue;
+        instruction_ref copy_ins;
+        if(sins->name() == "@literal")
+        {
+            auto l   = sins->get_literal();
+            copy_ins = this->add_literal(l);
+        }
+        else if(sins->name() == "@param")
+        {
+            auto&& name = any_cast<builtin::param>(sins->get_operator()).parameter;
+            auto s      = sins->get_shape();
+            copy_ins    = this->add_parameter(name, s);
+        }
+        else if(sins->name() == "@outline")
+        {
+            auto s   = sins->get_shape();
+            copy_ins = this->add_outline(s);
+        }
+        else
+        {
+            auto mod_args = sins->module_inputs();
+            auto inputs   = sins->inputs();
+            std::vector<instruction_ref> copy_inputs(inputs.size());
+            std::transform(inputs.begin(), inputs.end(), copy_inputs.begin(), [&](auto i) {
+                return contains(map_ins, i) ? map_ins[i] : i;
+            });
+
+            if(sins->name() == "@return")
+            {
+                mod_outputs = copy_inputs;
+                break;
+            }
+
+            copy_ins = this->insert_instruction(ins, sins->get_operator(), copy_inputs, mod_args);
+        }
+        map_ins[sins] = copy_ins;
+    }
+    if(mod_outputs.empty())
+        mod_outputs = {map_ins.at(std::prev(m->end()))};
+    return mod_outputs;
 }
 
 instruction_ref module::add_literal(literal l)
@@ -330,6 +386,20 @@ instruction_ref module::add_return(std::vector<instruction_ref> args)
     assert(result->valid(begin()));
 
     return result;
+}
+
+instruction_ref module::replace_return(std::vector<instruction_ref> args)
+{
+    auto last = std::prev(this->end());
+    // If there is no return then add a return
+    if(last->name() != "@return")
+        return this->add_return(args);
+
+    shape r = compute_shape(last->get_operator(), args);
+    instruction::replace(last, last->get_operator(), r, std::move(args));
+    assert(last->valid(begin()));
+
+    return last;
 }
 
 shape module::get_parameter_shape(std::string name) const
