@@ -17,7 +17,7 @@ namespace op {
 struct load
 {
     shape s;
-    std::size_t offset = 0;
+    int offset = 0;
 
     template <class Self, class F>
     static auto reflect(Self& self, F f)

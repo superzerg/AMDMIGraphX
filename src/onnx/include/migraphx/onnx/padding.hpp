@@ -12,9 +12,9 @@ bool is_asym_padding(const std::vector<int64_t>& padding);
 
 void cal_auto_padding_size(onnx_parser::node_info info,
                            value& v,
-                           const std::vector<std::size_t>& k_lens,
-                           const std::vector<std::size_t>& dilation,
-                           const std::vector<std::size_t>& in_lens,
+                           const std::vector<int>& k_lens,
+                           const std::vector<int>& dilation,
+                           const std::vector<int>& in_lens,
                            std::vector<int64_t>& paddings);
 
 void check_padding_mode(const onnx_parser::node_info& info, const std::string& op_name);

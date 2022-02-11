@@ -21,7 +21,7 @@ namespace op {
 
 struct gru
 {
-    std::size_t hidden_size = 1;
+    int hidden_size = 1;
     std::vector<operation> actv_funcs{sigmoid{}, tanh{}};
     rnn_direction direction = rnn_direction::forward;
     float clip              = 0.0f;
@@ -47,7 +47,7 @@ struct gru
             MIGRAPHX_THROW("GRU: hidden size mismatch in attribute and input");
         }
 
-        std::size_t num_directions = 1;
+        int num_directions = 1;
         if(direction == rnn_direction::bidirectional)
         {
             num_directions = 2;
@@ -58,7 +58,7 @@ struct gru
             MIGRAPHX_THROW("GRU: num_direction does not match the direction attribute");
         }
 
-        std::vector<std::size_t> out_dims(in_dims);
+        std::vector<int> out_dims(in_dims);
         out_dims.insert(out_dims.begin() + 1, num_directions);
         out_dims.back() = hidden_size;
 

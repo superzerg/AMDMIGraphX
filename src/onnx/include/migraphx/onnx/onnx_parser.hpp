@@ -25,7 +25,7 @@ struct onnx_parser
     struct node_info
     {
         attribute_map attributes{};
-        std::size_t num_outputs = 1;
+        int num_outputs = 1;
         std::string name        = "";
         module* mod             = nullptr;
         instruction_ref make_contiguous(instruction_ref ins) const;
@@ -60,8 +60,8 @@ struct onnx_parser
     node_map nodes;
     std::unordered_map<std::string, instruction_ref> instructions;
     program prog                  = program();
-    std::size_t default_dim_value = 1;
-    std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims;
+    int default_dim_value = 1;
+    std::unordered_map<std::string, std::vector<int>> map_input_dims;
     bool skip_unknown_operators = false;
     int64_t max_loop_iterations = 10;
     int64_t opset_version       = 13;
@@ -76,11 +76,11 @@ struct onnx_parser
     static int64_t get_opset_version(const onnx::ModelProto& model);
 
     void parse_from(std::istream& is, std::string name = "");
-    void parse_from(const void* data, std::size_t size);
+    void parse_from(const void* data, int size);
     void parse_graph(module* mod, const onnx::GraphProto& graph);
     literal parse_value(const onnx::AttributeProto& attr) const;
     literal parse_tensor(const onnx::TensorProto& t) const;
-    shape parse_type(const onnx::TypeProto& t, const std::vector<std::size_t>& input_dims) const;
+    shape parse_type(const onnx::TypeProto& t, const std::vector<int>& input_dims) const;
 };
 
 shape::type_t get_type(int dtype);

@@ -28,23 +28,23 @@ struct joinable_thread : std::thread
 };
 
 template <class F>
-auto thread_invoke(std::size_t i, std::size_t tid, F f) -> decltype(f(i, tid))
+auto thread_invoke(int i, int tid, F f) -> decltype(f(i, tid))
 {
     f(i, tid);
 }
 
 template <class F>
-auto thread_invoke(std::size_t i, std::size_t, F f) -> decltype(f(i))
+auto thread_invoke(int i, int, F f) -> decltype(f(i))
 {
     f(i);
 }
 
 template <class F>
-void par_for_impl(std::size_t n, std::size_t threadsize, F f)
+void par_for_impl(int n, int threadsize, F f)
 {
     if(threadsize <= 1)
     {
-        for(std::size_t i = 0; i < n; i++)
+        for(int i = 0; i < n; i++)
             thread_invoke(i, 0, f);
     }
     else
@@ -54,15 +54,15 @@ void par_for_impl(std::size_t n, std::size_t threadsize, F f)
 #if(!defined(__GNUC__) || __GNUC__ != 5)
         const
 #endif
-            std::size_t grainsize = std::ceil(static_cast<double>(n) / threads.size());
+            int grainsize = std::ceil(static_cast<double>(n) / threads.size());
 
-        std::size_t work = 0;
-        std::size_t tid  = 0;
+        int work = 0;
+        int tid  = 0;
         std::generate(threads.begin(), threads.end(), [=, &work, &tid] {
             auto result = joinable_thread([=] {
-                std::size_t start = work;
-                std::size_t last  = std::min(n, work + grainsize);
-                for(std::size_t i = start; i < last; i++)
+                int start = work;
+                int last  = std::min(n, work + grainsize);
+                for(int i = start; i < last; i++)
                 {
                     thread_invoke(i, tid, f);
                 }
@@ -76,15 +76,15 @@ void par_for_impl(std::size_t n, std::size_t threadsize, F f)
 }
 
 template <class F>
-void par_for(std::size_t n, std::size_t min_grain, F f)
+void par_for(int n, int min_grain, F f)
 {
-    const auto threadsize = std::min<std::size_t>(std::thread::hardware_concurrency(),
-                                                  n / std::max<std::size_t>(1, min_grain));
+    const auto threadsize = std::min<int>(std::thread::hardware_concurrency(),
+                                                  n / std::max<int>(1, min_grain));
     par_for_impl(n, threadsize, f);
 }
 
 template <class F>
-void par_for(std::size_t n, F f)
+void par_for(int n, F f)
 {
     const int min_grain = 8;
     par_for(n, min_grain, f);

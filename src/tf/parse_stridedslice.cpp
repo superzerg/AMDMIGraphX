@@ -20,8 +20,8 @@ struct parse_strideslice : op_parser<parse_strideslice>
         auto starts              = args[1]->eval().get<int32_t>().to_vector();
         auto ends                = args[2]->eval().get<int32_t>().to_vector();
         auto l0                  = args[0];
-        size_t num_axes          = l0->get_shape().lens().size();
-        std::vector<size_t> axes = l0->get_shape().lens();
+        int num_axes          = l0->get_shape().lens().size();
+        std::vector<int> axes = l0->get_shape().lens();
 
         std::vector<int64_t> op_starts(starts.begin(), starts.end());
         std::vector<int64_t> op_ends(ends.begin(), ends.end());
@@ -45,7 +45,7 @@ struct parse_strideslice : op_parser<parse_strideslice>
         std::vector<int64_t> begin_axes = get_axes_from_mask(num_axes, begin_mask);
         std::vector<int64_t> end_axes   = get_axes_from_mask(num_axes, end_mask);
 
-        for(size_t i = 0; i < num_axes; i++)
+        for(int i = 0; i < num_axes; i++)
         {
             if(begin_axes.at(i) == 1)
             {
@@ -62,7 +62,7 @@ struct parse_strideslice : op_parser<parse_strideslice>
         if(shrink_axis_mask == 0)
             return l1;
 
-        for(size_t i = 0; i < num_axes; i++)
+        for(int i = 0; i < num_axes; i++)
         {
             // the LSB corresponds to axis 0 when determining which axes to squeeze
             if(((shrink_axis_mask >> i) & bitwise_compare) == 1)

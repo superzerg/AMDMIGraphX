@@ -20,15 +20,15 @@ inline namespace MIGRAPHX_INLINE_NS {
 // In this case we need to broadcast the (:,:,1:,:) axis
 // of s0 plus the 1st dimension of s1 giving
 // output_lens = (3,2,7,5)
-std::vector<std::size_t> compute_broadcasted_lens(std::vector<std::size_t> s0,
-                                                  std::vector<std::size_t> s1)
+std::vector<int> compute_broadcasted_lens(std::vector<int> s0,
+                                                  std::vector<int> s1)
 {
     if(s0 == s1)
         return s0;
     if(s0.size() > s1.size())
         s0.swap(s1);
 
-    std::vector<std::size_t> out_lens(s1);
+    std::vector<int> out_lens(s1);
     auto offset = s1.size() - s0.size();
     std::transform(
         s0.begin(), s0.end(), s1.begin() + offset, out_lens.begin() + offset, [&](auto a, auto b) {
@@ -43,7 +43,7 @@ std::vector<std::size_t> compute_broadcasted_lens(std::vector<std::size_t> s0,
     return out_lens;
 }
 
-std::vector<std::size_t> compute_common_lens(const std::vector<shape>& shapes)
+std::vector<int> compute_common_lens(const std::vector<shape>& shapes)
 {
     assert(not shapes.empty());
     return transform_accumulate(shapes.begin() + 1,

@@ -46,22 +46,22 @@ struct slice
 
     std::string name() const { return "slice"; }
 
-    auto fix_index(const std::vector<std::size_t>& lens, std::size_t axis, int64_t index) const
+    auto fix_index(const std::vector<int>& lens, int axis, int64_t index) const
     {
         int64_t r = std::min(index, static_cast<int64_t>(lens[axis]));
         if(r < 0)
             r += lens[axis];
-        return std::size_t(r);
+        return int(r);
     }
 
     auto compute_offset(const shape& s) const
     {
-        const std::vector<std::size_t>& lens    = s.lens();
-        const std::vector<std::size_t>& strides = s.strides();
+        const std::vector<int>& lens    = s.lens();
+        const std::vector<int>& strides = s.strides();
         auto offset                             = 0;
         if(!axes.empty())
         {
-            for(std::size_t i = 0; i < axes.size(); i++)
+            for(int i = 0; i < axes.size(); i++)
             {
                 auto axis = axes[i];
                 offset += fix_index(lens, axis, starts[i]) * strides[axis];
@@ -69,7 +69,7 @@ struct slice
         }
         else
         {
-            for(std::size_t axis = 0; axis < lens.size(); axis++)
+            for(int axis = 0; axis < lens.size(); axis++)
             {
                 offset += fix_index(lens, axis, starts[axis]) * strides[axis];
             }
@@ -95,8 +95,8 @@ struct slice
             MIGRAPHX_THROW("SLICE: inconsistent sizes");
         }
 
-        std::vector<std::size_t> new_lens = old_lens;
-        for(std::size_t i = 0; i < axes.size(); i++)
+        std::vector<int> new_lens = old_lens;
+        for(int i = 0; i < axes.size(); i++)
         {
             auto axis = axes[i];
             new_lens[axis] =

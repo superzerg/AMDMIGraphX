@@ -28,11 +28,11 @@ static onnx_parser::attribute_map get_attributes(const onnx::NodeProto& node)
 }
 
 static literal
-create_literal(shape::type_t shape_type, const std::vector<size_t>& dims, const char* data)
+create_literal(shape::type_t shape_type, const std::vector<int>& dims, const char* data)
 {
     // empty input
     auto elem_num =
-        std::accumulate(dims.begin(), dims.end(), std::size_t(1), std::multiplies<std::size_t>());
+        std::accumulate(dims.begin(), dims.end(), int(1), std::multiplies<int>());
     if(elem_num == 0)
     {
         return {};
@@ -45,11 +45,11 @@ create_literal(shape::type_t shape_type, const std::vector<size_t>& dims, const 
 }
 
 template <class T, MIGRAPHX_REQUIRES(not std::is_pointer<T>{})>
-static literal create_literal(shape::type_t shape_type, const std::vector<size_t>& dims, T data)
+static literal create_literal(shape::type_t shape_type, const std::vector<int>& dims, T data)
 {
     // empty input
     auto elem_num =
-        std::accumulate(dims.begin(), dims.end(), std::size_t(1), std::multiplies<std::size_t>());
+        std::accumulate(dims.begin(), dims.end(), int(1), std::multiplies<int>());
     if(elem_num == 0)
     {
         return {};
@@ -64,7 +64,7 @@ static literal create_literal(shape::type_t shape_type, const std::vector<size_t
 template <class T>
 static literal from_repeated(shape::type_t t, const T& r)
 {
-    std::size_t size = r.size();
+    int size = r.size();
     return literal{{t, {size}}, r.begin(), r.end()};
 }
 
@@ -187,7 +187,7 @@ void onnx_parser::parse_from(std::istream& is, std::string name)
     }
 }
 
-void onnx_parser::parse_from(const void* data, std::size_t size)
+void onnx_parser::parse_from(const void* data, int size)
 {
     auto* mm = prog.get_main_module();
     onnx::ModelProto model;
@@ -247,7 +247,7 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
                                "\" existing in parent graph!");
             }
 
-            std::vector<std::size_t> dims;
+            std::vector<int> dims;
             if(map_input_dims.count(name) > 0)
             {
                 dims = map_input_dims.at(name);
@@ -278,7 +278,7 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
         }
 
         std::vector<instruction_ref> result;
-        std::size_t output_num = static_cast<std::size_t>(node.output().size());
+        int output_num = static_cast<int>(node.output().size());
         if(ops.count(node.op_type()) == 0)
         {
             if(skip_unknown_operators)
@@ -293,7 +293,7 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
                 *this, {get_attributes(node), output_num, node_name, mod}, args);
         }
 
-        output_num = std::min<std::size_t>(output_num, result.size());
+        output_num = std::min<int>(output_num, result.size());
         std::transform(node.output().begin(),
                        node.output().begin() + output_num,
                        result.begin(),
@@ -351,7 +351,7 @@ literal onnx_parser::parse_value(const onnx::AttributeProto& attr) const
 
 literal onnx_parser::parse_tensor(const onnx::TensorProto& t) const
 {
-    std::vector<std::size_t> dims(t.dims().begin(), t.dims().end());
+    std::vector<int> dims(t.dims().begin(), t.dims().end());
     if(not t.external_data().empty())
     {
         const std::string& data_file = t.external_data().at(0).value();
@@ -401,7 +401,7 @@ literal onnx_parser::parse_tensor(const onnx::TensorProto& t) const
     MIGRAPHX_THROW("PARSE_TENSOR: Invalid tensor type");
 }
 shape onnx_parser::parse_type(const onnx::TypeProto& t,
-                              const std::vector<std::size_t>& input_dims) const
+                              const std::vector<int>& input_dims) const
 {
     shape::type_t shape_type = get_type(t.tensor_type().elem_type());
     if(!input_dims.empty())
@@ -409,12 +409,12 @@ shape onnx_parser::parse_type(const onnx::TypeProto& t,
         return {shape_type, input_dims};
     }
 
-    std::vector<std::size_t> dims;
+    std::vector<int> dims;
     auto&& tensor_dims = t.tensor_type().shape().dim();
     std::transform(tensor_dims.begin(),
                    tensor_dims.end(),
                    std::back_inserter(dims),
-                   [&](auto&& d) -> std::size_t {
+                   [&](auto&& d) -> int {
                        if(d.has_dim_value())
                        {
                            if(static_cast<int>(d.dim_value()) <= 0)

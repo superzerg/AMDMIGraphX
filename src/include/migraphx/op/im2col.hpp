@@ -14,9 +14,9 @@ namespace op {
 
 struct im2col
 {
-    std::vector<std::size_t> padding{0, 0};
-    std::vector<std::size_t> stride{1, 1};
-    std::vector<std::size_t> dilation{1, 1};
+    std::vector<int> padding{0, 0};
+    std::vector<int> stride{1, 1};
+    std::vector<int> dilation{1, 1};
 
     padding_mode_t padding_mode = default_;
 
@@ -52,11 +52,11 @@ struct im2col
             padding_h = padding[0] + padding[2];
             padding_w = padding[1] + padding[3];
         }
-        auto output_height = std::size_t(std::max<std::ptrdiff_t>(
+        auto output_height = int(std::max<std::ptrdiff_t>(
             1,
             (input.lens()[2] - (1 + dilation[0] * (kernel_height - 1)) + padding_h) / stride[0] +
                 1));
-        auto output_width  = std::size_t(std::max<std::ptrdiff_t>(
+        auto output_width  = int(std::max<std::ptrdiff_t>(
             1,
             (input.lens()[3] - (1 + dilation[1] * (kernel_width - 1)) + padding_w) / stride[1] +
                 1));

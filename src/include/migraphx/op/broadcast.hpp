@@ -25,7 +25,7 @@ namespace op {
 struct broadcast
 {
     uint64_t axis = 0;
-    std::vector<std::size_t> broadcast_lens;
+    std::vector<int> broadcast_lens;
 
     template <class Self, class F>
     static auto reflect(Self& self, F f)
@@ -39,7 +39,7 @@ struct broadcast
         auto input = inputs.at(0);
         auto t     = input.type();
 
-        std::vector<size_t> bcast_strides(broadcast_lens.size(), 0);
+        std::vector<int> bcast_strides(broadcast_lens.size(), 0);
         // the broacast op is deprecated now, so not handling the negative
         // value of axis anymore
         if(axis >= broadcast_lens.size())

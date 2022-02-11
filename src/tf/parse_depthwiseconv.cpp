@@ -20,12 +20,12 @@ struct parse_depthwiseconv : op_parser<parse_depthwiseconv>
                           std::vector<instruction_ref> args) const
     {
         op::convolution op;
-        size_t num_channels = args[0]->get_shape().lens()[1];
+        int num_channels = args[0]->get_shape().lens()[1];
         op.group            = num_channels;
 
         if(contains(info.attributes, "strides"))
         {
-            std::vector<size_t> stride;
+            std::vector<int> stride;
             copy(info.attributes.at("strides").list().i(), std::back_inserter(stride));
             parser.reorder_data(stride);
             if(stride.size() != 4)
@@ -39,7 +39,7 @@ struct parse_depthwiseconv : op_parser<parse_depthwiseconv>
         auto weights = parser.to_kcxy(args[1]);
         if(contains(info.attributes, "dilations"))
         {
-            std::vector<size_t> dilation;
+            std::vector<int> dilation;
             copy(info.attributes.at("dilations").list().i(), std::back_inserter(dilation));
             parser.reorder_data(dilation);
             if(dilation.size() != 4)
@@ -58,9 +58,9 @@ struct parse_depthwiseconv : op_parser<parse_depthwiseconv>
             if(pad_mode.find("SAME") != std::string::npos)
             {
                 op.padding_mode                 = op::padding_mode_t::same;
-                std::vector<size_t> weight_dims = weights->get_shape().lens();
-                size_t weight_h                 = weight_dims[2];
-                size_t weight_w                 = weight_dims[3];
+                std::vector<int> weight_dims = weights->get_shape().lens();
+                int weight_h                 = weight_dims[2];
+                int weight_w                 = weight_dims[3];
 
                 auto input_dims = l0->get_shape().lens();
                 std::vector<int64_t> pads(input_dims.size());

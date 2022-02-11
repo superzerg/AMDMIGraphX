@@ -36,7 +36,7 @@ struct parse_pooling : op_parser<parse_pooling>
 
         if(starts_with(opd.onnx_name, "Global"))
         {
-            values["lengths"] = std::vector<size_t>(in_lens.begin() + 2, in_lens.end());
+            values["lengths"] = std::vector<int>(in_lens.begin() + 2, in_lens.end());
         }
 
         // does not support ceil_mode
@@ -86,7 +86,7 @@ struct parse_pooling : op_parser<parse_pooling>
             // return paddings could be empty, then setting to 0 for no padding
             cal_auto_padding_size(info,
                                   values,
-                                  values["lengths"].to_vector<std::size_t>(),
+                                  values["lengths"].to_vector<int>(),
                                   {1, 1},
                                   in_lens,
                                   paddings);
@@ -133,7 +133,7 @@ struct parse_pooling : op_parser<parse_pooling>
                            slice_end.begin(),
                            [](auto i, auto j) { return i + j; });
         }
-        values["padding"] = std::vector<size_t>(paddings.begin(), paddings.end());
+        values["padding"] = std::vector<int>(paddings.begin(), paddings.end());
 
         check_asym_padding(info, l0, paddings, values, count_include_pad, pad_val);
         op.from_value(values);

@@ -69,7 +69,7 @@ struct rewrite_rnn
                                   instruction_ref last_cell_output,
                                   op::rnn_direction dirct) const;
 
-    std::size_t
+    int
     get_seq_len(const module& prog, instruction_ref input, instruction_ref seq_lens) const;
 
     instruction_ref pad_hidden_states(module& prog,

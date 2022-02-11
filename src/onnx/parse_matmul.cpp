@@ -47,9 +47,9 @@ struct parse_matmul : op_parser<parse_matmul>
         if(!std::equal(l0_lens.rbegin() + 2, l0_lens.rend(), l1_lens.rbegin() + 2, l1_lens.rend()))
         {
             auto l0_it = l0_lens.begin() + l0_lens.size() - 2;
-            std::vector<std::size_t> l0_broadcasted_lens(l0_lens.begin(), l0_it);
+            std::vector<int> l0_broadcasted_lens(l0_lens.begin(), l0_it);
             auto l1_it = l1_lens.begin() + l1_lens.size() - 2;
-            std::vector<std::size_t> l1_broadcasted_lens(l1_lens.begin(), l1_it);
+            std::vector<int> l1_broadcasted_lens(l1_lens.begin(), l1_it);
             auto output_lens = compute_broadcasted_lens(l0_broadcasted_lens, l1_broadcasted_lens);
             l0_broadcasted_lens = output_lens;
             l0_broadcasted_lens.insert(l0_broadcasted_lens.end(), l0_it, l0_lens.end());

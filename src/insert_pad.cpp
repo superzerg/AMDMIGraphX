@@ -15,7 +15,7 @@ static void update_op(const instruction_ref& input, const instruction_ref& ins, 
 {
     auto op         = ins->get_operator();
     auto val        = op.to_value();
-    auto op_padding = val.at("padding").to_vector<size_t>();
+    auto op_padding = val.at("padding").to_vector<int>();
 
     auto kdims = input->get_shape().lens().size() - 2;
     if(std::equal(op_padding.begin(),
@@ -25,9 +25,9 @@ static void update_op(const instruction_ref& input, const instruction_ref& ins, 
         return;
 
     std::vector<int64_t> padding(input->get_shape().lens().size() * 2, 0);
-    std::vector<size_t> pads_l(op_padding.begin(), op_padding.begin() + kdims);
-    std::vector<size_t> pads_r(op_padding.begin() + kdims, op_padding.end());
-    op_padding = std::vector<size_t>(kdims * 2, 0);
+    std::vector<int> pads_l(op_padding.begin(), op_padding.begin() + kdims);
+    std::vector<int> pads_r(op_padding.begin() + kdims, op_padding.end());
+    op_padding = std::vector<int>(kdims * 2, 0);
     op.from_value({{"padding", op_padding}});
 
     std::copy(pads_l.begin(), pads_l.end(), padding.begin() + 2);
@@ -56,9 +56,9 @@ static void update_pooling(const instruction_ref& input, const instruction_ref& 
         return;
 
     std::vector<int64_t> padding(input->get_shape().lens().size() * 2, 0);
-    std::vector<size_t> pads_l(op.padding.begin(), op.padding.begin() + kdims);
-    std::vector<size_t> pads_r(op.padding.begin() + kdims, op.padding.end());
-    op.padding = std::vector<size_t>(kdims * 2, 0);
+    std::vector<int> pads_l(op.padding.begin(), op.padding.begin() + kdims);
+    std::vector<int> pads_r(op.padding.begin() + kdims, op.padding.end());
+    op.padding = std::vector<int>(kdims * 2, 0);
     std::copy(pads_l.begin(), pads_l.end(), padding.begin() + 2);
     std::copy(pads_r.begin(), pads_r.end(), padding.begin() + kdims + 2 + 2);
 

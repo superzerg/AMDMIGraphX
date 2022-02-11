@@ -44,11 +44,11 @@ struct argmin
     }
 
     template <class T>
-    int64_t calc_argmin(T& input, std::vector<std::size_t>& indices, size_t item_num) const
+    int64_t calc_argmin(T& input, std::vector<int>& indices, int item_num) const
     {
         auto min_val      = input(indices.begin(), indices.end());
         int64_t min_index = 0;
-        for(std::size_t i = 1; i < item_num; ++i)
+        for(int i = 1; i < item_num; ++i)
         {
             indices[axis] = i;
             auto cur_val  = input(indices.begin(), indices.end());
@@ -65,7 +65,7 @@ struct argmin
     argument compute(const shape& output_shape, std::vector<argument> args) const
     {
         argument result{output_shape};
-        std::size_t batch_item_num = args.front().get_shape().lens()[axis];
+        int batch_item_num = args.front().get_shape().lens()[axis];
 
         result.visit([&](auto output) {
             args[0].visit([&](auto input) {

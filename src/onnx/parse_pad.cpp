@@ -32,7 +32,7 @@ instruction_ref reflect_pad(const onnx_parser::node_info& info,
                             const std::vector<int64_t>& pads,
                             instruction_ref input)
 {
-    size_t num_dims = pads.size() / 2;
+    int num_dims = pads.size() / 2;
     std::vector<int> ldims(pads.begin(), pads.begin() + num_dims);
     std::vector<int> rdims(pads.begin() + num_dims, pads.end());
     assert(ldims.size() == rdims.size());
@@ -50,7 +50,7 @@ instruction_ref reflect_pad(const onnx_parser::node_info& info,
             continue;
 
         // calculate starts and ends for each iteration since shape may change
-        std::vector<size_t> dims = input->get_shape().lens();
+        std::vector<int> dims = input->get_shape().lens();
         std::vector<int64_t> starts(axes.size(), 0);
         std::vector<int64_t> ends(dims.begin(), dims.end());
         std::vector<instruction_ref> slices;

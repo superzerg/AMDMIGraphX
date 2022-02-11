@@ -23,7 +23,7 @@ struct parse_pooling : op_parser<parse_pooling>
 
         if(contains(info.attributes, "strides"))
         {
-            std::vector<size_t> stride;
+            std::vector<int> stride;
             copy(info.attributes.at("strides").list().i(), std::back_inserter(stride));
             parser.reorder_data(stride);
             if(stride.size() != 4)
@@ -35,7 +35,7 @@ struct parse_pooling : op_parser<parse_pooling>
         }
         if(contains(info.attributes, "ksize"))
         {
-            std::vector<size_t> ksize;
+            std::vector<int> ksize;
             copy(info.attributes.at("ksize").list().i(), std::back_inserter(ksize));
             parser.reorder_data(ksize);
             if(ksize.size() != 4)
@@ -57,7 +57,7 @@ struct parse_pooling : op_parser<parse_pooling>
                 calculate_padding(0, pads, input_dims[2], op.stride[0], 1, op.lengths[0]);
                 calculate_padding(1, pads, input_dims[3], op.stride[1], 1, op.lengths[1]);
 
-                op.padding = std::vector<size_t>(pads.begin(), pads.end());
+                op.padding = std::vector<int>(pads.begin(), pads.end());
             }
         }
         return info.add_instruction(op, l0);

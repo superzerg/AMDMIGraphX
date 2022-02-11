@@ -22,7 +22,7 @@ struct parse_conv : op_parser<parse_conv>
         op::convolution op;
         if(contains(info.attributes, "strides"))
         {
-            std::vector<size_t> stride;
+            std::vector<int> stride;
             copy(info.attributes.at("strides").list().i(), std::back_inserter(stride));
             parser.reorder_data(stride);
             if(stride.size() != 4)
@@ -34,7 +34,7 @@ struct parse_conv : op_parser<parse_conv>
         }
         if(contains(info.attributes, "dilations"))
         {
-            std::vector<size_t> dilation;
+            std::vector<int> dilation;
             copy(info.attributes.at("dilations").list().i(), std::back_inserter(dilation));
             parser.reorder_data(dilation);
             if(dilation.size() != 4)
@@ -53,16 +53,16 @@ struct parse_conv : op_parser<parse_conv>
             if(pad_mode.find("SAME") != std::string::npos)
             {
                 op.padding_mode                 = op::padding_mode_t::same;
-                std::vector<size_t> weight_dims = weights->get_shape().lens();
-                size_t weight_h                 = weight_dims[2];
-                size_t weight_w                 = weight_dims[3];
+                std::vector<int> weight_dims = weights->get_shape().lens();
+                int weight_h                 = weight_dims[2];
+                int weight_w                 = weight_dims[3];
 
                 auto input_dims = l0->get_shape().lens();
                 std::vector<int64_t> pads(input_dims.size());
                 calculate_padding(0, pads, input_dims[2], op.stride[0], op.dilation[0], weight_h);
                 calculate_padding(1, pads, input_dims[3], op.stride[1], op.dilation[1], weight_w);
 
-                op.padding = std::vector<size_t>(pads.begin(), pads.end());
+                op.padding = std::vector<int>(pads.begin(), pads.end());
             }
             else if(pad_mode.find("VALID") != std::string::npos)
             {
@@ -70,7 +70,7 @@ struct parse_conv : op_parser<parse_conv>
             }
             else if(pad_mode.find("EXPLICIT") != std::string::npos)
             {
-                std::vector<size_t> padding;
+                std::vector<int> padding;
                 copy(info.attributes.at("explicit_paddings").list().i(),
                      std::back_inserter(padding));
                 if(padding.size() != 4)

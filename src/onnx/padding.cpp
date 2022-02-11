@@ -10,12 +10,12 @@ namespace onnx {
 
 void cal_auto_padding_size(onnx_parser::node_info info,
                            value& v,
-                           const std::vector<std::size_t>& k_lens,
-                           const std::vector<std::size_t>& dilation,
-                           const std::vector<std::size_t>& in_lens,
+                           const std::vector<int>& k_lens,
+                           const std::vector<int>& dilation,
+                           const std::vector<int>& in_lens,
                            std::vector<int64_t>& paddings)
 {
-    size_t kdims = in_lens.size() - 2;
+    int kdims = in_lens.size() - 2;
     assert(k_lens.size() == kdims and dilation.size() == kdims);
 
     if(!contains(info.attributes, "auto_pad"))
@@ -29,7 +29,7 @@ void cal_auto_padding_size(onnx_parser::node_info info,
         bool is_same_upper = (auto_pad.find("SAME_UPPER") != std::string::npos);
         paddings.resize(2 * kdims);
 
-        for(size_t i = 0; i < paddings.size() / 2; i++)
+        for(int i = 0; i < paddings.size() / 2; i++)
         {
             calculate_padding(i,
                               paddings,
@@ -45,9 +45,9 @@ void cal_auto_padding_size(onnx_parser::node_info info,
 bool is_asym_padding(const std::vector<int64_t>& padding)
 {
     assert(padding.size() % 2 == 0);
-    size_t pad_ndims = padding.size() / 2;
+    int pad_ndims = padding.size() / 2;
 
-    for(size_t i = 0; i < pad_ndims; i++)
+    for(int i = 0; i < pad_ndims; i++)
     {
         if(padding[i] != padding[i + pad_ndims])
         {
@@ -106,9 +106,9 @@ void tune_padding_size(const value& v,
     }
 
     // asymmetric padding, make it symmetric
-    std::size_t n_dims = padding.size() / 2;
+    int n_dims = padding.size() / 2;
     s_start.resize(n_dims);
-    for(std::size_t i = 0; i < n_dims; ++i)
+    for(int i = 0; i < n_dims; ++i)
     {
         tune_padding_to_symmetric(
             padding[i], padding[i + n_dims], v.at("stride")[i].to<int64_t>(), s_start[i]);
@@ -122,7 +122,7 @@ void check_asym_padding(const onnx_parser::node_info& info,
                         int count_include_pad,
                         float pad_val)
 {
-    size_t pad_ndims  = padding.size() / 2;
+    int pad_ndims  = padding.size() / 2;
     auto left_pad_it  = padding.begin();
     auto right_pad_it = left_pad_it + pad_ndims;
 
@@ -134,18 +134,18 @@ void check_asym_padding(const onnx_parser::node_info& info,
         // add right pads
         asym_pads.insert(asym_pads.begin() + pad_ndims + 4, right_pad_it, padding.end());
         ins = info.add_instruction(make_op("pad", {{"pads", asym_pads}, {"value", pad_val}}), ins);
-        std::vector<size_t> new_padding(padding.size());
+        std::vector<int> new_padding(padding.size());
         // subtract asym padding originally found from parsing the operator
         std::transform(padding.begin(),
                        left_pad_it,
                        asym_pads.begin() + 2,
                        new_padding.begin(),
-                       std::minus<size_t>());
+                       std::minus<int>());
         std::transform(right_pad_it,
                        padding.end(),
                        asym_pads.begin() + pad_ndims + 4,
                        new_padding.begin() + pad_ndims,
-                       std::minus<size_t>());
+                       std::minus<int>());
         v["padding"] = new_padding;
     }
 }

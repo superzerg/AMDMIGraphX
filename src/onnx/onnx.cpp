@@ -54,7 +54,7 @@ program parse_onnx_buffer(const std::string& buffer, const onnx_options& options
     return parse_onnx_from(options, buffer.data(), buffer.size());
 }
 
-program parse_onnx_buffer(const void* data, std::size_t size, const onnx_options& options)
+program parse_onnx_buffer(const void* data, int size, const onnx_options& options)
 {
     return parse_onnx_from(options, data, size);
 }

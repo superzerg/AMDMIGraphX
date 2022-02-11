@@ -17,8 +17,8 @@ void eliminate_allocation::apply(module& p) const
 {
     assert(alignment > 0);
 
-    std::size_t n = 0;
-    std::vector<std::pair<instruction_ref, std::size_t>> allocs;
+    int n = 0;
+    std::vector<std::pair<instruction_ref, int>> allocs;
     for(auto ins : iterator_for(p))
     {
         if(ins->name() != allocation_op)

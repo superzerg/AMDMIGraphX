@@ -60,8 +60,8 @@ void rewrite_rnn::apply_vanilla_rnn(module& prog, instruction_ref ins) const
     auto args = ins->inputs();
 
     shape seq_shape         = args[0]->get_shape();
-    std::size_t hidden_size = args[1]->get_shape().lens()[1];
-    std::size_t batch_size  = seq_shape.lens()[1];
+    int hidden_size = args[1]->get_shape().lens()[1];
+    int batch_size  = seq_shape.lens()[1];
     shape::type_t type      = seq_shape.type();
     migraphx::shape ih_shape{type, {1, batch_size, hidden_size}};
     std::vector<float> data(ih_shape.elements(), 0);
@@ -369,8 +369,8 @@ void rewrite_rnn::apply_gru(module& prog, instruction_ref ins) const
     auto args = ins->inputs();
 
     shape seq_shape         = args[0]->get_shape();
-    std::size_t hidden_size = args[2]->get_shape().lens()[2];
-    std::size_t batch_size  = seq_shape.lens()[1];
+    int hidden_size = args[2]->get_shape().lens()[2];
+    int batch_size  = seq_shape.lens()[1];
     shape::type_t type      = seq_shape.type();
     migraphx::shape ih_shape{type, {1, batch_size, hidden_size}};
     std::vector<float> data(ih_shape.elements(), 0.0);
@@ -754,8 +754,8 @@ void rewrite_rnn::apply_lstm(module& prog, instruction_ref ins) const
     auto args = ins->inputs();
 
     shape seq_shape         = args[0]->get_shape();
-    std::size_t hidden_size = args[2]->get_shape().lens()[2];
-    std::size_t batch_size  = seq_shape.lens()[1];
+    int hidden_size = args[2]->get_shape().lens()[2];
+    int batch_size  = seq_shape.lens()[1];
     shape::type_t type      = seq_shape.type();
     migraphx::shape ihc_shape{type, {1, batch_size, hidden_size}};
     std::vector<float> ihc_data(ihc_shape.elements(), 0.0);
@@ -1195,7 +1195,7 @@ std::vector<operation> rewrite_rnn::lstm_actv_funcs(instruction_ref ins) const
     // specifiy any actv func. If less than 46, use the
     // algorithm in parse_lstm to make 6 actv functions
     const auto& actv_funcs     = lstm_op.actv_funcs;
-    std::size_t num_actv_funcs = actv_funcs.size();
+    int num_actv_funcs = actv_funcs.size();
     if(lstm_op.direction == op::rnn_direction::bidirectional)
     {
         switch(num_actv_funcs)
@@ -1295,7 +1295,7 @@ bool rewrite_rnn::is_variable_seq_lens(const module& prog, instruction_ref seq_l
     return is_var_lens;
 }
 
-std::size_t
+int
 rewrite_rnn::get_seq_len(const module& prog, instruction_ref input, instruction_ref seq_lens) const
 {
     bool is_var_lens = is_variable_seq_lens(prog, seq_lens);
@@ -1304,7 +1304,7 @@ rewrite_rnn::get_seq_len(const module& prog, instruction_ref input, instruction_
     if(!is_var_lens and seq_lens != prog.end())
     {
         auto arg_len = seq_lens->eval();
-        std::vector<std::size_t> vec_lens;
+        std::vector<int> vec_lens;
         arg_len.visit([&](auto l) { vec_lens.assign(l.begin(), l.end()); });
         length = vec_lens.empty() ? length : vec_lens[0];
     }
@@ -1414,7 +1414,7 @@ instruction_ref rewrite_rnn::pad_hidden_states(module& prog,
     {
         auto s        = hs->get_shape();
         auto pad_lens = s.lens();
-        pad_lens[0]   = static_cast<std::size_t>(max_seq_len - seq_len);
+        pad_lens[0]   = static_cast<int>(max_seq_len - seq_len);
         shape pad_s{s.type(), pad_lens};
         std::vector<float> pad_data(pad_s.elements(), 0.0f);
         auto pl = prog.add_literal(pad_s, pad_data.begin(), pad_data.end());

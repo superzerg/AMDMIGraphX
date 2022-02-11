@@ -36,7 +36,7 @@ void eliminate_concat::apply(module& p) const
         // we only need to check the first input
         auto lens              = ins->inputs().front()->get_shape().lens();
         auto concat_op         = concat_opt.get_concat(ins->get_operator());
-        std::size_t axis_index = tune_axis(lens.size(), concat_op.axis, concat_op.name());
+        int axis_index = tune_axis(lens.size(), concat_op.axis, concat_op.name());
         if(axis_index == 0 ||
            std::all_of(lens.begin(), lens.begin() + axis_index, [](auto x) { return x == 1; }))
         {
@@ -70,7 +70,7 @@ void eliminate_concat::apply(module& p) const
             auto first = sorted_allocations.front();
             auto super = p.move_instruction(last, first);
             // Replace each allocation with a load
-            std::size_t offset = 0;
+            int offset = 0;
             for(auto alloc : allocations)
             {
                 op::load op{alloc->get_shape(), offset};

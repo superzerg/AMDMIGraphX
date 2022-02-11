@@ -174,14 +174,14 @@ __device__ auto block_reduce(index idx, Op op, T init, index_int n, F f)
 }
 constexpr index_int compute_block_size(index_int n, index_int max_block_size)
 {
-    size_t block_size = 64;
+    int block_size = 64;
     while(block_size < max_block_size and block_size < n)
         block_size *= 2;
     return block_size;
 }
 
-inline std::vector<index_int> get_reduce_lens(const std::vector<size_t>& input_lens,
-                                              const std::vector<size_t>& output_lens)
+inline std::vector<index_int> get_reduce_lens(const std::vector<int>& input_lens,
+                                              const std::vector<int>& output_lens)
 {
     std::vector<index_int> reduce_lens;
     std::transform(output_lens.begin(),

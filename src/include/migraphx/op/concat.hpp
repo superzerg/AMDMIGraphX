@@ -37,12 +37,12 @@ struct concat
     }
 
     std::string name() const { return "concat"; }
-    std::vector<std::size_t> compute_offsets(const shape& output_shape,
+    std::vector<int> compute_offsets(const shape& output_shape,
                                              const std::vector<argument>& args) const
     {
         auto n_dims = args[0].get_shape().lens().size();
-        std::vector<std::size_t> offsets;
-        std::vector<std::size_t> offset(n_dims, 0);
+        std::vector<int> offsets;
+        std::vector<int> offset(n_dims, 0);
         offset[axis] = 0;
         for(const auto& arg : args)
         {
@@ -60,7 +60,7 @@ struct concat
 
         const auto& first_shape_lens = inputs.front().lens();
         const auto& type             = inputs.front().type();
-        for(std::size_t l = 0; l < first_shape_lens.size(); l++)
+        for(int l = 0; l < first_shape_lens.size(); l++)
         {
             if(l != axis)
             {
@@ -72,13 +72,13 @@ struct concat
                 }
             }
         }
-        std::size_t new_dim_axis = 0;
+        int new_dim_axis = 0;
         for(const auto& input : inputs)
         {
             const auto& lens = input.lens();
             new_dim_axis += lens[axis];
         }
-        std::vector<std::size_t> new_lens;
+        std::vector<int> new_lens;
         std::copy(first_shape_lens.begin(), first_shape_lens.end(), std::back_inserter(new_lens));
         new_lens[axis] = new_dim_axis;
         return shape::from_permutation(type, new_lens, find_permutation(inputs));
@@ -86,8 +86,8 @@ struct concat
     argument compute(const shape& output_shape, std::vector<argument> args) const
     {
         argument result{output_shape};
-        std::vector<std::size_t> coffsets = compute_offsets(output_shape, args);
-        for(std::size_t l = 0; l < args.size(); l++)
+        std::vector<int> coffsets = compute_offsets(output_shape, args);
+        for(int l = 0; l < args.size(); l++)
         {
             auto argl = args[l];
             visit_all(result, argl)([&](auto output, auto input) {

@@ -16,9 +16,9 @@ static auto make_mat(tensor_view<T> x)
 {
     const auto& s = x.get_shape();
     // assert(s.lens().size() == 2);
-    std::size_t n_dims = s.lens().size();
-    std::size_t dim_0  = n_dims - 2;
-    std::size_t dim_1  = n_dims - 1;
+    int n_dims = s.lens().size();
+    int dim_0  = n_dims - 2;
+    int dim_1  = n_dims - 1;
     if(s.transposed())
         return matrix<T>{x.data(), s.lens()[dim_1], s.lens()[dim_0], s.strides()[dim_1]};
     return matrix<T>{x.data(), s.lens()[dim_0], s.lens()[dim_1], s.strides()[dim_0]};
@@ -66,9 +66,9 @@ template <class T, class F>
 void migemm_impl(
     tensor_view<T> cmat, tensor_view<T> amat, tensor_view<T> bmat, F alpha, F beta, std::false_type)
 {
-    std::size_t n_dims = cmat.get_shape().lens().size();
-    std::size_t dim_0  = n_dims - 2;
-    std::size_t dim_1  = n_dims - 1;
+    int n_dims = cmat.get_shape().lens().size();
+    int dim_0  = n_dims - 2;
+    int dim_1  = n_dims - 1;
     auto k             = amat.get_shape().lens()[dim_1];
 
     assert(amat.get_shape().lens()[dim_1] == bmat.get_shape().lens()[dim_0]);
@@ -93,7 +93,7 @@ void migemm_impl(tensor_view<T> cmat, tensor_view<T> amat, tensor_view<T> bmat, 
     auto lens = amat.get_shape().lens();
     bool batch_mul =
         std::accumulate(
-            lens.rbegin() + 2, lens.rend(), std::size_t{1}, std::multiplies<std::size_t>()) == 1;
+            lens.rbegin() + 2, lens.rend(), int{1}, std::multiplies<int>()) == 1;
     if(batch_mul)
     {
         migemm_impl(cmat, amat, bmat, alpha, beta, is_fast_gemm_type<T>{});

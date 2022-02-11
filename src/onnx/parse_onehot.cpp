@@ -20,7 +20,7 @@ struct parse_onehot : op_parser<parse_onehot>
     {
         migraphx::argument depth_arg = args[1]->eval();
         check_arg_empty(depth_arg, "PARSE_ONEHOT: depth - dynamic shape not supported");
-        size_t depth = depth_arg.at<size_t>();
+        int depth = depth_arg.at<int>();
 
         int64_t axis = -1;
         if(contains(info.attributes, "axis"))

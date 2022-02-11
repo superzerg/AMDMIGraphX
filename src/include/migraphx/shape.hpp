@@ -66,52 +66,52 @@ struct shape
 
     shape();
     shape(type_t t);
-    shape(type_t t, std::vector<std::size_t> l);
-    shape(type_t t, std::vector<std::size_t> l, std::vector<std::size_t> s);
+    shape(type_t t, std::vector<int> l);
+    shape(type_t t, std::vector<int> l, std::vector<int> s);
 
     template <class Range>
-    shape(type_t t, const Range& l) : shape(t, std::vector<std::size_t>(l.begin(), l.end()))
+    shape(type_t t, const Range& l) : shape(t, std::vector<int>(l.begin(), l.end()))
     {
     }
 
     template <class Range1, class Range2>
     shape(type_t t, const Range1& l, const Range2& s)
         : shape(t,
-                std::vector<std::size_t>(l.begin(), l.end()),
-                std::vector<std::size_t>(s.begin(), s.end()))
+                std::vector<int>(l.begin(), l.end()),
+                std::vector<int>(s.begin(), s.end()))
     {
     }
 
     shape(const std::vector<shape>& subs);
 
     static shape
-    from_permutation(type_t t, const std::vector<std::size_t>& l, const std::vector<int64_t>& perm);
+    from_permutation(type_t t, const std::vector<int>& l, const std::vector<int64_t>& perm);
     type_t type() const;
-    const std::vector<std::size_t>& lens() const;
-    const std::vector<std::size_t>& strides() const;
-    std::size_t elements() const;
-    std::size_t bytes() const;
-    std::size_t type_size() const;
+    const std::vector<int>& lens() const;
+    const std::vector<int>& strides() const;
+    int elements() const;
+    int bytes() const;
+    int type_size() const;
 
     /// Map multiple indices to space index
-    std::size_t index(std::initializer_list<std::size_t> l) const;
+    int index(std::initializer_list<int> l) const;
     /// Map multiple indices to space index
-    std::size_t index(const std::vector<std::size_t>& l) const;
+    int index(const std::vector<int>& l) const;
 
     /// Map multiple indices from a range of iterator to a space index
     template <class Iterator>
-    std::size_t index(Iterator start, Iterator last) const
+    int index(Iterator start, Iterator last) const
     {
         assert(std::distance(start, last) <= this->lens().size());
         assert(this->lens().size() == this->strides().size());
-        return std::inner_product(start, last, this->strides().begin(), std::size_t{0}); // NOLINT
+        return std::inner_product(start, last, this->strides().begin(), int{0}); // NOLINT
     }
 
     /// Map element index to space index
-    std::size_t index(std::size_t i) const;
+    int index(int i) const;
 
-    std::vector<std::size_t> multi(std::size_t i) const;
-    void multi_copy(std::size_t i, std::size_t* start, const std::size_t* end) const;
+    std::vector<int> multi(int i) const;
+    void multi_copy(int i, int* start, const int* end) const;
 
     /// Returns true if the shape is packed with no padding
     bool packed() const;
@@ -128,8 +128,8 @@ struct shape
 
     shape normalize_standard() const;
 
-    shape with_lens(type_t t, const std::vector<std::size_t>& l) const;
-    shape with_lens(const std::vector<std::size_t>& l) const;
+    shape with_lens(type_t t, const std::vector<int>& l) const;
+    shape with_lens(const std::vector<int>& l) const;
 
     friend bool operator==(const shape& x, const shape& y);
     friend bool operator!=(const shape& x, const shape& y);
@@ -164,16 +164,16 @@ struct shape
 
         type operator()() const { return {}; }
 
-        std::size_t size(std::size_t n = 1) const { return sizeof(type) * n; }
+        int size(int n = 1) const { return sizeof(type) * n; }
 
         template <class U>
-        type* from(U* buffer, std::size_t n = 0) const
+        type* from(U* buffer, int n = 0) const
         {
             return reinterpret_cast<type*>(buffer) + n;
         }
 
         template <class U>
-        const type* from(const U* buffer, std::size_t n = 0) const
+        const type* from(const U* buffer, int n = 0) const
         {
             return reinterpret_cast<const type*>(buffer) + n;
         }
@@ -227,7 +227,7 @@ struct shape
     private:
     std::shared_ptr<const shape_impl> impl;
 
-    std::size_t element_space() const;
+    int element_space() const;
 };
 
 void migraphx_to_value(value& v, const shape& s);

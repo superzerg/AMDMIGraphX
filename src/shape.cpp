@@ -26,14 +26,14 @@ struct shape_impl
     {
         assert(t != shape::tuple_type);
     }
-    shape_impl(shape::type_t t, std::vector<std::size_t> l)
+    shape_impl(shape::type_t t, std::vector<int> l)
         : m_type(t), m_lens(std::move(l)), m_standard(true)
     {
         assert(t != shape::tuple_type);
         this->calculate_strides();
         assert(m_lens.size() == m_strides.size());
     }
-    shape_impl(shape::type_t t, std::vector<std::size_t> l, std::vector<std::size_t> s)
+    shape_impl(shape::type_t t, std::vector<int> l, std::vector<int> s)
         : m_type(t), m_lens(std::move(l)), m_strides(std::move(s))
     {
         assert(t != shape::tuple_type);
@@ -46,8 +46,8 @@ struct shape_impl
 
     shape_impl(const std::vector<shape>& subs) : m_type(shape::tuple_type), m_shapes(subs) {}
     shape::type_t m_type;
-    std::vector<std::size_t> m_lens    = {};
-    std::vector<std::size_t> m_strides = {};
+    std::vector<int> m_lens    = {};
+    std::vector<int> m_strides = {};
     std::vector<shape> m_shapes        = {};
     bool m_standard                    = false;
 
@@ -61,10 +61,10 @@ struct shape_impl
         std::partial_sum(m_lens.rbegin(),
                          m_lens.rend() - 1,
                          m_strides.rbegin() + 1,
-                         std::multiplies<std::size_t>());
+                         std::multiplies<int>());
     }
 
-    std::size_t element_space() const
+    int element_space() const
     {
         assert(m_lens.size() == m_strides.size());
         if(m_lens.empty())
@@ -72,19 +72,19 @@ struct shape_impl
         return std::inner_product(m_lens.begin(),
                                   m_lens.end(),
                                   m_strides.begin(),
-                                  std::size_t{0},
-                                  std::plus<std::size_t>{},
-                                  [](std::size_t l, std::size_t s) { return (l - 1) * s; }) +
+                                  int{0},
+                                  std::plus<int>{},
+                                  [](int l, int s) { return (l - 1) * s; }) +
                1;
     }
 
-    std::size_t elements() const
+    int elements() const
     {
         assert(m_lens.size() == m_strides.size());
         if(m_lens.empty())
             return 0;
         return std::accumulate(
-            m_lens.begin(), m_lens.end(), std::size_t{1}, std::multiplies<std::size_t>());
+            m_lens.begin(), m_lens.end(), int{1}, std::multiplies<int>());
     }
 };
 
@@ -124,11 +124,11 @@ std::string shape::cpp_type(shape::type_t t)
 shape::shape() : impl(shape_impl::default_shape()) {}
 
 shape::shape(type_t t) : impl(std::make_shared<shape_impl>(t)) {}
-shape::shape(type_t t, std::vector<std::size_t> l)
+shape::shape(type_t t, std::vector<int> l)
     : impl(std::make_shared<shape_impl>(t, std::move(l)))
 {
 }
-shape::shape(type_t t, std::vector<std::size_t> l, std::vector<std::size_t> s)
+shape::shape(type_t t, std::vector<int> l, std::vector<int> s)
     : impl(std::make_shared<shape_impl>(t, std::move(l), std::move(s)))
 {
 }
@@ -136,7 +136,7 @@ shape::shape(type_t t, std::vector<std::size_t> l, std::vector<std::size_t> s)
 shape::shape(const std::vector<shape>& subs) : impl(std::make_shared<shape_impl>(subs)) {}
 
 shape shape::from_permutation(type_t t,
-                              const std::vector<std::size_t>& l,
+                              const std::vector<int>& l,
                               const std::vector<int64_t>& perm)
 {
     auto new_lens = reorder_dims(l, perm);
@@ -146,14 +146,14 @@ shape shape::from_permutation(type_t t,
 }
 
 shape::type_t shape::type() const { return impl->m_type; }
-const std::vector<std::size_t>& shape::lens() const { return impl->m_lens; }
-const std::vector<std::size_t>& shape::strides() const { return impl->m_strides; }
-std::size_t shape::elements() const { return impl->elements(); }
-std::size_t shape::bytes() const
+const std::vector<int>& shape::lens() const { return impl->m_lens; }
+const std::vector<int>& shape::strides() const { return impl->m_strides; }
+int shape::elements() const { return impl->elements(); }
+int shape::bytes() const
 {
     if(this->sub_shapes().empty())
     {
-        std::size_t n = 0;
+        int n = 0;
         this->visit_type([&](auto as) { n = as.size(); });
         return n * this->element_space();
     }
@@ -161,44 +161,44 @@ std::size_t shape::bytes() const
     {
         return std::accumulate(this->sub_shapes().begin(),
                                this->sub_shapes().end(),
-                               std::size_t{0},
+                               int{0},
                                [&](auto x, auto y) { return x + y.bytes(); });
     }
 }
-std::size_t shape::type_size() const
+int shape::type_size() const
 {
-    std::size_t n = 0;
+    int n = 0;
     if(this->sub_shapes().empty())
         this->visit_type([&](auto as) { n = as.size(); });
     return n;
 }
-std::size_t shape::index(std::initializer_list<std::size_t> l) const
+int shape::index(std::initializer_list<int> l) const
 {
     assert(l.size() <= this->lens().size());
     assert(this->lens().size() == this->strides().size());
-    return std::inner_product(l.begin(), l.end(), this->strides().begin(), std::size_t{0});
+    return std::inner_product(l.begin(), l.end(), this->strides().begin(), int{0});
 }
-std::size_t shape::index(const std::vector<std::size_t>& l) const
+int shape::index(const std::vector<int>& l) const
 {
     assert(l.size() <= this->lens().size());
     assert(this->lens().size() == this->strides().size());
-    return std::inner_product(l.begin(), l.end(), this->strides().begin(), std::size_t{0});
+    return std::inner_product(l.begin(), l.end(), this->strides().begin(), int{0});
 }
-std::size_t shape::index(std::size_t i) const
+int shape::index(int i) const
 {
     assert(this->lens().size() == this->strides().size());
     if(this->standard())
         return i;
     else
     {
-        std::size_t s      = 1;
-        std::size_t result = 0;
-        for(std::size_t j = 0; j < this->lens().size(); j++)
+        int s      = 1;
+        int result = 0;
+        for(int j = 0; j < this->lens().size(); j++)
         {
-            const std::size_t k      = this->lens().size() - j - 1;
-            const std::size_t stride = this->strides()[k];
-            const std::size_t len    = this->lens()[k];
-            const std::size_t idx    = (i % (s * len)) / s;
+            const int k      = this->lens().size() - j - 1;
+            const int stride = this->strides()[k];
+            const int len    = this->lens()[k];
+            const int idx    = (i % (s * len)) / s;
             result += stride * idx;
             s *= len;
         }
@@ -206,17 +206,17 @@ std::size_t shape::index(std::size_t i) const
     }
 }
 
-std::vector<std::size_t> shape::multi(std::size_t i) const
+std::vector<int> shape::multi(int i) const
 {
     assert(this->standard());
 
-    std::vector<std::size_t> indices(lens().size());
+    std::vector<int> indices(lens().size());
     multi_copy(i, indices.data(), indices.data() + lens().size());
 
     return indices;
 }
 
-void shape::multi_copy(std::size_t i, std::size_t* start, const std::size_t* end) const
+void shape::multi_copy(int i, int* start, const int* end) const
 {
     assert(this->standard());
     (void)end;
@@ -225,7 +225,7 @@ void shape::multi_copy(std::size_t i, std::size_t* start, const std::size_t* end
                    strides().end(),
                    lens().begin(),
                    start,
-                   [&](std::size_t stride, std::size_t len) {
+                   [&](int stride, int len) {
                        assert(len > 0 and stride > 0);
                        return (i / stride) % len;
                    });
@@ -241,12 +241,12 @@ bool shape::transposed() const
     if(this->broadcasted())
     {
         // TODO: Use a filter_iterator instead
-        std::vector<std::size_t> s;
+        std::vector<int> s;
         s.reserve(this->strides().size());
         std::copy_if(this->strides().begin(),
                      this->strides().end(),
                      std::back_inserter(s),
-                     [](std::size_t x) { return x != 0; });
+                     [](int x) { return x != 0; });
         return not std::is_sorted(s.rbegin(), s.rend());
     }
     else
@@ -260,8 +260,8 @@ bool shape::broadcasted() const
     assert(this->lens().size() == this->strides().size());
     return std::accumulate(this->strides().begin(),
                            this->strides().end(),
-                           std::size_t{1},
-                           std::multiplies<std::size_t>()) == 0;
+                           int{1},
+                           std::multiplies<int>()) == 0;
 }
 
 bool shape::scalar() const
@@ -269,7 +269,7 @@ bool shape::scalar() const
     assert(this->lens().size() == this->strides().size());
     // if any stride > 0, then accumulate will return false
     return this->sub_shapes().empty() and
-           std::accumulate(this->strides().begin(), this->strides().end(), std::size_t(0)) == 0;
+           std::accumulate(this->strides().begin(), this->strides().end(), int(0)) == 0;
 }
 
 bool shape::standard() const { return impl->m_standard; }
@@ -282,19 +282,19 @@ shape shape::normalize_standard() const
         return *this;
 }
 
-shape shape::with_lens(type_t t, const std::vector<std::size_t>& l) const
+shape shape::with_lens(type_t t, const std::vector<int>& l) const
 {
     assert(l.size() == this->lens().size());
     auto perm = find_permutation(*this);
     return shape::from_permutation(t, l, perm);
 }
 
-shape shape::with_lens(const std::vector<std::size_t>& l) const
+shape shape::with_lens(const std::vector<int>& l) const
 {
     return this->with_lens(this->type(), l);
 }
 
-std::size_t shape::element_space() const { return impl->element_space(); }
+int shape::element_space() const { return impl->element_space(); }
 
 std::string shape::type_string() const { return name(this->type()); }
 
@@ -351,8 +351,8 @@ void migraphx_from_value(const value& v, shape& s)
     else
     {
         s = shape{shape::parse_type(t),
-                  v.at("lens").to_vector<std::size_t>(),
-                  v.at("strides").to_vector<std::size_t>()};
+                  v.at("lens").to_vector<int>(),
+                  v.at("strides").to_vector<int>()};
     }
 }
 

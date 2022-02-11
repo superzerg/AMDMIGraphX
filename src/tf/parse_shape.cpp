@@ -19,9 +19,9 @@ struct parse_shape : op_parser<parse_shape>
                           const tf_parser::node_info& info,
                           std::vector<instruction_ref> args) const
     {
-        std::vector<std::size_t> arg_shape = args[0]->get_shape().lens();
+        std::vector<int> arg_shape = args[0]->get_shape().lens();
         std::vector<int32_t> vec_shape(arg_shape.size());
-        migraphx::shape s(migraphx::shape::int32_type, {arg_shape.size()});
+        migraphx::shape s(migraphx::shape::int32_type, {static_cast<int>(arg_shape.size())});
         std::transform(
             arg_shape.begin(), arg_shape.end(), vec_shape.begin(), [](auto i) { return i; });
         return info.add_literal(migraphx::literal{s, vec_shape});

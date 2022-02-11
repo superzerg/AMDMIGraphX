@@ -9,10 +9,10 @@ inline namespace MIGRAPHX_INLINE_NS {
 namespace onnx {
 
 template <class T>
-static std::vector<std::size_t> nonzero_indices(const std::vector<T>& data)
+static std::vector<int> nonzero_indices(const std::vector<T>& data)
 {
-    std::vector<std::size_t> indices;
-    for(std::size_t i = 0; i < data.size(); ++i)
+    std::vector<int> indices;
+    for(int i = 0; i < data.size(); ++i)
     {
         if(!float_equal(data[i], 0))
             indices.push_back(i);
@@ -37,7 +37,7 @@ struct parse_nonzero : op_parser<parse_nonzero>
         }
         else
         {
-            std::vector<std::size_t> indices;
+            std::vector<int> indices;
             data_arg.visit([&](auto val) {
                 using val_type = std::remove_cv_t<typename decltype(val)::value_type>;
                 std::vector<val_type> vec_data;
@@ -46,13 +46,13 @@ struct parse_nonzero : op_parser<parse_nonzero>
             });
 
             shape in_s = args[0]->get_shape();
-            shape out_s{shape::int64_type, {in_s.lens().size(), indices.size()}};
+            shape out_s{shape::int64_type, {static_cast<int>(in_s.lens().size()), static_cast<int>(indices.size())}};
 
             std::vector<int64_t> out_data(out_s.elements());
-            for(std::size_t i = 0; i < indices.size(); ++i)
+            for(int i = 0; i < indices.size(); ++i)
             {
                 auto idx = in_s.multi(indices[i]);
-                for(std::size_t j = 0; j < in_s.lens().size(); ++j)
+                for(int j = 0; j < in_s.lens().size(); ++j)
                 {
                     out_data[out_s.index({j, i})] = idx[j];
                 }

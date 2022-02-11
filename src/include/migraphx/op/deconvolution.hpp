@@ -20,9 +20,9 @@ namespace op {
 
 struct deconvolution
 {
-    std::vector<std::size_t> padding  = {0, 0};
-    std::vector<std::size_t> stride   = {1, 1};
-    std::vector<std::size_t> dilation = {1, 1};
+    std::vector<int> padding  = {0, 0};
+    std::vector<int> stride   = {1, 1};
+    std::vector<int> dilation = {1, 1};
 
     padding_mode_t padding_mode = default_;
     int group                   = 1;
@@ -54,17 +54,17 @@ struct deconvolution
 
         const shape& input   = inputs.at(0);
         const shape& weights = inputs.at(1);
-        size_t kdims         = input.lens().size() - 2;
+        int kdims         = input.lens().size() - 2;
         if(kdims != this->kdims())
         {
             MIGRAPHX_THROW("deconvolution: input k-dims does not match attribute size");
         }
 
-        std::vector<size_t> output_lens{input.lens()[0], weights.lens()[1]};
+        std::vector<int> output_lens{input.lens()[0], weights.lens()[1]};
 
-        for(size_t i = 0; i < kdims; i++)
+        for(int i = 0; i < kdims; i++)
         {
-            output_lens.push_back(std::size_t(std::max<std::ptrdiff_t>(
+            output_lens.push_back(int(std::max<std::ptrdiff_t>(
                 1,
                 stride[i] * (input.lens()[i + 2] - 1) +
                     ((weights.lens()[i + 2] - 1) * dilation[i] + 1) - 2 * padding[i])));
@@ -91,7 +91,7 @@ struct deconvolution
 
             auto out_lens = output_shape.lens();
 
-            std::vector<std::size_t> win_size{in_c};
+            std::vector<int> win_size{in_c};
             std::copy(in_lens.begin() + 2, in_lens.end(), std::back_inserter(win_size));
             std::copy(wei.begin() + 2, wei.end(), std::back_inserter(win_size));
             shape win_shape{output_shape.type(), win_size};
@@ -105,7 +105,7 @@ struct deconvolution
                     auto wei_dims_start   = idx_win.begin() + kdims + 1;
 
                     std::vector<std::ptrdiff_t> win_start;
-                    for(std::size_t n = 0; n < kdims; ++n)
+                    for(int n = 0; n < kdims; ++n)
                     {
                         win_start.push_back(std::ptrdiff_t(*(input_dims_start + n) * stride[n]) -
                                             std::ptrdiff_t(padding[n]));
@@ -116,7 +116,7 @@ struct deconvolution
 
                     std::vector<std::ptrdiff_t> idx_out{o, in_ch};
 
-                    for(size_t n = 0; n < kdims; n++)
+                    for(int n = 0; n < kdims; n++)
                     {
                         idx_out.push_back(win_start[n] + *(wei_dims_start + n) * dilation[n]);
                     }
@@ -147,7 +147,7 @@ struct deconvolution
         return result;
     }
 
-    size_t kdims() const
+    int kdims() const
     {
         check_attribute_size();
         return stride.size();

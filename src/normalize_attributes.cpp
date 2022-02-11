@@ -17,7 +17,7 @@ inline namespace MIGRAPHX_INLINE_NS {
 auto tune_attribute(const std::vector<int64_t>& vec,
                     const std::vector<int64_t>& axes,
                     const value& val,
-                    const std::vector<std::size_t>& lens)
+                    const std::vector<int>& lens)
 {
     std::vector<int64_t> result(vec);
     int64_t n_rank                                 = lens.size();
@@ -127,7 +127,7 @@ auto tune_pad_attribute(const value& val)
     return result;
 }
 
-bool normalize_attributes(operation& op, const std::vector<std::size_t>& lens)
+bool normalize_attributes(operation& op, const std::vector<int>& lens)
 {
     bool tuned = false;
     auto attrs = op.attributes();

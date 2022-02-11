@@ -20,7 +20,7 @@ namespace op {
 
 struct rnn
 {
-    std::size_t hidden_size = 1;
+    int hidden_size = 1;
     std::vector<operation> actv_funcs{tanh{}, tanh{}};
     rnn_direction direction = rnn_direction::forward;
     float clip              = 0.0f;
@@ -44,7 +44,7 @@ struct rnn
             MIGRAPHX_THROW("RNN: hidden size mismatch in attribute and input");
         }
 
-        std::size_t num_directions = 1;
+        int num_directions = 1;
         if(direction == rnn_direction::bidirectional)
         {
             num_directions = 2;
@@ -55,7 +55,7 @@ struct rnn
             MIGRAPHX_THROW("RNN: num_direction mismatch in attribute and input");
         }
 
-        std::vector<std::size_t> out_dims(in_dims);
+        std::vector<int> out_dims(in_dims);
         out_dims.insert(out_dims.begin() + 1, num_directions);
         out_dims.back() = hidden_size;
 

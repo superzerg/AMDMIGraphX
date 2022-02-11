@@ -17,7 +17,7 @@ struct parse_onehot : op_parser<parse_onehot>
                           tf_parser::node_info info,
                           std::vector<instruction_ref> args) const
     {
-        size_t depth = static_cast<size_t>(args[1]->eval().at<int32_t>());
+        int depth = static_cast<int>(args[1]->eval().at<int32_t>());
 
         int64_t axis    = -1;
         float on_value  = args[2]->eval().at<float>();

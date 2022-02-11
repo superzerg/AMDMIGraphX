@@ -19,9 +19,9 @@ namespace op {
 
 struct quant_convolution
 {
-    std::vector<std::size_t> padding  = {0, 0};
-    std::vector<std::size_t> stride   = {1, 1};
-    std::vector<std::size_t> dilation = {1, 1};
+    std::vector<int> padding  = {0, 0};
+    std::vector<int> stride   = {1, 1};
+    std::vector<int> dilation = {1, 1};
 
     padding_mode_t padding_mode = default_;
     int group                   = 1;
@@ -60,7 +60,7 @@ struct quant_convolution
         const shape& input   = inputs.at(0);
         const shape& weights = inputs.at(1);
         auto t               = input.type();
-        size_t kdims         = input.lens().size() - 2;
+        int kdims         = input.lens().size() - 2;
         if(kdims != this->kdims())
         {
             MIGRAPHX_THROW("quant_convolution: input k-dims does not match attribute size");
@@ -73,14 +73,14 @@ struct quant_convolution
         }
         t = shape::int32_type;
 
-        std::vector<size_t> output_lens{input.lens()[0], weights.lens()[0]};
+        std::vector<int> output_lens{input.lens()[0], weights.lens()[0]};
         auto padding_size = padding.size();
-        for(size_t i = 0; i < kdims; i++)
+        for(int i = 0; i < kdims; i++)
         {
             auto padding_factor = 2 * padding[i];
             if(padding_size == 2 * kdims)
                 padding_factor = padding[i] + padding[i + kdims];
-            output_lens.push_back(std::size_t(std::max<std::ptrdiff_t>(
+            output_lens.push_back(int(std::max<std::ptrdiff_t>(
                 1,
                 (input.lens()[i + 2] - (1 + dilation[i] * (weights.lens()[i + 2] - 1)) +
                  padding_factor) /
@@ -91,7 +91,7 @@ struct quant_convolution
         return inputs[0].with_lens(t, output_lens);
     }
 
-    size_t kdims() const
+    int kdims() const
     {
         check_attribute_size();
         return stride.size();

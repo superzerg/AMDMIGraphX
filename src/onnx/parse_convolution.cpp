@@ -60,11 +60,11 @@ struct parse_convolution : op_parser<parse_convolution>
         if(contains(info.attributes, "auto_pad"))
         {
             auto weight_lens = weights->get_shape().lens();
-            std::vector<std::size_t> k_lens(weight_lens.begin() + 2, weight_lens.end());
+            std::vector<int> k_lens(weight_lens.begin() + 2, weight_lens.end());
             cal_auto_padding_size(info,
                                   values,
                                   k_lens,
-                                  values["dilation"].to_vector<std::size_t>(),
+                                  values["dilation"].to_vector<int>(),
                                   in_lens,
                                   padding);
             auto auto_pad = info.attributes["auto_pad"].s();
@@ -73,7 +73,7 @@ struct parse_convolution : op_parser<parse_convolution>
                 values["padding_mode"] = to_value(op::padding_mode_t::same);
             }
         }
-        values["padding"] = std::vector<size_t>(padding.begin(), padding.end());
+        values["padding"] = std::vector<int>(padding.begin(), padding.end());
 
         if(contains(info.attributes, "group"))
         {

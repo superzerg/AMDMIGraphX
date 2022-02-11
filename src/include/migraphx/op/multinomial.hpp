@@ -24,7 +24,7 @@ struct multinomial
     shape compute_shape(std::vector<shape> inputs) const
     {
         check_shapes{inputs, *this}.has(2).only_dims(2);
-        size_t sample_size = inputs.back().lens().back();
+        int sample_size = inputs.back().lens().back();
 
         if(not contains({shape::int32_type, shape::int64_type}, dtype))
             MIGRAPHX_THROW(
@@ -36,9 +36,9 @@ struct multinomial
     argument compute(const shape& output_shape, std::vector<argument> args) const
     {
         argument result{output_shape};
-        size_t batch_size  = output_shape.lens().front();
-        size_t class_size  = args[0].get_shape().lens().back();
-        size_t sample_size = output_shape.lens().back();
+        int batch_size  = output_shape.lens().front();
+        int class_size  = args[0].get_shape().lens().back();
+        int sample_size = output_shape.lens().back();
 
         visit_all(args[0], args[1])([&](auto cdf, auto dist) {
             result.visit([&](auto output) {

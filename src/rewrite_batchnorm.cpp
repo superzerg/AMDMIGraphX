@@ -28,7 +28,7 @@ void rewrite_batchnorm::apply(module& p) const
         if(any_of({gamma, bias, mean, variance}, [](auto arg) { return arg.empty(); }))
             continue;
 
-        std::vector<std::size_t> lens = ins->inputs()[1]->get_shape().lens();
+        std::vector<int> lens = ins->inputs()[1]->get_shape().lens();
         shape s{ins->get_shape().type(), lens};
         // Get epsilon
         auto bn_op   = any_cast<op::batch_norm_inference>(ins->get_operator());
@@ -39,8 +39,8 @@ void rewrite_batchnorm::apply(module& p) const
         visit_all(gamma, bias, mean, variance, a, b)(
             [&](auto gamma2, auto bias2, auto mean2, auto variance2, auto a2, auto b2) {
                 dfor(a.get_shape().elements())(
-                    [&](std::size_t c) { a2[c] = gamma2[c] / std::sqrt(variance2[c] + epsilon); });
-                dfor(b.get_shape().elements())([&](std::size_t c) {
+                    [&](int c) { a2[c] = gamma2[c] / std::sqrt(variance2[c] + epsilon); });
+                dfor(b.get_shape().elements())([&](int c) {
                     b2[c] = bias2[c] - (gamma2[c] * mean2[c] / std::sqrt(variance2[c] + epsilon));
                 });
             });

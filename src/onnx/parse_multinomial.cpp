@@ -23,7 +23,7 @@ struct parse_multinomial : op_parser<parse_multinomial>
             dtype = info.attributes.at("dtype").i();
         shape::type_t output_type = get_type(dtype);
 
-        size_t sample_size = 1;
+        int sample_size = 1;
         if(contains(info.attributes, "sample_size"))
             sample_size = info.attributes.at("sample_size").i();
 
@@ -46,7 +46,7 @@ struct parse_multinomial : op_parser<parse_multinomial>
             gen.seed(info.attributes.at("seed").f());
 
         std::uniform_real_distribution<> dis(0.0, 1.0);
-        size_t batch_size = args[0]->get_shape().lens().front();
+        int batch_size = args[0]->get_shape().lens().front();
         migraphx::shape dist_shape{migraphx::shape::float_type, {batch_size, sample_size}};
 
         std::vector<float> random_dist(batch_size * sample_size);

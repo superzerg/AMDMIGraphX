@@ -44,11 +44,11 @@ struct argmax
     }
 
     template <class T>
-    int64_t calc_argmax(T& input, std::vector<std::size_t>& indices, size_t item_num) const
+    int64_t calc_argmax(T& input, std::vector<int>& indices, int item_num) const
     {
         auto max_val      = input(indices.begin(), indices.end());
         int64_t max_index = 0;
-        for(std::size_t i = 1; i < item_num; ++i)
+        for(int i = 1; i < item_num; ++i)
         {
             indices[axis] = i;
             auto cur_val  = input(indices.begin(), indices.end());

@@ -3,9 +3,9 @@
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 
-bool reduce_dim(std::vector<shape>& shapes, std::size_t n)
+bool reduce_dim(std::vector<shape>& shapes, int n)
 {
-    std::vector<std::size_t> new_lens;
+    std::vector<int> new_lens;
     for(const auto& s : shapes)
     {
         assert(n < s.lens().size());
@@ -23,7 +23,7 @@ bool reduce_dim(std::vector<shape>& shapes, std::size_t n)
     }
     if(new_lens.size() != shapes.size())
         return false;
-    std::size_t i = 0;
+    int i = 0;
     for(auto& s : shapes)
     {
         auto lens    = s.lens();
@@ -37,7 +37,7 @@ bool reduce_dim(std::vector<shape>& shapes, std::size_t n)
     return true;
 }
 
-std::size_t reduce_dim_all(std::vector<shape>& shapes, std::size_t n)
+int reduce_dim_all(std::vector<shape>& shapes, int n)
 {
     while(reduce_dim(shapes, n) and n < shapes.size())
     {
@@ -47,16 +47,16 @@ std::size_t reduce_dim_all(std::vector<shape>& shapes, std::size_t n)
 }
 void reduce_dim_all(std::vector<shape>& shapes)
 {
-    std::size_t n = 0;
+    int n = 0;
     while(n < shapes.front().lens().size() - 1)
         n = reduce_dim_all(shapes, n);
 }
 
-std::vector<std::size_t> base_lens(const std::vector<shape>& shapes)
+std::vector<int> base_lens(const std::vector<shape>& shapes)
 {
     return std::accumulate(
         shapes.begin() + 1, shapes.end(), shapes.front().lens(), [](auto&& lens, auto&& s) {
-            std::vector<std::size_t> result;
+            std::vector<int> result;
             const auto* x = &s.lens();
             const auto* y = &lens;
             if(x->size() > y->size())
@@ -69,12 +69,12 @@ std::vector<std::size_t> base_lens(const std::vector<shape>& shapes)
         });
 }
 
-shape mask_shape(const shape& s, const std::vector<std::size_t>& lens)
+shape mask_shape(const shape& s, const std::vector<int>& lens)
 {
     assert(s.lens().size() == lens.size());
-    std::vector<std::size_t> rstrides(lens.size());
-    std::size_t stride = 1;
-    for(std::size_t i = lens.size() - 1; i < lens.size(); i--)
+    std::vector<int> rstrides(lens.size());
+    int stride = 1;
+    for(int i = lens.size() - 1; i < lens.size(); i--)
     {
         if(lens[i] == s.lens()[i])
         {

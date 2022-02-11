@@ -22,9 +22,9 @@ namespace op {
 struct pooling
 {
     std::string mode                 = "average";
-    std::vector<std::size_t> padding = {0, 0};
-    std::vector<std::size_t> stride  = {1, 1};
-    std::vector<std::size_t> lengths = {1, 1};
+    std::vector<int> padding = {0, 0};
+    std::vector<int> stride  = {1, 1};
+    std::vector<int> lengths = {1, 1};
     bool ceil_mode                   = false;
 
     template <class Self, class F>
@@ -65,7 +65,7 @@ struct pooling
             MIGRAPHX_THROW("POOLING: input and attribute size mismatch!");
         }
 
-        std::vector<std::size_t> output_lens(input_lens.begin(), input_lens.begin() + 2);
+        std::vector<int> output_lens(input_lens.begin(), input_lens.begin() + 2);
 
         for(size_t i = 0; i < kdims; i++)
         {
@@ -75,10 +75,10 @@ struct pooling
                 padding_factor = padding[i] + padding[i + kdims];
             dim_size = input_lens[i + 2] + padding_factor - lengths[i];
             assert(dim_size >= 0);
-            std::size_t len = (ceil_mode) ? ceil_divide<std::ptrdiff_t>(dim_size, stride[i])
+            int len = (ceil_mode) ? ceil_divide<std::ptrdiff_t>(dim_size, stride[i])
                                           : floor_divide<std::ptrdiff_t>(dim_size, stride[i]);
 
-            output_lens.push_back(std::size_t(std::max<std::ptrdiff_t>(1, len + 1)));
+            output_lens.push_back(int(std::max<std::ptrdiff_t>(1, len + 1)));
         }
         return inputs[0].with_lens(output_lens);
     }

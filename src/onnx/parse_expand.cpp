@@ -21,7 +21,7 @@ struct parse_expand : op_parser<parse_expand>
         auto in_lens             = args[0]->get_shape().lens();
         migraphx::argument arg_s = args[1]->eval();
         check_arg_empty(arg_s, "Expand: dynamic shape is not supported");
-        std::vector<std::size_t> dims;
+        std::vector<int> dims;
         arg_s.visit([&](auto input) { dims.assign(input.begin(), input.end()); });
         auto out_lens = compute_broadcasted_lens(in_lens, dims);
         return info.add_instruction(make_op("multibroadcast", {{"out_lens", out_lens}}), args[0]);

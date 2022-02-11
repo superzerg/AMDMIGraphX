@@ -39,7 +39,7 @@ struct check_shapes
             return name + ": ";
     }
 
-    std::size_t size() const
+    int size() const
     {
         if(begin == end)
             return 0;
@@ -57,14 +57,14 @@ struct check_shapes
         return *this;
     }
 
-    const check_shapes& nelements(std::size_t n) const
+    const check_shapes& nelements(int n) const
     {
         if(!this->all_of([&](const shape& s) { return s.elements() == n; }))
             MIGRAPHX_THROW(prefix() + "Shapes must have only " + std::to_string(n) + " elements");
         return *this;
     }
 
-    const check_shapes& only_dims(std::size_t n) const
+    const check_shapes& only_dims(int n) const
     {
         assert(begin != nullptr);
         assert(end != nullptr);
@@ -76,7 +76,7 @@ struct check_shapes
         return *this;
     }
 
-    const check_shapes& max_ndims(std::size_t n) const
+    const check_shapes& max_ndims(int n) const
     {
         assert(begin != nullptr);
         assert(end != nullptr);
@@ -89,7 +89,7 @@ struct check_shapes
         return *this;
     }
 
-    const check_shapes& min_ndims(std::size_t n) const
+    const check_shapes& min_ndims(int n) const
     {
         assert(begin != nullptr);
         assert(end != nullptr);
@@ -179,7 +179,7 @@ struct check_shapes
         return *this;
     }
 
-    const check_shapes& elements(std::size_t n) const
+    const check_shapes& elements(int n) const
     {
         if(!this->all_of([&](const shape& s) { return s.elements() == n; }))
             MIGRAPHX_THROW(prefix() + "Wrong number of elements");
@@ -230,13 +230,13 @@ struct check_shapes
     check_shapes slice(long start, long last) const { return {get(start), get(last), name}; }
 
     private:
-    static bool batch_not_transposed_strides(const std::vector<std::size_t>& strides)
+    static bool batch_not_transposed_strides(const std::vector<int>& strides)
     {
         if(strides.size() <= 2)
             return true;
         auto dim_0       = strides.size() - 2;
         auto matrix_size = std::max(strides[dim_0], strides[dim_0 + 1]);
-        std::vector<std::size_t> batch(strides.begin(), strides.begin() + dim_0);
+        std::vector<int> batch(strides.begin(), strides.begin() + dim_0);
         if(std::all_of(batch.begin(), batch.end(), [&](auto i) { return (i < matrix_size); }))
         {
             return false;

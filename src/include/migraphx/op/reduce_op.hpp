@@ -69,7 +69,7 @@ struct reduce_op : op_name<Derived>
         return {{"normalize_axes", normalize}};
     }
 
-    std::vector<int64_t> tune_axes(std::size_t n_dim) const
+    std::vector<int64_t> tune_axes(int n_dim) const
     {
         auto tuned_axes = axes;
         if(tuned_axes.empty())
@@ -110,7 +110,7 @@ struct reduce_op : op_name<Derived>
     void reduce(tensor_view<T>& input,
                 shape& batch_shape,
                 std::vector<int64_t>& tuned_axes,
-                std::vector<std::size_t>& out_idx,
+                std::vector<int>& out_idx,
                 tensor_view<T>& output) const
     {
         using accumulator = accumulator_type<T>;
@@ -132,7 +132,7 @@ struct reduce_op : op_name<Derived>
         argument result{output_shape};
         auto arg_lens   = args.front().get_shape().lens();
         auto tuned_axes = tune_axes(arg_lens.size());
-        std::vector<std::size_t> batch_lens(output_shape.lens().size(), 1);
+        std::vector<int> batch_lens(output_shape.lens().size(), 1);
         tune_dims(tuned_axes, arg_lens, batch_lens);
         shape batch_shape{output_shape.type(), batch_lens};
         visit_all(result, args[0])([&](auto output, auto input) {

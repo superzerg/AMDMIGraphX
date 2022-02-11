@@ -278,10 +278,10 @@ struct find_concat_op
     }
 
     template <class Iterator>
-    static std::vector<std::size_t> get_output_lens(Iterator start, Iterator last, std::size_t axis)
+    static std::vector<int> get_output_lens(Iterator start, Iterator last, int axis)
     {
         assert(start != last);
-        std::size_t dim = 0;
+        int dim = 0;
         for(auto ins : range(start, last))
         {
             dim += ins->get_shape().lens().at(axis);
@@ -323,7 +323,7 @@ struct find_concat_op
             }
 
             std::vector<instruction_ref> concats;
-            for(std::size_t i = 0; i < x->inputs().size(); i++)
+            for(int i = 0; i < x->inputs().size(); i++)
             {
                 std::vector<instruction_ref> inputs;
                 std::transform(start, last, std::back_inserter(inputs), [&](auto j) {
@@ -381,7 +381,7 @@ std::vector<instruction_ref> get_splits(instruction_ref ins)
         result.begin(), result.end(), [&](auto x, auto y) { return get_end(x) != get_start(y); });
     if(it != result.end())
         return {};
-    for(std::size_t i = 0; i < axes.size(); i++)
+    for(int i = 0; i < axes.size(); i++)
     {
         auto axis = axes[i];
         if(ins->get_shape().lens()[axis] != get_slice(result.back()).ends[i])
@@ -626,16 +626,16 @@ struct find_split_concat
     }
 };
 
-bool axis_equal(const std::vector<std::size_t>& x,
-                const std::vector<std::size_t>& y,
-                std::size_t axis)
+bool axis_equal(const std::vector<int>& x,
+                const std::vector<int>& y,
+                int axis)
 {
     return x.size() == y.size() and x.size() > axis and
            std::equal(x.begin(), x.begin() + axis, y.begin()) and
            std::equal(x.begin() + axis + 1, x.end(), y.begin() + axis + 1);
 }
 
-bool axis_shape_equal(const shape& x, const shape& y, std::size_t axis)
+bool axis_shape_equal(const shape& x, const shape& y, int axis)
 {
     // TODO: Check strides
     return axis_equal(x.lens(), y.lens(), axis);
@@ -654,7 +654,7 @@ struct find_add_convs
         return op.stride[0] == op.stride[1];
     }
 
-    static std::size_t compute_stride_factor(const op::convolution& x, const op::convolution& y)
+    static int compute_stride_factor(const op::convolution& x, const op::convolution& y)
     {
         if(not symmetrical_strides(x))
             return 0;
@@ -913,7 +913,7 @@ struct find_split_reshape
         auto axis         = any_cast<op::slice>(slc->get_operator()).axes[0];
         auto slc_lens     = slc->get_shape().lens();
         auto slc_dim_size = std::accumulate(
-            slc_lens.begin() + axis, slc_lens.end(), 1, std::multiplies<std::size_t>());
+            slc_lens.begin() + axis, slc_lens.end(), 1, std::multiplies<int>());
 
         // search the reshape output (standard shape) to decide which axis are
         // in its output corresponding to the slc_dim_size
@@ -942,7 +942,7 @@ struct find_split_reshape
 
         // replace the original reshape with slice
         int64_t start = 0;
-        for(std::size_t i = 0; i < vec_rsp.size(); ++i)
+        for(int i = 0; i < vec_rsp.size(); ++i)
         {
             p.replace_instruction(
                 vec_rsp[i],

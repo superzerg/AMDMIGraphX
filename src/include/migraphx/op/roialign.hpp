@@ -65,7 +65,7 @@ struct roialign
             MIGRAPHX_THROW("ROIALIGN: rois and batch indices inputs should have the same number!");
         }
 
-        std::vector<std::size_t> out_lens = x_lens;
+        std::vector<int> out_lens = x_lens;
         out_lens[0]                       = roi_lens[0];
         out_lens[2]                       = output_height;
         out_lens[3]                       = output_width;
@@ -76,27 +76,27 @@ struct roialign
     struct pos_weight
     {
         // neighbor indices for the bilinear interpolation
-        std::array<std::size_t, 4> pos = {0, 0, 0, 0};
+        std::array<int, 4> pos = {0, 0, 0, 0};
         // neighbor weights for the bilinear interpolation
         std::array<float, 4> w = {0.0f, 0.0f, 0.0f, 0.0f};
     };
 
-    auto calc_pos_weight(const std::array<std::size_t, 2>& dims,
+    auto calc_pos_weight(const std::array<int, 2>& dims,
                          const shape& comp_s,
                          const std::array<float, 2>& roi_start,
                          const std::array<float, 2>& bin_size,
-                         const std::array<std::size_t, 2>& bin_grid_size) const
+                         const std::array<int, 2>& bin_grid_size) const
     {
         std::vector<pos_weight> results(bin_grid_size[0] * bin_grid_size[1] * output_height *
                                         output_width);
         shape_for_each(comp_s, [&](auto idx) {
-            std::array<std::size_t, 2> p = {idx[0], idx[1]};
-            std::array<std::size_t, 2> i = {idx[2], idx[3]};
+            std::array<int, 2> p = {idx[0], idx[1]};
+            std::array<int, 2> i = {idx[2], idx[3]};
             auto index                   = comp_s.index(idx);
 
             std::array<float, 2> xy{};
-            std::array<int64_t, 2> low{};
-            std::array<int64_t, 2> high{};
+            std::array<int, 2> low{};
+            std::array<int, 2> high{};
             for(auto ii : range(p.size()))
             {
                 xy[ii] = roi_start[ii] + p[ii] * bin_size[ii] +
@@ -140,7 +140,7 @@ struct roialign
 
         double operator()(double x, double y) { return std::max(x, y); }
 
-        double final(double x, std::size_t) { return (x); }
+        double final(double x, int) { return (x); }
     };
 
     struct avg_pool
@@ -149,12 +149,12 @@ struct roialign
 
         double operator()(double x, double y) { return x + y; }
 
-        double final(double x, std::size_t y) { return (y == 0) ? 0.0 : (x / y); }
+        double final(double x, int y) { return (y == 0) ? 0.0 : (x / y); }
     };
 
     template <class T, class Op>
     std::tuple<double, int64_t> calc_pooling(const T& data,
-                                             const std::array<std::size_t, 2>& bin_grid_size,
+                                             const std::array<int, 2>& bin_grid_size,
                                              const std::vector<pos_weight>& pos_weights,
                                              int64_t index,
                                              Op op) const
@@ -182,13 +182,13 @@ struct roialign
         argument result{output_shape};
         const auto& out_lens = output_shape.lens();
         int64_t n_rois       = out_lens[0];
-        std::size_t channels = out_lens[1];
+        int channels = out_lens[1];
         // output dims of height and width, in all 2-dim arrays, the first dim
         // is for height and second dim is for width
-        std::array<std::size_t, 2> out_dims = {out_lens[2], out_lens[3]};
+        std::array<int, 2> out_dims = {out_lens[2], out_lens[3]};
         const auto& x_lens                  = args.at(0).get_shape().lens();
         // input dims of height and width
-        std::array<std::size_t, 2> in_dims = {x_lens[2], x_lens[3]};
+        std::array<int, 2> in_dims = {x_lens[2], x_lens[3]};
         auto roi_s                         = args.at(1).get_shape();
 
         visit_all(result, args.at(0), args.at(1))([&](auto output, auto x, auto roi) {
@@ -207,7 +207,7 @@ struct roialign
                 // Force malformed ROIs to be 1x1
                 std::array<float, 2> roi_size{};
                 std::array<float, 2> bin_size{};
-                std::array<std::size_t, 2> bin_grid_size{};
+                std::array<int, 2> bin_grid_size{};
 
                 for(auto ii : range(roi_size.size()))
                 {
@@ -222,13 +222,13 @@ struct roialign
 
                 // we want to precalculate indices and weights shared by all channels,
                 // this is the key point of optimization
-                std::vector<std::size_t> comp_lens = {
+                std::vector<int> comp_lens = {
                     out_dims[0], out_dims[1], bin_grid_size[0], bin_grid_size[1]};
                 shape comp_s{shape::float_type, comp_lens};
                 auto pre_calc =
                     this->calc_pos_weight(in_dims, comp_s, roi_starts, bin_size, bin_grid_size);
 
-                std::vector<std::size_t> comp_lens1 = {channels, out_dims[0], out_dims[1]};
+                std::vector<int> comp_lens1 = {channels, out_dims[0], out_dims[1]};
                 shape comp_s1{migraphx::shape::float_type, comp_lens1};
                 std::vector<int64_t> vec_index(channels, 0);
                 shape_for_each(comp_s1, [&](auto idx) {

@@ -25,7 +25,7 @@ template <class T>
 struct tensor_view_iterator_read
 {
     T* view;
-    auto& operator()(std::size_t n) const
+    auto& operator()(int n) const
     {
         assert(view != nullptr);
         return (*view)[n];
@@ -36,9 +36,9 @@ template <class T>
 struct tensor_view
 {
     using value_type = T;
-    using iterator   = basic_iota_iterator<tensor_view_iterator_read<tensor_view<T>>, std::size_t>;
+    using iterator   = basic_iota_iterator<tensor_view_iterator_read<tensor_view<T>>, int>;
     using const_iterator =
-        basic_iota_iterator<tensor_view_iterator_read<const tensor_view<T>>, std::size_t>;
+        basic_iota_iterator<tensor_view_iterator_read<const tensor_view<T>>, int>;
     tensor_view() : m_data(nullptr) {}
     tensor_view(shape s, T* d) : m_data(d), m_shape(std::move(s)) {}
 
@@ -46,7 +46,7 @@ struct tensor_view
 
     bool empty() const { return m_data == nullptr || m_shape.lens().empty(); }
 
-    std::size_t size() const { return m_shape.elements(); }
+    int size() const { return m_shape.elements(); }
 
     T* data() { return this->m_data; }
 
@@ -55,17 +55,17 @@ struct tensor_view
     template <class... Ts, MIGRAPHX_REQUIRES(std::is_integral<Ts>{}...)>
     const T& operator()(Ts... xs) const
     {
-        assert(std::vector<std::size_t>{static_cast<std::size_t>(xs)...} < m_shape.lens());
-        assert(m_shape.index({static_cast<std::size_t>(xs)...}) < m_shape.bytes() / sizeof(T));
-        return m_data[m_shape.index({static_cast<std::size_t>(xs)...})];
+        assert(std::vector<int>{static_cast<int>(xs)...} < m_shape.lens());
+        assert(m_shape.index({static_cast<int>(xs)...}) < m_shape.bytes() / sizeof(T));
+        return m_data[m_shape.index({static_cast<int>(xs)...})];
     }
 
     template <class... Ts, MIGRAPHX_REQUIRES(std::is_integral<Ts>{}...)>
     T& operator()(Ts... xs)
     {
-        assert(std::vector<std::size_t>{static_cast<std::size_t>(xs)...} < m_shape.lens());
-        assert(m_shape.index({static_cast<std::size_t>(xs)...}) < m_shape.bytes() / sizeof(T));
-        return m_data[m_shape.index({static_cast<std::size_t>(xs)...})];
+        assert(std::vector<int>{static_cast<int>(xs)...} < m_shape.lens());
+        assert(m_shape.index({static_cast<int>(xs)...}) < m_shape.bytes() / sizeof(T));
+        return m_data[m_shape.index({static_cast<int>(xs)...})];
     }
 
     template <class Iterator, MIGRAPHX_REQUIRES(not std::is_integral<Iterator>{})>
@@ -84,13 +84,13 @@ struct tensor_view
         return m_data[m_shape.index(start, last)];
     }
 
-    T& operator[](std::size_t i)
+    T& operator[](int i)
     {
         assert(!this->empty() && i < this->size());
         return m_data[m_shape.index(i)];
     }
 
-    const T& operator[](std::size_t i) const
+    const T& operator[](int i) const
     {
         assert(!this->empty() && i < this->size());
         return m_data[m_shape.index(i)];
@@ -141,7 +141,7 @@ struct tensor_view
         if(!x.empty())
         {
             os << as_number(x.front());
-            for(std::size_t i = 1; i < x.m_shape.elements(); i++)
+            for(int i = 1; i < x.m_shape.elements(); i++)
             {
                 os << ", " << as_number(x.m_data[x.m_shape.index(i)]);
             }
@@ -159,7 +159,7 @@ bool operator==(const tensor_view<T>& x, const tensor_view<U>& y)
 {
     if(x.get_shape() == y.get_shape())
     {
-        for(std::size_t i = 0; i < x.get_shape().elements(); i++)
+        for(int i = 0; i < x.get_shape().elements(); i++)
         {
             if(!float_equal(x[i], y[i]))
                 return false;
