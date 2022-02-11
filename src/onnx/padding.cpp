@@ -122,7 +122,7 @@ void check_asym_padding(const onnx_parser::node_info& info,
                         int count_include_pad,
                         float pad_val)
 {
-    int pad_ndims  = padding.size() / 2;
+    int pad_ndims     = padding.size() / 2;
     auto left_pad_it  = padding.begin();
     auto right_pad_it = left_pad_it + pad_ndims;
 

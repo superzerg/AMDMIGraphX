@@ -41,10 +41,8 @@ struct flatten
     {
         check_shapes{inputs, *this}.has(1).standard();
         auto&& lens = inputs.front().lens();
-        auto x =
-            std::accumulate(lens.begin(), lens.begin() + axis, int{1}, std::multiplies<>{});
-        auto y =
-            std::accumulate(lens.begin() + axis, lens.end(), int{1}, std::multiplies<>{});
+        auto x = std::accumulate(lens.begin(), lens.begin() + axis, int{1}, std::multiplies<>{});
+        auto y = std::accumulate(lens.begin() + axis, lens.end(), int{1}, std::multiplies<>{});
         return {inputs.at(0).type(), {x, y}};
     }
     argument compute(shape output_shape, std::vector<argument> args) const

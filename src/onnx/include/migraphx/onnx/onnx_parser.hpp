@@ -25,9 +25,9 @@ struct onnx_parser
     struct node_info
     {
         attribute_map attributes{};
-        int num_outputs = 1;
-        std::string name        = "";
-        module* mod             = nullptr;
+        int num_outputs  = 1;
+        std::string name = "";
+        module* mod      = nullptr;
         instruction_ref make_contiguous(instruction_ref ins) const;
         instruction_ref add_bias(const std::vector<instruction_ref>& args,
                                  instruction_ref curr_ins,
@@ -59,7 +59,7 @@ struct onnx_parser
         onnx_parser&, const node_info&, std::vector<instruction_ref>)>;
     node_map nodes;
     std::unordered_map<std::string, instruction_ref> instructions;
-    program prog                  = program();
+    program prog          = program();
     int default_dim_value = 1;
     std::unordered_map<std::string, std::vector<int>> map_input_dims;
     bool skip_unknown_operators = false;

@@ -46,10 +46,10 @@ struct shape_impl
 
     shape_impl(const std::vector<shape>& subs) : m_type(shape::tuple_type), m_shapes(subs) {}
     shape::type_t m_type;
-    std::vector<int> m_lens    = {};
-    std::vector<int> m_strides = {};
-    std::vector<shape> m_shapes        = {};
-    bool m_standard                    = false;
+    std::vector<int> m_lens     = {};
+    std::vector<int> m_strides  = {};
+    std::vector<shape> m_shapes = {};
+    bool m_standard             = false;
 
     void calculate_strides()
     {
@@ -58,10 +58,8 @@ struct shape_impl
         if(m_strides.empty())
             return;
         m_strides.back() = 1;
-        std::partial_sum(m_lens.rbegin(),
-                         m_lens.rend() - 1,
-                         m_strides.rbegin() + 1,
-                         std::multiplies<int>());
+        std::partial_sum(
+            m_lens.rbegin(), m_lens.rend() - 1, m_strides.rbegin() + 1, std::multiplies<int>());
     }
 
     int element_space() const
@@ -83,8 +81,7 @@ struct shape_impl
         assert(m_lens.size() == m_strides.size());
         if(m_lens.empty())
             return 0;
-        return std::accumulate(
-            m_lens.begin(), m_lens.end(), int{1}, std::multiplies<int>());
+        return std::accumulate(m_lens.begin(), m_lens.end(), int{1}, std::multiplies<int>());
     }
 };
 
@@ -124,10 +121,7 @@ std::string shape::cpp_type(shape::type_t t)
 shape::shape() : impl(shape_impl::default_shape()) {}
 
 shape::shape(type_t t) : impl(std::make_shared<shape_impl>(t)) {}
-shape::shape(type_t t, std::vector<int> l)
-    : impl(std::make_shared<shape_impl>(t, std::move(l)))
-{
-}
+shape::shape(type_t t, std::vector<int> l) : impl(std::make_shared<shape_impl>(t, std::move(l))) {}
 shape::shape(type_t t, std::vector<int> l, std::vector<int> s)
     : impl(std::make_shared<shape_impl>(t, std::move(l), std::move(s)))
 {
@@ -135,9 +129,7 @@ shape::shape(type_t t, std::vector<int> l, std::vector<int> s)
 
 shape::shape(const std::vector<shape>& subs) : impl(std::make_shared<shape_impl>(subs)) {}
 
-shape shape::from_permutation(type_t t,
-                              const std::vector<int>& l,
-                              const std::vector<int64_t>& perm)
+shape shape::from_permutation(type_t t, const std::vector<int>& l, const std::vector<int64_t>& perm)
 {
     auto new_lens = reorder_dims(l, perm);
     shape result  = reorder_shape({t, new_lens}, invert_permutation(perm));
@@ -221,14 +213,11 @@ void shape::multi_copy(int i, int* start, const int* end) const
     assert(this->standard());
     (void)end;
     assert(lens().size() <= (end - start));
-    std::transform(strides().begin(),
-                   strides().end(),
-                   lens().begin(),
-                   start,
-                   [&](int stride, int len) {
-                       assert(len > 0 and stride > 0);
-                       return (i / stride) % len;
-                   });
+    std::transform(
+        strides().begin(), strides().end(), lens().begin(), start, [&](int stride, int len) {
+            assert(len > 0 and stride > 0);
+            return (i / stride) % len;
+        });
 }
 
 bool shape::packed() const
@@ -258,10 +247,8 @@ bool shape::transposed() const
 bool shape::broadcasted() const
 {
     assert(this->lens().size() == this->strides().size());
-    return std::accumulate(this->strides().begin(),
-                           this->strides().end(),
-                           int{1},
-                           std::multiplies<int>()) == 0;
+    return std::accumulate(
+               this->strides().begin(), this->strides().end(), int{1}, std::multiplies<int>()) == 0;
 }
 
 bool shape::scalar() const
@@ -289,10 +276,7 @@ shape shape::with_lens(type_t t, const std::vector<int>& l) const
     return shape::from_permutation(t, l, perm);
 }
 
-shape shape::with_lens(const std::vector<int>& l) const
-{
-    return this->with_lens(this->type(), l);
-}
+shape shape::with_lens(const std::vector<int>& l) const { return this->with_lens(this->type(), l); }
 
 int shape::element_space() const { return impl->element_space(); }
 
@@ -350,9 +334,8 @@ void migraphx_from_value(const value& v, shape& s)
     }
     else
     {
-        s = shape{shape::parse_type(t),
-                  v.at("lens").to_vector<int>(),
-                  v.at("strides").to_vector<int>()};
+        s = shape{
+            shape::parse_type(t), v.at("lens").to_vector<int>(), v.at("strides").to_vector<int>()};
     }
 }
 

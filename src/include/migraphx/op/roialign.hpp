@@ -66,9 +66,9 @@ struct roialign
         }
 
         std::vector<int> out_lens = x_lens;
-        out_lens[0]                       = roi_lens[0];
-        out_lens[2]                       = output_height;
-        out_lens[3]                       = output_width;
+        out_lens[0]               = roi_lens[0];
+        out_lens[2]               = output_height;
+        out_lens[3]               = output_width;
 
         return {type, out_lens};
     }
@@ -92,7 +92,7 @@ struct roialign
         shape_for_each(comp_s, [&](auto idx) {
             std::array<int, 2> p = {idx[0], idx[1]};
             std::array<int, 2> i = {idx[2], idx[3]};
-            auto index                   = comp_s.index(idx);
+            auto index           = comp_s.index(idx);
 
             std::array<float, 2> xy{};
             std::array<int, 2> low{};
@@ -182,14 +182,14 @@ struct roialign
         argument result{output_shape};
         const auto& out_lens = output_shape.lens();
         int64_t n_rois       = out_lens[0];
-        int channels = out_lens[1];
+        int channels         = out_lens[1];
         // output dims of height and width, in all 2-dim arrays, the first dim
         // is for height and second dim is for width
         std::array<int, 2> out_dims = {out_lens[2], out_lens[3]};
-        const auto& x_lens                  = args.at(0).get_shape().lens();
+        const auto& x_lens          = args.at(0).get_shape().lens();
         // input dims of height and width
         std::array<int, 2> in_dims = {x_lens[2], x_lens[3]};
-        auto roi_s                         = args.at(1).get_shape();
+        auto roi_s                 = args.at(1).get_shape();
 
         visit_all(result, args.at(0), args.at(1))([&](auto output, auto x, auto roi) {
             const auto* batch_indices = args.at(2).cast<int64_t>();

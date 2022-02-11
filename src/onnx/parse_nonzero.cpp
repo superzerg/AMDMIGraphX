@@ -46,7 +46,8 @@ struct parse_nonzero : op_parser<parse_nonzero>
             });
 
             shape in_s = args[0]->get_shape();
-            shape out_s{shape::int64_type, {static_cast<int>(in_s.lens().size()), static_cast<int>(indices.size())}};
+            shape out_s{shape::int64_type,
+                        {static_cast<int>(in_s.lens().size()), static_cast<int>(indices.size())}};
 
             std::vector<int64_t> out_data(out_s.elements());
             for(int i = 0; i < indices.size(); ++i)

@@ -69,7 +69,7 @@ void migemm_impl(
     int n_dims = cmat.get_shape().lens().size();
     int dim_0  = n_dims - 2;
     int dim_1  = n_dims - 1;
-    auto k             = amat.get_shape().lens()[dim_1];
+    auto k     = amat.get_shape().lens()[dim_1];
 
     assert(amat.get_shape().lens()[dim_1] == bmat.get_shape().lens()[dim_0]);
     assert(cmat.get_shape().lens()[dim_0] == amat.get_shape().lens()[dim_0]);
@@ -92,8 +92,7 @@ void migemm_impl(tensor_view<T> cmat, tensor_view<T> amat, tensor_view<T> bmat, 
 {
     auto lens = amat.get_shape().lens();
     bool batch_mul =
-        std::accumulate(
-            lens.rbegin() + 2, lens.rend(), int{1}, std::multiplies<int>()) == 1;
+        std::accumulate(lens.rbegin() + 2, lens.rend(), int{1}, std::multiplies<int>()) == 1;
     if(batch_mul)
     {
         migemm_impl(cmat, amat, bmat, alpha, beta, is_fast_gemm_type<T>{});

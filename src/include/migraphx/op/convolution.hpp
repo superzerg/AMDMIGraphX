@@ -64,7 +64,7 @@ struct convolution
 
         const shape& input   = inputs.at(0);
         const shape& weights = inputs.at(1);
-        int kdims         = input_size - 2;
+        int kdims            = input_size - 2;
         if(kdims != this->kdims())
         {
             MIGRAPHX_THROW("convolution: input k-dims does not match attribute size");

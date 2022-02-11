@@ -17,9 +17,9 @@ struct parse_strideslice : op_parser<parse_strideslice>
                           tf_parser::node_info info,
                           std::vector<instruction_ref> args) const
     {
-        auto starts              = args[1]->eval().get<int32_t>().to_vector();
-        auto ends                = args[2]->eval().get<int32_t>().to_vector();
-        auto l0                  = args[0];
+        auto starts           = args[1]->eval().get<int32_t>().to_vector();
+        auto ends             = args[2]->eval().get<int32_t>().to_vector();
+        auto l0               = args[0];
         int num_axes          = l0->get_shape().lens().size();
         std::vector<int> axes = l0->get_shape().lens();
 

@@ -20,8 +20,7 @@ inline namespace MIGRAPHX_INLINE_NS {
 // In this case we need to broadcast the (:,:,1:,:) axis
 // of s0 plus the 1st dimension of s1 giving
 // output_lens = (3,2,7,5)
-std::vector<int> compute_broadcasted_lens(std::vector<int> s0,
-                                                  std::vector<int> s1)
+std::vector<int> compute_broadcasted_lens(std::vector<int> s0, std::vector<int> s1)
 {
     if(s0 == s1)
         return s0;

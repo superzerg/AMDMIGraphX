@@ -20,8 +20,8 @@ struct nonzero
     shape compute_shape(std::vector<shape> inputs) const
     {
         check_shapes{inputs, *this}.has(1).standard();
-        auto elem_num                     = inputs[0].elements();
-        int dim_num                      = inputs[0].lens().size();
+        auto elem_num             = inputs[0].elements();
+        int dim_num               = inputs[0].lens().size();
         std::vector<int> out_lens = {dim_num, elem_num};
 
         return {shape::int64_type, out_lens};

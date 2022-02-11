@@ -626,9 +626,7 @@ struct find_split_concat
     }
 };
 
-bool axis_equal(const std::vector<int>& x,
-                const std::vector<int>& y,
-                int axis)
+bool axis_equal(const std::vector<int>& x, const std::vector<int>& y, int axis)
 {
     return x.size() == y.size() and x.size() > axis and
            std::equal(x.begin(), x.begin() + axis, y.begin()) and
@@ -910,10 +908,10 @@ struct find_split_reshape
         }
 
         // ensure reshape happens after the axis dimension
-        auto axis         = any_cast<op::slice>(slc->get_operator()).axes[0];
-        auto slc_lens     = slc->get_shape().lens();
-        auto slc_dim_size = std::accumulate(
-            slc_lens.begin() + axis, slc_lens.end(), 1, std::multiplies<int>());
+        auto axis     = any_cast<op::slice>(slc->get_operator()).axes[0];
+        auto slc_lens = slc->get_shape().lens();
+        auto slc_dim_size =
+            std::accumulate(slc_lens.begin() + axis, slc_lens.end(), 1, std::multiplies<int>());
 
         // search the reshape output (standard shape) to decide which axis are
         // in its output corresponding to the slc_dim_size

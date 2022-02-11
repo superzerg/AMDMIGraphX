@@ -54,7 +54,7 @@ struct deconvolution
 
         const shape& input   = inputs.at(0);
         const shape& weights = inputs.at(1);
-        int kdims         = input.lens().size() - 2;
+        int kdims            = input.lens().size() - 2;
         if(kdims != this->kdims())
         {
             MIGRAPHX_THROW("deconvolution: input k-dims does not match attribute size");

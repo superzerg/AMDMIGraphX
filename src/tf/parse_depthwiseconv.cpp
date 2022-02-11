@@ -21,7 +21,7 @@ struct parse_depthwiseconv : op_parser<parse_depthwiseconv>
     {
         op::convolution op;
         int num_channels = args[0]->get_shape().lens()[1];
-        op.group            = num_channels;
+        op.group         = num_channels;
 
         if(contains(info.attributes, "strides"))
         {
@@ -57,7 +57,7 @@ struct parse_depthwiseconv : op_parser<parse_depthwiseconv>
 
             if(pad_mode.find("SAME") != std::string::npos)
             {
-                op.padding_mode                 = op::padding_mode_t::same;
+                op.padding_mode              = op::padding_mode_t::same;
                 std::vector<int> weight_dims = weights->get_shape().lens();
                 int weight_h                 = weight_dims[2];
                 int weight_w                 = weight_dims[3];

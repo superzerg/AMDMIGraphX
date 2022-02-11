@@ -21,11 +21,11 @@ namespace op {
 
 struct pooling
 {
-    std::string mode                 = "average";
+    std::string mode         = "average";
     std::vector<int> padding = {0, 0};
     std::vector<int> stride  = {1, 1};
     std::vector<int> lengths = {1, 1};
-    bool ceil_mode                   = false;
+    bool ceil_mode           = false;
 
     template <class Self, class F>
     static auto reflect(Self& self, F f)
@@ -76,7 +76,7 @@ struct pooling
             dim_size = input_lens[i + 2] + padding_factor - lengths[i];
             assert(dim_size >= 0);
             int len = (ceil_mode) ? ceil_divide<std::ptrdiff_t>(dim_size, stride[i])
-                                          : floor_divide<std::ptrdiff_t>(dim_size, stride[i]);
+                                  : floor_divide<std::ptrdiff_t>(dim_size, stride[i]);
 
             output_lens.push_back(int(std::max<std::ptrdiff_t>(1, len + 1)));
         }

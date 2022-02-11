@@ -61,12 +61,8 @@ struct parse_convolution : op_parser<parse_convolution>
         {
             auto weight_lens = weights->get_shape().lens();
             std::vector<int> k_lens(weight_lens.begin() + 2, weight_lens.end());
-            cal_auto_padding_size(info,
-                                  values,
-                                  k_lens,
-                                  values["dilation"].to_vector<int>(),
-                                  in_lens,
-                                  padding);
+            cal_auto_padding_size(
+                info, values, k_lens, values["dilation"].to_vector<int>(), in_lens, padding);
             auto auto_pad = info.attributes["auto_pad"].s();
             if(auto_pad.find("SAME") != std::string::npos)
             {

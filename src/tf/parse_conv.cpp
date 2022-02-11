@@ -52,7 +52,7 @@ struct parse_conv : op_parser<parse_conv>
             const std::string& pad_mode = info.attributes.at("padding").s();
             if(pad_mode.find("SAME") != std::string::npos)
             {
-                op.padding_mode                 = op::padding_mode_t::same;
+                op.padding_mode              = op::padding_mode_t::same;
                 std::vector<int> weight_dims = weights->get_shape().lens();
                 int weight_h                 = weight_dims[2];
                 int weight_w                 = weight_dims[3];

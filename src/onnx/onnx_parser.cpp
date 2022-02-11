@@ -31,8 +31,7 @@ static literal
 create_literal(shape::type_t shape_type, const std::vector<int>& dims, const char* data)
 {
     // empty input
-    auto elem_num =
-        std::accumulate(dims.begin(), dims.end(), int(1), std::multiplies<int>());
+    auto elem_num = std::accumulate(dims.begin(), dims.end(), int(1), std::multiplies<int>());
     if(elem_num == 0)
     {
         return {};
@@ -48,8 +47,7 @@ template <class T, MIGRAPHX_REQUIRES(not std::is_pointer<T>{})>
 static literal create_literal(shape::type_t shape_type, const std::vector<int>& dims, T data)
 {
     // empty input
-    auto elem_num =
-        std::accumulate(dims.begin(), dims.end(), int(1), std::multiplies<int>());
+    auto elem_num = std::accumulate(dims.begin(), dims.end(), int(1), std::multiplies<int>());
     if(elem_num == 0)
     {
         return {};
@@ -400,8 +398,7 @@ literal onnx_parser::parse_tensor(const onnx::TensorProto& t) const
     }
     MIGRAPHX_THROW("PARSE_TENSOR: Invalid tensor type");
 }
-shape onnx_parser::parse_type(const onnx::TypeProto& t,
-                              const std::vector<int>& input_dims) const
+shape onnx_parser::parse_type(const onnx::TypeProto& t, const std::vector<int>& input_dims) const
 {
     shape::type_t shape_type = get_type(t.tensor_type().elem_type());
     if(!input_dims.empty())
@@ -411,23 +408,21 @@ shape onnx_parser::parse_type(const onnx::TypeProto& t,
 
     std::vector<int> dims;
     auto&& tensor_dims = t.tensor_type().shape().dim();
-    std::transform(tensor_dims.begin(),
-                   tensor_dims.end(),
-                   std::back_inserter(dims),
-                   [&](auto&& d) -> int {
-                       if(d.has_dim_value())
-                       {
-                           if(static_cast<int>(d.dim_value()) <= 0)
-                           {
-                               return default_dim_value;
-                           }
-                           return d.dim_value();
-                       }
-                       else
-                       {
-                           return default_dim_value;
-                       }
-                   });
+    std::transform(
+        tensor_dims.begin(), tensor_dims.end(), std::back_inserter(dims), [&](auto&& d) -> int {
+            if(d.has_dim_value())
+            {
+                if(static_cast<int>(d.dim_value()) <= 0)
+                {
+                    return default_dim_value;
+                }
+                return d.dim_value();
+            }
+            else
+            {
+                return default_dim_value;
+            }
+        });
 
     if(dims.empty())
         return {shape_type};

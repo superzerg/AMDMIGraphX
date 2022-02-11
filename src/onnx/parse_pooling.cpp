@@ -84,12 +84,8 @@ struct parse_pooling : op_parser<parse_pooling>
         {
             values["padding"].clear();
             // return paddings could be empty, then setting to 0 for no padding
-            cal_auto_padding_size(info,
-                                  values,
-                                  values["lengths"].to_vector<int>(),
-                                  {1, 1},
-                                  in_lens,
-                                  paddings);
+            cal_auto_padding_size(
+                info, values, values["lengths"].to_vector<int>(), {1, 1}, in_lens, paddings);
         }
 
         if(paddings.size() != 2 * kdims)

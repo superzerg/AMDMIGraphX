@@ -76,9 +76,7 @@ struct shape
 
     template <class Range1, class Range2>
     shape(type_t t, const Range1& l, const Range2& s)
-        : shape(t,
-                std::vector<int>(l.begin(), l.end()),
-                std::vector<int>(s.begin(), s.end()))
+        : shape(t, std::vector<int>(l.begin(), l.end()), std::vector<int>(s.begin(), s.end()))
     {
     }
 

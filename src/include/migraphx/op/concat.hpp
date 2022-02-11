@@ -38,7 +38,7 @@ struct concat
 
     std::string name() const { return "concat"; }
     std::vector<int> compute_offsets(const shape& output_shape,
-                                             const std::vector<argument>& args) const
+                                     const std::vector<argument>& args) const
     {
         auto n_dims = args[0].get_shape().lens().size();
         std::vector<int> offsets;

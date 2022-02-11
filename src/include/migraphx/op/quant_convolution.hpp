@@ -60,7 +60,7 @@ struct quant_convolution
         const shape& input   = inputs.at(0);
         const shape& weights = inputs.at(1);
         auto t               = input.type();
-        int kdims         = input.lens().size() - 2;
+        int kdims            = input.lens().size() - 2;
         if(kdims != this->kdims())
         {
             MIGRAPHX_THROW("quant_convolution: input k-dims does not match attribute size");

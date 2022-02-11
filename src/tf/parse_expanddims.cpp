@@ -20,7 +20,7 @@ struct parse_expanddims : op_parser<parse_expanddims>
         std::vector<int> input_dims = args[0]->get_shape().lens();
         std::vector<int64_t> new_dims(input_dims.begin(), input_dims.end());
         int num_dims = input_dims.size();
-        int32_t dim     = args[1]->eval().at<int32_t>();
+        int32_t dim  = args[1]->eval().at<int32_t>();
 
         if(dim < 0)
         {
