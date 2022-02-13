@@ -391,9 +391,8 @@ extern "C" migraphx_status migraphx_shape_create(migraphx_shape_t* shape,
     auto api_error_result = migraphx::try_([&] {
         if(lengths == nullptr and lengths_size != 0)
             MIGRAPHX_THROW(migraphx_status_bad_param, "Bad parameter lengths: Null pointer");
-        *shape = object_cast<migraphx_shape_t>(
-            allocate<migraphx::shape>((migraphx::to_shape_type(type)),
-                                      (std::vector<int>(lengths, lengths + lengths_size))));
+        *shape = object_cast<migraphx_shape_t>(allocate<migraphx::shape>(
+            (migraphx::to_shape_type(type)), (std::vector<int>(lengths, lengths + lengths_size))));
     });
     return api_error_result;
 }
