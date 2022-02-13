@@ -18,7 +18,7 @@ struct parse_concat : op_parser<parse_concat>
                           std::vector<instruction_ref> args) const
     {
         // get index for axis within args
-        size_t axis_idx = info.attributes.at("N").i();
+        int axis_idx = info.attributes.at("N").i();
         int64_t axis    = args[axis_idx]->eval().at<int64_t>();
         auto op         = make_op("concat", {{"axis", axis}});
         // return only first N arguments (assuming last index is the axis value)

@@ -49,7 +49,7 @@ struct parse_deconvolution : op_parser<parse_deconvolution>
 
             if(not asym_padding)
             {
-                size_t pad_ndims = padding.size() / 2;
+                int pad_ndims = padding.size() / 2;
                 check_attr_sizes(kdims, pad_ndims, "PARSE_CONV_TRANSPOSE: inconsistent paddings");
                 values["padding"].clear();
                 std::transform(padding.begin(),
@@ -119,7 +119,7 @@ struct parse_deconvolution : op_parser<parse_deconvolution>
 
         if(contains(info.attributes, "output_padding"))
         {
-            size_t non_kdims = dims.size() * 2 - kdims;
+            int non_kdims = dims.size() * 2 - kdims;
             std::vector<int64_t> output_padding(non_kdims, 0);
             copy(info.attributes["output_padding"].ints(), std::back_inserter(output_padding));
             check_attr_sizes(kdims,

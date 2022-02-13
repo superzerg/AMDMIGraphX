@@ -73,7 +73,7 @@ struct compiled_result
 };
 
 template <class F>
-void par_compile(std::size_t n, F f)
+void par_compile(int n, F f)
 {
     if(n == 0)
         return;

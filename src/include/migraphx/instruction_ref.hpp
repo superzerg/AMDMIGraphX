@@ -21,7 +21,7 @@ template <>
 struct hash<migraphx::instruction_ref>
 {
     using argument_type = migraphx::instruction_ref;
-    using result_type   = std::size_t;
+    using result_type   = int;
     result_type operator()(const migraphx::instruction_ref& x) const noexcept
     {
         return std::hash<migraphx::instruction*>{}(migraphx::as_address(x));

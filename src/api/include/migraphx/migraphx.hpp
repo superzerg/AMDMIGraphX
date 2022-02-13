@@ -37,7 +37,7 @@ void call(F f, Ts&&... xs)
         throw std::runtime_error("Failed to call function");
 }
 
-template <class F, class Iterator = std::size_t>
+template <class F, class Iterator = int>
 struct iota_iterator
 {
     Iterator index;
@@ -230,14 +230,14 @@ struct shape : MIGRAPHX_CONST_HANDLE_BASE(shape)
 
     /// Construct a shape with its type and lengths. The strides are
     /// automatically computed assumming a packed layout.
-    shape(migraphx_shape_datatype_t type, std::vector<size_t> plengths)
+    shape(migraphx_shape_datatype_t type, std::vector<int> plengths)
     {
         this->make_handle(&migraphx_shape_create, type, plengths.data(), plengths.size());
     }
 
     shape(migraphx_shape_datatype_t type,
-          std::vector<size_t> plengths,
-          std::vector<size_t> pstrides)
+          std::vector<int> plengths,
+          std::vector<int> pstrides)
     {
         this->make_handle(&migraphx_shape_create_with_strides,
                           type,
@@ -247,18 +247,18 @@ struct shape : MIGRAPHX_CONST_HANDLE_BASE(shape)
                           pstrides.size());
     }
 
-    std::vector<size_t> lengths() const
+    std::vector<int> lengths() const
     {
-        const size_t* pout;
-        size_t pout_size;
+        const int* pout;
+        int pout_size;
         call(&migraphx_shape_lengths, &pout, &pout_size, this->get_handle_ptr());
         return {pout, pout + pout_size};
     }
 
-    std::vector<size_t> strides() const
+    std::vector<int> strides() const
     {
-        const size_t* pout;
-        size_t pout_size;
+        const int* pout;
+        int pout_size;
         call(&migraphx_shape_strides, &pout, &pout_size, this->get_handle_ptr());
         return {pout, pout + pout_size};
     }
@@ -270,9 +270,9 @@ struct shape : MIGRAPHX_CONST_HANDLE_BASE(shape)
         return pout;
     }
 
-    size_t bytes() const
+    int bytes() const
     {
-        size_t pout;
+        int pout;
         call(&migraphx_shape_bytes, &pout, this->get_handle_ptr());
         return pout;
     }
@@ -323,7 +323,7 @@ struct argument : MIGRAPHX_CONST_HANDLE_BASE(argument)
     }
 
     /// Generate an argument using random data
-    static argument generate(shape ps, size_t pseed = 0)
+    static argument generate(shape ps, int pseed = 0)
     {
         return {make<migraphx_argument>(&migraphx_argument_generate, ps.get_handle_ptr(), pseed),
                 own{}};
@@ -366,9 +366,9 @@ struct program_parameter_shapes : MIGRAPHX_HANDLE_BASE(program_parameter_shapes)
         this->set_handle(p, borrow{});
     }
 
-    size_t size() const
+    int size() const
     {
-        size_t pout;
+        int pout;
         call(&migraphx_program_parameter_shapes_size, &pout, this->get_handle_ptr());
         return pout;
     }
@@ -426,14 +426,14 @@ struct arguments : MIGRAPHX_HANDLE_BASE(arguments), array_base<arguments>
 
     arguments(migraphx_arguments* p, borrow) { this->set_handle(p, borrow{}); }
 
-    size_t size() const
+    int size() const
     {
-        size_t pout;
+        int pout;
         call(&migraphx_arguments_size, &pout, this->get_handle_ptr());
         return pout;
     }
 
-    argument operator[](size_t pidx) const
+    argument operator[](int pidx) const
     {
         const_migraphx_argument_t pout;
         call(&migraphx_arguments_get, &pout, this->get_handle_ptr(), pidx);
@@ -443,7 +443,7 @@ struct arguments : MIGRAPHX_HANDLE_BASE(arguments), array_base<arguments>
     struct iterator_read
     {
         migraphx_arguments* self;
-        argument operator()(size_t pidx) const
+        argument operator()(int pidx) const
         {
             const_migraphx_argument_t pout;
             call(&migraphx_arguments_get, &pout, self, pidx);
@@ -459,14 +459,14 @@ struct shapes : MIGRAPHX_HANDLE_BASE(shapes), array_base<shapes>
 
     shapes(migraphx_shapes* p, borrow) { this->set_handle(p, borrow{}); }
 
-    size_t size() const
+    int size() const
     {
-        size_t pout;
+        int pout;
         call(&migraphx_shapes_size, &pout, this->get_handle_ptr());
         return pout;
     }
 
-    shape operator[](size_t pidx) const
+    shape operator[](int pidx) const
     {
         const_migraphx_shape_t pout;
         call(&migraphx_shapes_get, &pout, this->get_handle_ptr(), pidx);
@@ -476,7 +476,7 @@ struct shapes : MIGRAPHX_HANDLE_BASE(shapes), array_base<shapes>
     struct iterator_read
     {
         migraphx_shapes* self;
-        shape operator()(size_t pidx) const
+        shape operator()(int pidx) const
         {
             const_migraphx_shape_t pout;
             call(&migraphx_shapes_get, &pout, self, pidx);
@@ -661,7 +661,7 @@ struct onnx_options : MIGRAPHX_HANDLE_BASE(onnx_options)
     onnx_options(migraphx_onnx_options* p, own) { this->set_handle(p, own{}); }
 
     /// Make onnx parser treat an inputs with a certain dimensions
-    void set_input_parameter_shape(const std::string& name, std::vector<std::size_t> dim)
+    void set_input_parameter_shape(const std::string& name, std::vector<int> dim)
     {
         call(&migraphx_onnx_options_set_input_parameter_shape,
              this->get_handle_ptr(),
@@ -700,7 +700,7 @@ inline program parse_onnx(const char* filename)
 
 /// Parse a buffer of memory as an onnx file
 inline program
-parse_onnx_buffer(const void* data, size_t size, const migraphx::onnx_options& options)
+parse_onnx_buffer(const void* data, int size, const migraphx::onnx_options& options)
 {
     return program(
         make<migraphx_program>(&migraphx_parse_onnx_buffer, data, size, options.get_handle_ptr()),
@@ -708,7 +708,7 @@ parse_onnx_buffer(const void* data, size_t size, const migraphx::onnx_options& o
 }
 
 /// Parse a buffer of memory as an onnx file
-inline program parse_onnx_buffer(const void* data, size_t size)
+inline program parse_onnx_buffer(const void* data, int size)
 {
     migraphx::onnx_options options;
     return program(
@@ -743,7 +743,7 @@ struct tf_options : MIGRAPHX_HANDLE_BASE(tf_options)
     tf_options(migraphx_tf_options* p, own) { this->set_handle(p, own{}); }
 
     /// Make tf parser treat an inputs with a certain dimensions
-    void set_input_parameter_shape(const std::string& name, std::vector<std::size_t> dim)
+    void set_input_parameter_shape(const std::string& name, std::vector<int> dim)
     {
         call(&migraphx_tf_options_set_input_parameter_shape,
              this->get_handle_ptr(),

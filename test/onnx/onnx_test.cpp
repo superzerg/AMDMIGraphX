@@ -499,7 +499,7 @@ TEST_CASE(constant_fill_input_as_shape_test)
     migraphx::program p;
     auto* mm = p.get_main_module();
     auto l0  = mm->add_literal(migraphx::literal{{migraphx::shape::int32_type, {2}}, {2, 3}});
-    std::vector<std::size_t> dims(l0->get_shape().elements());
+    std::vector<int> dims(l0->get_shape().elements());
     migraphx::literal ls = l0->get_literal();
     ls.visit([&](auto s) { dims.assign(s.begin(), s.end()); });
     migraphx::shape s{migraphx::shape::float_type, dims};
@@ -997,7 +997,7 @@ TEST_CASE(spacetodepth_simple_test)
 
 TEST_CASE(spacetodepth_invalid_blocksize)
 {
-    EXPECT(test::throws([&] { migraphx::parse_onnx("spacetodepth_invalid_blocksize_test.onnx"); }));
+    EXPECT(test::throws([&] { migraphx::parse_onnx("spacetodepth_invalid_blockintest.onnx"); }));
 }
 
 TEST_CASE(spacetodepth_nondivisibility_test)
@@ -1053,7 +1053,7 @@ TEST_CASE(dequantizelinear_zero_point_test)
 migraphx::program make_dequantizelinear_axis_prog()
 {
     migraphx::program p;
-    std::vector<size_t> input_lens{1, 1, 5, 1};
+    std::vector<int> input_lens{1, 1, 5, 1};
     int axis      = 2;
     auto* mm      = p.get_main_module();
     auto l0       = mm->add_parameter("0", {migraphx::shape::int8_type, input_lens});
@@ -1426,7 +1426,7 @@ TEST_CASE(gemm_ex_brcst_test)
     auto l0  = mm->add_parameter("1", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 6}});
     auto l1  = mm->add_parameter("2", migraphx::shape{migraphx::shape::float_type, {1, 1, 5, 7}});
     auto l2  = mm->add_parameter("3", migraphx::shape{migraphx::shape::float_type, {1, 1, 6, 1}});
-    std::vector<std::size_t> out_lens{1, 1, 6, 7};
+    std::vector<int> out_lens{1, 1, 6, 7};
     auto alpha = 0.5f;
     auto beta  = 0.8f;
     auto a_l   = mm->add_literal(alpha);
@@ -1459,7 +1459,7 @@ TEST_CASE(gemm_half_test)
     t_a        = mm->add_instruction(
         migraphx::make_op("convert", {{"target_type", migraphx::shape::half_type}}), t_a);
     t_a = mm->add_instruction(migraphx::make_op("transpose", {{"permutation", {0, 1, 3, 2}}}), t_a);
-    std::vector<std::size_t> lens = {1, 1, 6, 7};
+    std::vector<int> lens = {1, 1, 6, 7};
     auto dot = migraphx::add_apply_alpha_beta(*mm, {t_a, l1}, migraphx::make_op("dot"), 1.0f, 0.0f);
     l2       = mm->add_instruction(migraphx::make_op("multibroadcast", {{"out_lens", lens}}), l2);
     l2       = mm->add_instruction(
@@ -1585,7 +1585,7 @@ TEST_CASE(hardsigmoid_default_test)
 {
     migraphx::program p;
     auto* mm = p.get_main_module();
-    std::vector<std::size_t> input_lens{1, 3, 4, 5};
+    std::vector<int> input_lens{1, 3, 4, 5};
     auto input_type = migraphx::shape::float_type;
     migraphx::shape s{input_type, input_lens};
     auto x = mm->add_parameter("x", s);
@@ -1618,7 +1618,7 @@ TEST_CASE(hardsigmoid_double_test)
 {
     migraphx::program p;
     auto* mm = p.get_main_module();
-    std::vector<std::size_t> input_lens{1, 3, 4, 5};
+    std::vector<int> input_lens{1, 3, 4, 5};
     auto input_type = migraphx::shape::double_type;
     migraphx::shape s{input_type, input_lens};
     auto x = mm->add_parameter("x", s);
@@ -1651,7 +1651,7 @@ TEST_CASE(hardsigmoid_half_test)
 {
     migraphx::program p;
     auto* mm = p.get_main_module();
-    std::vector<std::size_t> input_lens{1, 3, 4, 5};
+    std::vector<int> input_lens{1, 3, 4, 5};
     auto input_type = migraphx::shape::half_type;
     migraphx::shape s{input_type, input_lens};
     auto x = mm->add_parameter("x", s);
@@ -1684,7 +1684,7 @@ TEST_CASE(hardswish_test)
 {
     migraphx::program p;
     auto* mm = p.get_main_module();
-    std::vector<std::size_t> input_lens{2, 5};
+    std::vector<int> input_lens{2, 5};
     auto input_type = migraphx::shape::float_type;
     migraphx::shape s{input_type, input_lens};
     auto x = mm->add_parameter("x", s);
@@ -2051,7 +2051,7 @@ TEST_CASE(initializer_not_an_input)
 
 TEST_CASE(instance_norm_test)
 {
-    std::vector<size_t> dims{1, 2, 3, 3};
+    std::vector<int> dims{1, 2, 3, 3};
     migraphx::shape s1{migraphx::shape::float_type, dims};
     migraphx::shape s2{migraphx::shape::float_type, {2}};
 
@@ -2511,7 +2511,7 @@ TEST_CASE(mean_single_input_test)
 
 TEST_CASE(mean_test)
 {
-    const std::size_t num_data = 3;
+    const int num_data = 3;
     migraphx::program p;
     auto* mm = p.get_main_module();
     migraphx::shape s{migraphx::shape::half_type, {1, 2, 3}};
@@ -2553,7 +2553,7 @@ TEST_CASE(multinomial_test)
 {
     migraphx::program p;
     auto* mm           = p.get_main_module();
-    size_t sample_size = 10;
+    int sample_size = 10;
     float seed         = 0.0f;
 
     auto input = mm->add_parameter("input", migraphx::shape{migraphx::shape::float_type, {1, 10}});
@@ -2596,7 +2596,7 @@ TEST_CASE(multinomial_int64_test)
 {
     migraphx::program p;
     auto* mm                      = p.get_main_module();
-    size_t sample_size            = 10;
+    int sample_size            = 10;
     float seed                    = 1.0f;
     migraphx::shape::type_t dtype = migraphx::shape::type_t::int64_type;
 
@@ -3019,7 +3019,7 @@ TEST_CASE(quantizelinear_zero_point_test)
 migraphx::program make_quantizelinear_axis_prog()
 {
     migraphx::program p;
-    std::vector<size_t> input_lens{1, 1, 5, 1};
+    std::vector<int> input_lens{1, 1, 5, 1};
     int axis = 2;
     auto* mm = p.get_main_module();
 
@@ -3586,7 +3586,7 @@ TEST_CASE(resize_downsample_linear_test)
     EXPECT(p == prog);
 }
 
-TEST_CASE(resize_outsize_test)
+TEST_CASE(resize_outintest)
 {
     migraphx::program p;
     auto* mm = p.get_main_module();
@@ -3608,7 +3608,7 @@ TEST_CASE(resize_outsize_test)
     auto r    = mm->add_instruction(migraphx::make_op("gather", {{"axis", 0}}), lrsp, li);
     mm->add_return({r});
 
-    auto prog = migraphx::parse_onnx("resize_outsize_test.onnx");
+    auto prog = migraphx::parse_onnx("resize_outintest.onnx");
 
     EXPECT(p == prog);
 }
@@ -3974,7 +3974,7 @@ TEST_CASE(selu_test)
 {
     migraphx::program p;
     auto* mm                      = p.get_main_module();
-    std::vector<std::size_t> lens = {2, 3};
+    std::vector<int> lens = {2, 3};
     migraphx::shape s{migraphx::shape::double_type, lens};
     auto x = mm->add_parameter("x", s);
 
@@ -4203,7 +4203,7 @@ TEST_CASE(softplus_test)
     migraphx::program p;
     auto* mm = p.get_main_module();
 
-    std::vector<std::size_t> input_lens{5};
+    std::vector<int> input_lens{5};
     auto input_type = migraphx::shape::float_type;
 
     auto x = mm->add_parameter("x", migraphx::shape{input_type, input_lens});
@@ -4223,7 +4223,7 @@ TEST_CASE(softplus_nd_test)
     migraphx::program p;
     auto* mm = p.get_main_module();
 
-    std::vector<std::size_t> input_lens{3, 4, 5};
+    std::vector<int> input_lens{3, 4, 5};
     auto input_type = migraphx::shape::half_type;
 
     auto x = mm->add_parameter("x", migraphx::shape{input_type, input_lens});
@@ -4243,7 +4243,7 @@ TEST_CASE(softsign_test)
     migraphx::program p;
     auto* mm = p.get_main_module();
 
-    std::vector<std::size_t> input_lens{5};
+    std::vector<int> input_lens{5};
     auto input_type = migraphx::shape::float_type;
 
     auto x = mm->add_parameter("x", migraphx::shape{input_type, input_lens});
@@ -4263,7 +4263,7 @@ TEST_CASE(softsign_nd_test)
     migraphx::program p;
     auto* mm = p.get_main_module();
 
-    std::vector<std::size_t> input_lens{3, 4, 5};
+    std::vector<int> input_lens{3, 4, 5};
     auto input_type = migraphx::shape::half_type;
 
     auto x = mm->add_parameter("x", migraphx::shape{input_type, input_lens});

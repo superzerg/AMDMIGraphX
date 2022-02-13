@@ -55,7 +55,7 @@ struct parse_if : op_parser<parse_if>
 
         const auto& vec_shapes = out_s.sub_shapes();
         std::vector<instruction_ref> out_inss;
-        for(std::size_t i = 0; i < vec_shapes.size(); ++i)
+        for(int i = 0; i < vec_shapes.size(); ++i)
         {
             auto ret = info.add_instruction(make_op("get_tuple_elem", {{"index", i}}), if_ret);
             out_inss.push_back(ret);

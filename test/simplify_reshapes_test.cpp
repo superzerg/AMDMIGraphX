@@ -442,7 +442,7 @@ TEST_CASE(multibroadcast_simplify)
 {
     migraphx::module m;
 
-    std::vector<size_t> s_lens{1, 2, 3, 4};
+    std::vector<int> s_lens{1, 2, 3, 4};
     auto s = migraphx::shape{migraphx::shape::float_type, s_lens};
     auto x = m.add_parameter("x", s);
     auto y = m.add_instruction(migraphx::make_op("multibroadcast", {{"out_lens", s_lens}}), x);

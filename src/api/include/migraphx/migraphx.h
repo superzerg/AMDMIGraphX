@@ -94,23 +94,23 @@ migraphx_status migraphx_shape_destroy(migraphx_shape_t shape);
 migraphx_status migraphx_shape_create(migraphx_shape_t* shape,
                                       migraphx_shape_datatype_t type,
                                       size_t* lengths,
-                                      size_t lengths_size);
+                                      int lengths_size);
 
 migraphx_status migraphx_shape_create_with_strides(migraphx_shape_t* shape,
                                                    migraphx_shape_datatype_t type,
                                                    size_t* lengths,
-                                                   size_t lengths_size,
+                                                   int lengths_size,
                                                    size_t* strides,
-                                                   size_t strides_size);
+                                                   int strides_size);
 
 migraphx_status migraphx_shape_create_scalar(migraphx_shape_t* shape,
                                              migraphx_shape_datatype_t type);
 
 migraphx_status
-migraphx_shape_lengths(const size_t** out, size_t* out_size, const_migraphx_shape_t shape);
+migraphx_shape_lengths(const int** out, int* out_size, const_migraphx_shape_t shape);
 
 migraphx_status
-migraphx_shape_strides(const size_t** out, size_t* out_size, const_migraphx_shape_t shape);
+migraphx_shape_strides(const int** out, int* out_size, const_migraphx_shape_t shape);
 
 migraphx_status migraphx_shape_type(migraphx_shape_datatype_t* out, const_migraphx_shape_t shape);
 
@@ -212,7 +212,7 @@ migraphx_status migraphx_operation_create(migraphx_operation_t* operation,
                                           const char* attributes,
                                           ...);
 
-migraphx_status migraphx_operation_name(char* out, size_t out_size, migraphx_operation_t operation);
+migraphx_status migraphx_operation_name(char* out, int out_size, migraphx_operation_t operation);
 
 migraphx_status
 migraphx_load(migraphx_program_t* out, const char* name, migraphx_file_options_t options);
@@ -225,7 +225,7 @@ migraphx_status migraphx_onnx_options_destroy(migraphx_onnx_options_t onnx_optio
 migraphx_status migraphx_onnx_options_create(migraphx_onnx_options_t* onnx_options);
 
 migraphx_status migraphx_onnx_options_set_input_parameter_shape(
-    migraphx_onnx_options_t onnx_options, const char* name, size_t* dims, size_t dims_size);
+    migraphx_onnx_options_t onnx_options, const char* name, size_t* dims, int dims_size);
 
 migraphx_status migraphx_onnx_options_set_default_dim_value(migraphx_onnx_options_t onnx_options,
                                                             size_t value);
@@ -267,15 +267,15 @@ migraphx_status migraphx_tf_options_set_nhwc(migraphx_tf_options_t tf_options, b
 
 migraphx_status migraphx_tf_options_set_input_parameter_shape(migraphx_tf_options_t tf_options,
                                                               const char* name,
-                                                              size_t* dims,
-                                                              size_t dims_size);
+                                                              int* dims,
+                                                              int dims_size);
 
 migraphx_status migraphx_tf_options_set_default_dim_value(migraphx_tf_options_t tf_options,
                                                           size_t value);
 
 migraphx_status migraphx_tf_options_set_output_names(migraphx_tf_options_t tf_options,
                                                      const char** names,
-                                                     size_t names_size);
+                                                     int names_size);
 
 migraphx_status
 migraphx_parse_tf(migraphx_program_t* out, const char* name, migraphx_tf_options_t options);

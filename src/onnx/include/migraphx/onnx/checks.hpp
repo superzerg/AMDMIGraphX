@@ -10,7 +10,7 @@ inline namespace MIGRAPHX_INLINE_NS {
 namespace onnx {
 
 void check_arg_empty(const argument& arg, const std::string& msg);
-void check_attr_sizes(size_t kdims, size_t attr_size, const std::string& error_msg);
+void check_attr_sizes(int kdims, int attr_size, const std::string& error_msg);
 
 } // namespace onnx
 } // namespace MIGRAPHX_INLINE_NS

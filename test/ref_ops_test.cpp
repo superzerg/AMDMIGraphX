@@ -622,10 +622,10 @@ TEST_CASE(batch_norm_inference_test)
 {
     migraphx::program p;
     auto* mm                 = p.get_main_module();
-    const size_t width       = 2;
-    const size_t height      = 2;
-    const size_t channels    = 4;
-    const size_t batches     = 2;
+    const int width       = 2;
+    const int height      = 2;
+    const int channels    = 4;
+    const int batches     = 2;
     const float x_val        = 8.0;
     const float mean_val     = 2.0;
     const float variance_val = 4.0;
@@ -748,9 +748,9 @@ TEST_CASE(concat_test)
         std::vector<int> results_vector(2 * 6);
         result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
         EXPECT(migraphx::verify_range(results_vector, gold));
-        EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<std::size_t>({2, 6})));
+        EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<int>({2, 6})));
         EXPECT(
-            migraphx::verify_range(result.get_shape().strides(), std::vector<std::size_t>({6, 1})));
+            migraphx::verify_range(result.get_shape().strides(), std::vector<int>({6, 1})));
     }
 
     {
@@ -773,9 +773,9 @@ TEST_CASE(concat_test)
         std::vector<int> results_vector(2 * 6);
         result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
         EXPECT(migraphx::verify_range(results_vector, gold));
-        EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<std::size_t>({2, 6})));
+        EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<int>({2, 6})));
         EXPECT(
-            migraphx::verify_range(result.get_shape().strides(), std::vector<std::size_t>({6, 1})));
+            migraphx::verify_range(result.get_shape().strides(), std::vector<int>({6, 1})));
     }
 
     {
@@ -798,9 +798,9 @@ TEST_CASE(concat_test)
         std::vector<int> results_vector(6 * 2);
         result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
         EXPECT(migraphx::verify_range(results_vector, gold));
-        EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<std::size_t>({6, 2})));
+        EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<int>({6, 2})));
         EXPECT(
-            migraphx::verify_range(result.get_shape().strides(), std::vector<std::size_t>({2, 1})));
+            migraphx::verify_range(result.get_shape().strides(), std::vector<int>({2, 1})));
     }
 
     {
@@ -823,9 +823,9 @@ TEST_CASE(concat_test)
         std::vector<int> results_vector(6 * 2);
         result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
         EXPECT(migraphx::verify_range(results_vector, gold));
-        EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<std::size_t>({6, 2})));
+        EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<int>({6, 2})));
         EXPECT(
-            migraphx::verify_range(result.get_shape().strides(), std::vector<std::size_t>({2, 1})));
+            migraphx::verify_range(result.get_shape().strides(), std::vector<int>({2, 1})));
     }
 }
 
@@ -844,8 +844,8 @@ TEST_CASE(contiguous_test)
 
     std::vector<float> results_vector(12);
     result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
-    std::vector<size_t> new_lens    = {1, 3, 2, 2};
-    std::vector<size_t> new_strides = {12, 1, 6, 3};
+    std::vector<int> new_lens    = {1, 3, 2, 2};
+    std::vector<int> new_strides = {12, 1, 6, 3};
     EXPECT(migraphx::verify_range(results_vector, data));
 }
 
@@ -1948,12 +1948,12 @@ TEST_CASE(if_pl_test)
 
 TEST_CASE(im2col_3x3_no_pad_identity_test)
 {
-    std::size_t f[2]    = {3, 3};
-    std::size_t size[2] = {3, 3};
-    std::vector<std::size_t> padding{0, 0};
-    std::vector<std::size_t> stride{1, 1};
-    std::vector<std::size_t> dilation{1, 1};
-    std::size_t channels = 1;
+    int f[2]    = {3, 3};
+    int size[2] = {3, 3};
+    std::vector<int> padding{0, 0};
+    std::vector<int> stride{1, 1};
+    std::vector<int> dilation{1, 1};
+    int channels = 1;
 
     std::vector<int32_t> weights(channels * f[0] * f[1]);
     std::vector<int32_t> input(channels * size[0] * size[1]);
@@ -1973,8 +1973,8 @@ TEST_CASE(im2col_3x3_no_pad_identity_test)
     p.compile(migraphx::ref::target{});
     auto result = p.eval({}).back();
 
-    std::size_t col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
-    std::size_t col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
+    int col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
+    int col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
     std::vector<float> results_vector(channels * f[0] * f[1] * col_height * col_width);
     result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
     EXPECT(migraphx::verify_range(results_vector, input));
@@ -1982,12 +1982,12 @@ TEST_CASE(im2col_3x3_no_pad_identity_test)
 
 TEST_CASE(im2col_3x3_no_pad_test)
 {
-    std::size_t f[2]    = {3, 3};
-    std::size_t size[2] = {4, 4};
-    std::vector<std::size_t> padding{0, 0};
-    std::vector<std::size_t> stride{1, 1};
-    std::vector<std::size_t> dilation{1, 1};
-    std::size_t channels = 1;
+    int f[2]    = {3, 3};
+    int size[2] = {4, 4};
+    std::vector<int> padding{0, 0};
+    std::vector<int> stride{1, 1};
+    std::vector<int> dilation{1, 1};
+    int channels = 1;
 
     std::vector<int32_t> weights(channels * f[0] * f[1]);
     std::vector<int32_t> input(channels * size[0] * size[1]);
@@ -2010,8 +2010,8 @@ TEST_CASE(im2col_3x3_no_pad_test)
     std::vector<int> correct = {0, 1, 2, 4, 5, 6,  8,  9,  10, 1, 2, 3, 5, 6,  7,  9,  10, 11,
                                 4, 5, 6, 8, 9, 10, 12, 13, 14, 5, 6, 7, 9, 10, 11, 13, 14, 15};
 
-    std::size_t col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
-    std::size_t col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
+    int col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
+    int col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
     std::vector<float> results_vector(channels * f[0] * f[1] * col_height * col_width);
     result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
     EXPECT(migraphx::verify_range(results_vector, correct));
@@ -2019,12 +2019,12 @@ TEST_CASE(im2col_3x3_no_pad_test)
 
 TEST_CASE(im2col_3x3_stride_2_no_pad_test)
 {
-    std::size_t f[2]    = {3, 3};
-    std::size_t size[2] = {6, 6};
-    std::vector<std::size_t> padding{0, 0};
-    std::vector<std::size_t> stride{2, 2};
-    std::vector<std::size_t> dilation{1, 1};
-    std::size_t channels = 1;
+    int f[2]    = {3, 3};
+    int size[2] = {6, 6};
+    std::vector<int> padding{0, 0};
+    std::vector<int> stride{2, 2};
+    std::vector<int> dilation{1, 1};
+    int channels = 1;
 
     std::vector<int32_t> weights(channels * f[0] * f[1]);
     std::vector<int32_t> input(channels * size[0] * size[1]);
@@ -2048,8 +2048,8 @@ TEST_CASE(im2col_3x3_stride_2_no_pad_test)
                                 8,  9,  10, 14, 15, 16, 12, 13, 14, 18, 19, 20,
                                 24, 25, 26, 14, 15, 16, 20, 21, 22, 26, 27, 28};
 
-    std::size_t col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
-    std::size_t col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
+    int col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
+    int col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
     std::vector<float> results_vector(channels * f[0] * f[1] * col_height * col_width);
     result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
     EXPECT(migraphx::verify_range(results_vector, correct));
@@ -2057,12 +2057,12 @@ TEST_CASE(im2col_3x3_stride_2_no_pad_test)
 
 TEST_CASE(im2col_3x3_with_channels_identity_test)
 {
-    std::size_t f[2]    = {3, 3};
-    std::size_t size[2] = {3, 3};
-    std::vector<std::size_t> padding{0, 0};
-    std::vector<std::size_t> stride{1, 1};
-    std::vector<std::size_t> dilation{1, 1};
-    std::size_t channels = 2;
+    int f[2]    = {3, 3};
+    int size[2] = {3, 3};
+    std::vector<int> padding{0, 0};
+    std::vector<int> stride{1, 1};
+    std::vector<int> dilation{1, 1};
+    int channels = 2;
 
     std::vector<int32_t> weights(channels * f[0] * f[1]);
     std::vector<int32_t> input(channels * size[0] * size[1]);
@@ -2082,8 +2082,8 @@ TEST_CASE(im2col_3x3_with_channels_identity_test)
     p.compile(migraphx::ref::target{});
     auto result = p.eval({}).back();
 
-    std::size_t col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
-    std::size_t col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
+    int col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
+    int col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
     std::vector<float> results_vector(channels * f[0] * f[1] * col_height * col_width);
     result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
     EXPECT(migraphx::verify_range(results_vector, input));
@@ -2091,12 +2091,12 @@ TEST_CASE(im2col_3x3_with_channels_identity_test)
 
 TEST_CASE(im2col_3x3_with_padding_test)
 {
-    std::size_t f[2]    = {3, 3};
-    std::size_t size[2] = {2, 2};
-    std::vector<std::size_t> padding{1, 1};
-    std::vector<std::size_t> stride{1, 1};
-    std::vector<std::size_t> dilation{1, 1};
-    std::size_t channels = 1;
+    int f[2]    = {3, 3};
+    int size[2] = {2, 2};
+    std::vector<int> padding{1, 1};
+    std::vector<int> stride{1, 1};
+    std::vector<int> dilation{1, 1};
+    int channels = 1;
 
     std::vector<int32_t> weights(channels * f[0] * f[1]);
     std::vector<int32_t> input(channels * size[0] * size[1]);
@@ -2119,8 +2119,8 @@ TEST_CASE(im2col_3x3_with_padding_test)
     std::vector<int> correct = {0, 0, 0, 0, 0, 1, 0, 2, 3, 0, 0, 0, 0, 1, 0, 2, 3, 0,
                                 0, 0, 1, 0, 2, 3, 0, 0, 0, 0, 1, 0, 2, 3, 0, 0, 0, 0};
 
-    std::size_t col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
-    std::size_t col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
+    int col_height = (size[0] - f[0] + 2 * padding[0]) / stride[0] + 1;
+    int col_width  = (size[1] - f[1] + 2 * padding[1]) / stride[1] + 1;
     std::vector<float> results_vector(channels * f[0] * f[1] * col_height * col_width);
     result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
     EXPECT(migraphx::verify_range(results_vector, correct));
@@ -2717,7 +2717,7 @@ TEST_CASE(multinomial_test)
     migraphx::program p;
     auto* mm = p.get_main_module();
 
-    size_t sample_size = 100000;
+    int sample_size = 100000;
     float seed         = 0.0f;
     std::mt19937 gen(seed);
     std::uniform_real_distribution<> dis(0.0, 1.0);
@@ -4636,7 +4636,7 @@ TEST_CASE(transpose_test)
         auto result = p.eval({}).back();
 
         result.visit([&](auto output) {
-            std::vector<size_t> new_lens = {1, 3, 2, 2};
+            std::vector<int> new_lens = {1, 3, 2, 2};
             EXPECT(bool{output.get_shape().lens() == new_lens});
         });
     }

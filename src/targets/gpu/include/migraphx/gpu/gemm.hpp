@@ -89,13 +89,13 @@ struct rocblas_gemm
         return args.back();
     }
 
-    void batch_not_transposed(const std::vector<std::size_t>& strides) const
+    void batch_not_transposed(const std::vector<int>& strides) const
     {
         if(strides.size() <= 2)
             return;
         auto dim_0       = strides.size() - 2;
         auto matrix_size = std::max(strides[dim_0], strides[dim_0 + 1]);
-        std::vector<std::size_t> batch(strides.begin(), strides.begin() + dim_0);
+        std::vector<int> batch(strides.begin(), strides.begin() + dim_0);
         if(std::all_of(batch.begin(), batch.end(), [&](auto i) { return (i < matrix_size); }))
         {
             MIGRAPHX_THROW("GPU_GEMM: matrix size and batch size {" + to_string_range(strides) +

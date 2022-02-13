@@ -48,7 +48,7 @@ struct raw_data : raw_data_base
      * @param n The index to read from
      */
     template <class Visitor>
-    void visit_at(Visitor v, std::size_t n = 0) const
+    void visit_at(Visitor v, int n = 0) const
     {
         auto&& derived = static_cast<const Derived&>(*this);
         if(derived.empty())
@@ -96,7 +96,7 @@ struct raw_data : raw_data_base
      * @return The element as `T`
      */
     template <class T>
-    T at(std::size_t n = 0) const
+    T at(int n = 0) const
     {
         T result;
         this->visit_at([&](auto x) { result = x; }, n);

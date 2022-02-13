@@ -15,7 +15,7 @@ struct src_file
 {
     fs::path path;
     std::pair<const char*, const char*> content;
-    std::size_t len() const { return content.second - content.first; }
+    int len() const { return content.second - content.first; }
 };
 
 struct src_compiler

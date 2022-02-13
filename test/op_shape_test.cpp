@@ -60,7 +60,7 @@ void throws_shape(const migraphx::shape&, Ts...)
 
 TEST_CASE(batch_norm_inference_shape)
 {
-    const size_t channels = 3;
+    const int channels = 3;
     migraphx::shape s{migraphx::shape::float_type, {4, channels, 3, 3}};
     migraphx::shape vars{migraphx::shape::float_type, {channels}};
     expect_shape(s, migraphx::make_op("batch_norm_inference"), s, vars, vars, vars, vars);
@@ -71,7 +71,7 @@ TEST_CASE(batch_norm_inference_shape)
 TEST_CASE(broadcast)
 {
     {
-        std::vector<std::size_t> lens{1, 1};
+        std::vector<int> lens{1, 1};
         migraphx::shape input{migraphx::shape::float_type, {1}, {0}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, {1, 1}, {0, 0}},
                      migraphx::make_op("broadcast", {{"axis", 0}, {"out_lens", lens}}),
@@ -79,19 +79,19 @@ TEST_CASE(broadcast)
     }
 
     {
-        std::vector<std::size_t> lens{1, 1};
+        std::vector<int> lens{1, 1};
         migraphx::shape input{migraphx::shape::float_type, {2}};
         throws_shape(migraphx::op::broadcast{1, lens}, input);
     }
 
     {
-        std::vector<std::size_t> lens{2, 2};
+        std::vector<int> lens{2, 2};
         migraphx::shape input{migraphx::shape::float_type, {1, 2}};
         throws_shape(migraphx::op::broadcast{1, lens}, input);
     }
 
     {
-        std::vector<std::size_t> lens{3, 2, 4, 3};
+        std::vector<int> lens{3, 2, 4, 3};
         migraphx::shape input{migraphx::shape::float_type, {4, 3}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, {3, 2, 4, 3}, {0, 0, 3, 1}},
                      migraphx::make_op("broadcast", {{"axis", 2}, {"out_lens", lens}}),
@@ -99,7 +99,7 @@ TEST_CASE(broadcast)
     }
 
     {
-        std::vector<std::size_t> lens{3, 2, 4, 3};
+        std::vector<int> lens{3, 2, 4, 3};
         migraphx::shape input{migraphx::shape::float_type, {4, 4}};
         throws_shape(migraphx::make_op("broadcast", {{"axis", 2}, {"out_lens", lens}}), input);
     }
@@ -366,11 +366,11 @@ TEST_CASE(get_tuple_elem_test)
 TEST_CASE(gru)
 {
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -399,11 +399,11 @@ TEST_CASE(gru)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -432,11 +432,11 @@ TEST_CASE(gru)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 2;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 2;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -465,11 +465,11 @@ TEST_CASE(gru)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -496,11 +496,11 @@ TEST_CASE(gru)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -527,11 +527,11 @@ TEST_CASE(gru)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 2;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 2;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -610,11 +610,11 @@ TEST_CASE(logsoftmax) { test_softmax_variations<migraphx::op::logsoftmax>(); }
 TEST_CASE(lstm)
 {
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -639,11 +639,11 @@ TEST_CASE(lstm)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -672,11 +672,11 @@ TEST_CASE(lstm)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 2;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 2;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -705,11 +705,11 @@ TEST_CASE(lstm)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -736,11 +736,11 @@ TEST_CASE(lstm)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -767,11 +767,11 @@ TEST_CASE(lstm)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 2;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 2;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -901,71 +901,71 @@ TEST_CASE(matmul)
 TEST_CASE(multibroadcast)
 {
     {
-        std::vector<std::size_t> lens{4, 2, 5, 3};
+        std::vector<int> lens{4, 2, 5, 3};
         migraphx::shape input{migraphx::shape::float_type, {2, 1, 3}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, lens, {0, 3, 0, 1}},
                      migraphx::make_op("multibroadcast", {{"out_lens", lens}}),
                      input);
     }
     {
-        std::vector<std::size_t> lens{4, 2, 5, 3};
+        std::vector<int> lens{4, 2, 5, 3};
         migraphx::shape input{migraphx::shape::float_type, {2, 1, 1}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, lens, {0, 1, 0, 0}},
                      migraphx::make_op("multibroadcast", {{"out_lens", lens}}),
                      input);
     }
     {
-        std::vector<std::size_t> lens{4, 2, 5, 3};
+        std::vector<int> lens{4, 2, 5, 3};
         migraphx::shape input{migraphx::shape::float_type, {5, 1}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, lens, {0, 0, 1, 0}},
                      migraphx::make_op("multibroadcast", {{"out_lens", lens}}),
                      input);
     }
     {
-        std::vector<std::size_t> lens{4, 2, 5, 3};
+        std::vector<int> lens{4, 2, 5, 3};
         migraphx::shape input{migraphx::shape::float_type, {4, 1, 1, 1}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, lens, {1, 0, 0, 0}},
                      migraphx::make_op("multibroadcast", {{"out_lens", lens}}),
                      input);
     }
     {
-        std::vector<std::size_t> lens{4, 2, 5, 3};
+        std::vector<int> lens{4, 2, 5, 3};
         migraphx::shape input{migraphx::shape::float_type, {3}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, lens, {0, 0, 0, 1}},
                      migraphx::make_op("multibroadcast", {{"out_lens", lens}}),
                      input);
     }
     {
-        std::vector<std::size_t> lens{4, 4, 1, 3};
+        std::vector<int> lens{4, 4, 1, 3};
         migraphx::shape input{migraphx::shape::float_type, {4, 1, 3}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, lens, {0, 3, 3, 1}},
                      migraphx::make_op("multibroadcast", {{"out_lens", lens}}),
                      input);
     }
     {
-        std::vector<std::size_t> lens{4, 1, 1, 3};
+        std::vector<int> lens{4, 1, 1, 3};
         migraphx::shape input{migraphx::shape::float_type, {4, 1, 1, 1}};
         expect_shape(migraphx::shape{migraphx::shape::float_type, lens, {1, 1, 1, 0}},
                      migraphx::make_op("multibroadcast", {{"out_lens", lens}}),
                      input);
     }
     {
-        std::vector<std::size_t> lens{4, 1, 3};
+        std::vector<int> lens{4, 1, 3};
         migraphx::shape input{migraphx::shape::float_type, {4, 1, 1, 1}};
         throws_shape(migraphx::make_op("multibroadcast", {{"out_lens", lens}}), input);
     }
     {
-        std::vector<std::size_t> lens{4, 1, 3};
+        std::vector<int> lens{4, 1, 3};
         migraphx::shape input{migraphx::shape::float_type, {}};
         throws_shape(migraphx::make_op("multibroadcast", {{"out_lens", lens}}), input);
     }
     {
-        std::vector<std::size_t> lens{2, 3, 4, 5};
+        std::vector<int> lens{2, 3, 4, 5};
         migraphx::shape input{migraphx::shape::float_type, {3, 4}};
         throws_shape(migraphx::make_op("multibroadcast", {{"out_lens", lens}}), input);
     }
     {
-        std::vector<std::size_t> lens{2, 3, 4, 5};
+        std::vector<int> lens{2, 3, 4, 5};
         migraphx::shape input{migraphx::shape::float_type, {2, 3, 4}};
         throws_shape(migraphx::make_op("multibroadcast", {{"out_lens", lens}}), input);
     }
@@ -1118,7 +1118,7 @@ TEST_CASE(reshape_shape)
     for(auto&& new_shape :
         std::vector<std::vector<int64_t>>{{8, 3, 1, 1}, {1, 3, 4, 2}, {1, 3, 4, 2}})
     {
-        std::vector<std::size_t> lens(new_shape.size());
+        std::vector<int> lens(new_shape.size());
         std::copy(new_shape.begin(), new_shape.end(), lens.begin());
         migraphx::shape output{migraphx::shape::float_type, lens};
         expect_shape(output, migraphx::make_op("reshape", {{"dims", new_shape}}), input);
@@ -1150,11 +1150,11 @@ TEST_CASE(reshape_shape)
 TEST_CASE(rnn)
 {
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -1181,11 +1181,11 @@ TEST_CASE(rnn)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -1212,11 +1212,11 @@ TEST_CASE(rnn)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 2;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 2;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -1243,11 +1243,11 @@ TEST_CASE(rnn)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -1272,11 +1272,11 @@ TEST_CASE(rnn)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 1;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 1;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};
@@ -1301,11 +1301,11 @@ TEST_CASE(rnn)
     }
 
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 2;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 2;
+        int batch_size  = 2;
+        int seq_len     = 2;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 2;
         float clip              = 0.0f;
 
         migraphx::shape in_shape{migraphx::shape::float_type, {seq_len, batch_size, input_size}};

@@ -18,7 +18,7 @@ struct dnnl_concat : dnnl_extend_op<dnnl_concat, dnnl::concat, op::concat>
     struct desc
     {
         dnnl::memory::desc dst;
-        std::size_t axis = 1;
+        int axis = 1;
         std::vector<dnnl::memory::desc> srcs;
     };
     desc get_desc(const std::unordered_map<int, dnnl::memory::desc>& m) const
@@ -30,7 +30,7 @@ struct dnnl_concat : dnnl_extend_op<dnnl_concat, dnnl::concat, op::concat>
         {
             srcs.push_back(m.at(MIGRAPHX_DNNL_PREFIX(ARG_MULTIPLE_SRC) + i));
         }
-        return {m.at(MIGRAPHX_DNNL_PREFIX(ARG_DST)), std::size_t(op.axis), srcs};
+        return {m.at(MIGRAPHX_DNNL_PREFIX(ARG_DST)), int(op.axis), srcs};
     }
 
     auto get_primitive_desc(const desc& d, const dnnl::primitive_attr& attr) const

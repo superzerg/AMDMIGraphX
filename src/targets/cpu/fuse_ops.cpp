@@ -98,7 +98,7 @@ struct find_post_ops
 
 void fuse_ops::apply(module& m) const
 {
-    for(std::size_t i = 0; i < 4; i++)
+    for(int i = 0; i < 4; i++)
     {
         match::find_matches(m, find_post_ops{ctx});
         dead_code_elimination{}.apply(m);

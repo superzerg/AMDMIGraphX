@@ -217,9 +217,9 @@ class Parameter:
         self.size_cparam = len(self.cparams)
         self.size_name = name or self.name + '_size'
         if self.returns:
-            self.add_param('size_t *', self.size_name)
+            self.add_param('int *', self.size_name)
         else:
-            self.add_param('size_t', self.size_name)
+            self.add_param('int', self.size_name)
 
     def bad_param(self, cond: str, msg: str) -> None:
         self.bad_param_check = BadParam(cond, msg)
@@ -325,7 +325,7 @@ class Function:
     def share_params(self) -> None:
         if self.shared_size == True:
             size_param_name = 'size'
-            size_type = Type('size_t')
+            size_type = Type('int')
             for param in self.params:
                 p = param.remove_size_param(size_param_name)
                 if p:
@@ -796,7 +796,7 @@ def string_c_wrap(p: Parameter) -> None:
             p.write = ['*${name} = ${result}.c_str()']
         else:
             p.add_param(t)
-            p.add_param('size_t', p.name + '_size')
+            p.add_param('int', p.name + '_size')
             p.bad_param('${name} == nullptr', 'Null pointer')
             p.cpp_write = '${type}(${name})'
             p.write = [

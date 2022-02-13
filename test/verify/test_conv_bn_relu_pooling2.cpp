@@ -7,7 +7,7 @@
 struct test_conv_bn_relu_pooling2 : verify_program<test_conv_bn_relu_pooling2>
 {
     static migraphx::instruction_ref
-    add_bn(migraphx::program& p, migraphx::instruction_ref x, std::size_t channels)
+    add_bn(migraphx::program& p, migraphx::instruction_ref x, int channels)
     {
         auto* mm = p.get_main_module();
         migraphx::shape vars{migraphx::shape::float_type, {channels}};

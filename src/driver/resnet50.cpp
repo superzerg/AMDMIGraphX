@@ -8,7 +8,7 @@ namespace migraphx {
 namespace driver {
 inline namespace MIGRAPHX_INLINE_NS {
 
-migraphx::program resnet50(unsigned batch) // NOLINT(readability-function-size)
+migraphx::program resnet50(int batch) // NOLINT(readability-function-size)
 {
     migraphx::program p;
     auto* mm = p.get_main_module();

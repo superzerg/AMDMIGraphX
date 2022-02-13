@@ -16,9 +16,9 @@ reverse(hipStream_t stream, argument result, argument arg1, const std::vector<in
 {
     auto s = arg1.get_shape();
     // auto lens             = s.lens();
-    std::vector<std::size_t> axis_len(axes.begin(), axes.end());
+    std::vector<int> axis_len(axes.begin(), axes.end());
     shape sa{shape::float_type, axis_len};
-    std::size_t nelements = s.elements();
+    int nelements = s.elements();
     visit_all(result, arg1)([&](auto output1, auto input1) {
         hip_visit_views(output1, input1, s)([&](auto output, auto input, auto hs) {
             hip_visit_views(sa)([&](auto daxes) {

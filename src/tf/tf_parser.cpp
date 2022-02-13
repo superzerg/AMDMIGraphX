@@ -82,7 +82,7 @@ instruction_ref tf_parser::node_info::add_broadcastable_binary_op(const std::str
     return add_common_op(*mm, make_op(op_name), {arg0, arg1});
 }
 
-int64_t tf_parser::parse_axis(const int64_t dim, const size_t num_dims) const
+int64_t tf_parser::parse_axis(const int64_t dim, const int num_dims) const
 {
     int64_t new_dim = dim;
     if(is_nhwc and num_dims >= 4)
@@ -111,11 +111,11 @@ instruction_ref tf_parser::node_info::add_literal(literal l) const
     return mm->add_literal(std::move(l));
 }
 
-std::vector<int64_t> get_axes_from_mask(const size_t num_axes, const uint32_t mask)
+std::vector<int64_t> get_axes_from_mask(const int num_axes, const uint32_t mask)
 {
     uint32_t bitwise_compare = 1;
     std::vector<int64_t> axes;
-    for(size_t i = 0; i < num_axes; i++)
+    for(int i = 0; i < num_axes; i++)
     {
         // the LSB corresponds to axis 0 when determining which axes to begin
         if(((mask >> i) & bitwise_compare) == 1)
@@ -165,9 +165,9 @@ static tf_parser::attribute_map get_attributes(const tensorflow::NodeDef& node)
     return result;
 }
 
-static std::vector<size_t> parse_dims(const tensorflow::TensorShapeProto& s)
+static std::vector<int> parse_dims(const tensorflow::TensorShapeProto& s)
 {
-    std::vector<size_t> dims;
+    std::vector<int> dims;
     auto input_dims = s.dim();
     std::transform(input_dims.begin(),
                    input_dims.end(),
@@ -178,7 +178,7 @@ static std::vector<size_t> parse_dims(const tensorflow::TensorShapeProto& s)
 
 template <class T>
 static std::vector<T> get_data_vals(const google::protobuf::RepeatedField<T>& data,
-                                    const size_t& shape_size)
+                                    const int& shape_size)
 {
     std::vector<T> data_vals(shape_size);
     // check if shape has enough data values given existing fields
@@ -193,7 +193,7 @@ static std::vector<T> get_data_vals(const google::protobuf::RepeatedField<T>& da
 
 template <class T>
 static literal
-create_literal(shape::type_t shape_type, const std::vector<size_t>& dims, std::vector<T> data)
+create_literal(shape::type_t shape_type, const std::vector<int>& dims, std::vector<T> data)
 {
     // assume if explicit value is mentioned in protobuf and dim size <= 1, treat as scalar
     if(dims.empty() or (dims.size() == 1 and dims.front() == 1))
@@ -245,7 +245,7 @@ void tf_parser::parse_graph(const tensorflow::GraphDef& graph)
         const std::string& name   = input.name();
         attribute_map input_attrs = get_attributes(input);
         shape::type_t shape_type  = parse_type(input_attrs.at("dtype").type());
-        std::vector<size_t> dims  = parse_dims(input_attrs.at("shape").shape());
+        std::vector<int> dims  = parse_dims(input_attrs.at("shape").shape());
 
         if(contains(map_input_dims, name))
         {
@@ -341,7 +341,7 @@ void tf_parser::parse_node(const std::string& name)
         assert(!result.empty());
         // First output has no ":" delimiter
         instructions[name] = result.front();
-        for(size_t i = 1; i < result.size(); i++)
+        for(int i = 1; i < result.size(); i++)
         {
             instructions[name + ":" + std::to_string(i)] = result.at(i);
         }
@@ -423,8 +423,8 @@ shape::type_t tf_parser::parse_type(const tensorflow::DataType t) const
 
 literal tf_parser::parse_tensor(const tensorflow::TensorProto& t) const
 {
-    std::vector<size_t> dims = parse_dims(t.tensor_shape());
-    size_t shape_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<size_t>());
+    std::vector<int> dims = parse_dims(t.tensor_shape());
+    int shape_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
     if(!t.tensor_content().empty()) // has raw data
     {
         const std::string& s = t.tensor_content();

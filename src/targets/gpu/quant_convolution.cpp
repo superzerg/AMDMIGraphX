@@ -60,7 +60,7 @@ shape miopen_quant_convolution::compile(context& ctx,
                                              cd.get(),
                                              y_desc.get(),
                                              &workspace_size);
-    workspace_shape = shape{shape::int8_type, {workspace_size}};
+    workspace_shape = shape{shape::int8_type, {static_cast<int>(workspace_size)}};
 
     auto arg_vec4_x = to_gpu(generate_argument(pack_int8_shape(inputs[0])));
     auto arg_vec4_w = to_gpu(generate_argument(pack_int8_shape(inputs[1])));
@@ -89,7 +89,7 @@ shape miopen_quant_convolution::compile(context& ctx,
     }
     handle = ctx.get_stream().get_miopen();
     algo   = perf.fwd_algo;
-    return shape{shape::int8_type, {perf.memory}};
+    return shape{shape::int8_type, {static_cast<int>(perf.memory)}};
 }
 
 void miopen_quant_convolution::finalize(context& ctx,

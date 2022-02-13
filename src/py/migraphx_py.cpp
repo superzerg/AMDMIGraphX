@@ -171,7 +171,7 @@ py::buffer_info to_buffer_info(T& x)
 migraphx::shape to_shape(const py::buffer_info& info)
 {
     migraphx::shape::type_t t;
-    std::size_t n = 0;
+    int n = 0;
     visit_types([&](auto as) {
         if(info.format == py::format_descriptor<decltype(as())>::format() or
            (info.format == "l" and py::format_descriptor<decltype(as())>::format() == "q") or
@@ -193,7 +193,7 @@ migraphx::shape to_shape(const py::buffer_info& info)
     }
 
     auto strides = info.strides;
-    std::transform(strides.begin(), strides.end(), strides.begin(), [&](auto i) -> std::size_t {
+    std::transform(strides.begin(), strides.end(), strides.begin(), [&](auto i) -> int {
         return n > 0 ? i / n : 0;
     });
 
@@ -237,7 +237,7 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
         .def("get_shape", &migraphx::argument::get_shape)
         .def("tolist",
              [](migraphx::argument& x) {
-                 py::list l{x.get_shape().elements()};
+                 py::list l{static_cast<std::size_t>(x.get_shape().elements())};
                  visit(x, [&](auto data) { l = py::cast(data.to_vector()); });
                  return l;
              })
@@ -306,8 +306,8 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
     m.def("parse_tf",
           [](const std::string& filename,
              bool is_nhwc,
-             unsigned int batch_size,
-             std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims,
+             int batch_size,
+             std::unordered_map<std::string, std::vector<int>> map_input_dims,
              std::vector<std::string> output_names) {
               return migraphx::parse_tf(
                   filename,
@@ -317,13 +317,13 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
           py::arg("filename"),
           py::arg("is_nhwc")        = true,
           py::arg("batch_size")     = 1,
-          py::arg("map_input_dims") = std::unordered_map<std::string, std::vector<std::size_t>>(),
+          py::arg("map_input_dims") = std::unordered_map<std::string, std::vector<int>>(),
           py::arg("output_names")   = std::vector<std::string>());
 
     m.def("parse_onnx",
           [](const std::string& filename,
              unsigned int default_dim_value,
-             std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims,
+             std::unordered_map<std::string, std::vector<int>> map_input_dims,
              bool skip_unknown_operators,
              bool print_program_on_error,
              int64_t max_loop_iterations) {
@@ -338,7 +338,7 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
           "Parse onnx file",
           py::arg("filename"),
           py::arg("default_dim_value") = 1,
-          py::arg("map_input_dims") = std::unordered_map<std::string, std::vector<std::size_t>>(),
+          py::arg("map_input_dims") = std::unordered_map<std::string, std::vector<int>>(),
           py::arg("skip_unknown_operators") = false,
           py::arg("print_program_on_error") = false,
           py::arg("max_loop_iterations")    = 10);
@@ -346,7 +346,7 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
     m.def("parse_onnx_buffer",
           [](const std::string& onnx_buffer,
              unsigned int default_dim_value,
-             std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims,
+             std::unordered_map<std::string, std::vector<int>> map_input_dims,
              bool skip_unknown_operators,
              bool print_program_on_error) {
               migraphx::onnx_options options;
@@ -359,7 +359,7 @@ MIGRAPHX_PYBIND11_MODULE(migraphx, m)
           "Parse onnx file",
           py::arg("filename"),
           py::arg("default_dim_value") = 1,
-          py::arg("map_input_dims") = std::unordered_map<std::string, std::vector<std::size_t>>(),
+          py::arg("map_input_dims") = std::unordered_map<std::string, std::vector<int>>(),
           py::arg("skip_unknown_operators") = false,
           py::arg("print_program_on_error") = false);
 

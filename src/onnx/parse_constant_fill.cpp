@@ -62,7 +62,7 @@ struct parse_constant_fill : op_parser<parse_constant_fill>
             migraphx::argument in = args[0]->eval();
             check_arg_empty(in, "ConstantFill: dynamic shape is not supported");
 
-            std::vector<std::size_t> dims;
+            std::vector<int> dims;
             in.visit([&](auto input) { dims.assign(input.begin(), input.end()); });
             migraphx::shape s(type, dims);
             std::vector<float> values(s.elements(), value);
@@ -76,7 +76,7 @@ struct parse_constant_fill : op_parser<parse_constant_fill>
             }
 
             literal ls = parser.parse_value(info.attributes.at("shape"));
-            std::vector<std::size_t> dims;
+            std::vector<int> dims;
             ls.visit([&](auto s) { dims.assign(s.begin(), s.end()); });
             migraphx::shape s{type, dims};
             std::vector<float> values(s.elements(), value);

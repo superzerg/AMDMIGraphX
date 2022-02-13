@@ -2,25 +2,25 @@
 #include <migraphx/gpu/pack_args.hpp>
 
 template <class T>
-std::size_t packed_sizes()
+int packed_sizes()
 {
     return sizeof(T);
 }
 
 template <class T, class U, class... Ts>
-std::size_t packed_sizes()
+int packed_sizes()
 {
     return sizeof(T) + packed_sizes<U, Ts...>();
 }
 
 template <class... Ts>
-std::size_t sizes()
+int sizes()
 {
     return migraphx::gpu::pack_args({Ts{}...}).size();
 }
 
 template <class... Ts>
-std::size_t padding()
+int padding()
 {
     EXPECT(sizes<Ts...>() >= packed_sizes<Ts...>());
     return sizes<Ts...>() - packed_sizes<Ts...>();

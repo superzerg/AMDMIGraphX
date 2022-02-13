@@ -10,7 +10,7 @@ struct test_rsqrt : verify_program<test_rsqrt>
     {
         migraphx::program p;
         auto* mm = p.get_main_module();
-        std::vector<size_t> input_lens{1, 3, 16, 16};
+        std::vector<int> input_lens{1, 3, 16, 16};
         migraphx::shape s{migraphx::shape::float_type, input_lens};
         auto x       = mm->add_parameter("x", s);
         auto min_val = mm->add_literal(1.0f);

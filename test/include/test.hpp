@@ -285,7 +285,7 @@ inline std::ostream& operator<<(std::ostream& os, const color& c)
 #ifndef _WIN32
     static const bool use_color = isatty(STDOUT_FILENO) != 0;
     if(use_color)
-        return os << "\033[" << static_cast<std::size_t>(c) << "m";
+        return os << "\033[" << static_cast<int>(c) << "m";
 #endif
     return os;
 }
@@ -615,7 +615,7 @@ struct driver
         [](const std::string& name) -> std::vector<std::string> { return {name}; };
     std::vector<argument> arguments = {};
     std::vector<std::string> failed = {};
-    std::size_t ran                 = 0;
+    int ran                 = 0;
     bool quiet                      = false;
 };
 

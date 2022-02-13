@@ -120,8 +120,8 @@ auto tune_attribute(const std::vector<int64_t>& vec,
 auto tune_pad_attribute(const value& val)
 {
 
-    std::vector<size_t> vec_attrs = val.to_vector<size_t>();
-    std::vector<size_t> result(vec_attrs.begin(), vec_attrs.end());
+    std::vector<int> vec_attrs = val.to_vector<int>();
+    std::vector<int> result(vec_attrs.begin(), vec_attrs.end());
     std::copy(vec_attrs.begin(), vec_attrs.end(), std::back_inserter(result));
 
     return result;

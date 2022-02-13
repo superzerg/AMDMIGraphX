@@ -180,13 +180,13 @@ struct find_nested_slice
 {
     auto matcher() const { return match::name("slice")(match::arg(0)(match::name("slice"))); }
 
-    using axes_map = std::map<std::size_t, std::pair<std::size_t, std::size_t>>;
+    using axes_map = std::map<int, std::pair<int, int>>;
 
     static axes_map get_axes(instruction_ref ins)
     {
         axes_map result;
         auto op = any_cast<op::slice>(ins->get_operator());
-        for(std::size_t i = 0; i < op.axes.size(); i++)
+        for(int i = 0; i < op.axes.size(); i++)
         {
             result[op.axes[i]] = std::make_pair(op.starts[i], op.ends[i]);
         }
@@ -297,7 +297,7 @@ struct find_nested_concat
         return match::name("concat")(match::any_of[match::inputs()](match::name("concat")));
     }
 
-    static std::size_t get_axis(instruction_ref ins)
+    static int get_axis(instruction_ref ins)
     {
         auto op = any_cast<op::concat>(ins->get_operator());
         return op.axis;
@@ -365,7 +365,7 @@ struct find_resize
         }
 
         // output must be multiple of inputs
-        std::vector<std::size_t> scales(in_lens.size());
+        std::vector<int> scales(in_lens.size());
         std::transform(
             in_lens.begin(), in_lens.end(), out_lens.begin(), scales.begin(), [](auto x, auto y) {
                 return y / x;
@@ -394,7 +394,7 @@ struct find_resize
         }
 
         // wrap up shapes for multibroadcast
-        std::vector<std::pair<std::size_t, std::size_t>> dim_scales;
+        std::vector<std::pair<int, int>> dim_scales;
         std::transform(in_lens.begin(),
                        in_lens.end(),
                        out_lens.begin(),

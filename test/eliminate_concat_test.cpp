@@ -11,7 +11,7 @@
 
 struct concat
 {
-    concat(std::size_t axis) { op.axis = axis; }
+    concat(int axis) { op.axis = axis; }
     migraphx::op::concat op;
 
     template <class Self, class F>
@@ -105,7 +105,7 @@ struct simple_op
 template <class... Ts>
 migraphx::shape create_shape(Ts... xs)
 {
-    return migraphx::shape{migraphx::shape::float_type, {std::size_t(xs)...}};
+    return migraphx::shape{migraphx::shape::float_type, {int(xs)...}};
 }
 
 using load     = migraphx::op::load;
@@ -120,7 +120,7 @@ TEST_CASE(simple)
         auto m1          = m.add_instruction(simple_op{}, a1);
         auto a2          = m.add_instruction(allocate{create_shape(1)});
         auto m2          = m.add_instruction(simple_op{}, a2);
-        std::size_t axis = 0;
+        int axis = 0;
         auto a3          = m.add_instruction(allocate{create_shape(2)});
         m.add_instruction(concat(axis), m1, m2, a3);
         return m;
@@ -153,7 +153,7 @@ TEST_CASE(negative_axis1)
         auto m1          = m.add_instruction(simple_op{}, a1);
         auto a2          = m.add_instruction(allocate{create_shape(2, 2)});
         auto m2          = m.add_instruction(simple_op{}, a2);
-        std::size_t axis = -1;
+        int axis = -1;
         auto a3          = m.add_instruction(allocate{create_shape(4, 2)});
         m.add_instruction(concat(axis), m1, m2, a3);
         return m;
@@ -176,7 +176,7 @@ TEST_CASE(negative_axis2)
         auto m1          = m.add_instruction(simple_op{}, a1);
         auto a2          = m.add_instruction(allocate{create_shape(2, 2)});
         auto m2          = m.add_instruction(simple_op{}, a2);
-        std::size_t axis = -2;
+        int axis = -2;
         auto a3          = m.add_instruction(allocate{create_shape(4, 2)});
         m.add_instruction(concat(axis), m1, m2, a3);
         return m;
@@ -209,7 +209,7 @@ TEST_CASE(negative_axis3)
         auto m1          = m.add_instruction(simple_op{}, a1);
         auto a2          = m.add_instruction(allocate{create_shape(1, 2, 2)});
         auto m2          = m.add_instruction(simple_op{}, a2);
-        std::size_t axis = -2;
+        int axis = -2;
         auto a3          = m.add_instruction(allocate{create_shape(1, 4, 2)});
         m.add_instruction(concat(axis), m1, m2, a3);
         return m;
@@ -242,7 +242,7 @@ TEST_CASE(reversed)
         auto m1          = m.add_instruction(simple_op{}, a1);
         auto a2          = m.add_instruction(allocate{create_shape(1)});
         auto m2          = m.add_instruction(simple_op{}, a2);
-        std::size_t axis = 0;
+        int axis = 0;
         auto a3          = m.add_instruction(allocate{create_shape(2)});
         m.add_instruction(concat(axis), m2, m1, a3);
         return m;
@@ -273,7 +273,7 @@ TEST_CASE(nested)
         auto m1          = m.add_instruction(simple_op{}, a1);
         auto a2          = m.add_instruction(allocate{create_shape(1)});
         auto m2          = m.add_instruction(simple_op{}, a2);
-        std::size_t axis = 0;
+        int axis = 0;
         auto a3          = m.add_instruction(allocate{create_shape(2)});
         return m.add_instruction(concat(axis), m1, m2, a3);
     };
@@ -281,7 +281,7 @@ TEST_CASE(nested)
         migraphx::module m;
         auto concat1     = concat_test_program(m);
         auto concat2     = concat_test_program(m);
-        std::size_t axis = 0;
+        int axis = 0;
         auto a1          = m.add_instruction(allocate{create_shape(4)});
         m.add_instruction(concat(axis), concat1, concat2, a1);
         return m;
@@ -324,7 +324,7 @@ TEST_CASE(basic)
         auto a3 =
             m.add_instruction(allocate{migraphx::shape{migraphx::shape::float_type, {1, 5, 8, 8}}});
         auto p3          = m.add_instruction(simple_op{}, a3);
-        std::size_t axis = 1;
+        int axis = 1;
         auto a4          = m.add_instruction(
             allocate{migraphx::shape{migraphx::shape::float_type, {1, 10, 8, 8}}});
         m.add_instruction(concat(axis), m1, m2, p3, a4);
@@ -367,7 +367,7 @@ TEST_CASE(wont_work)
         auto a3 =
             m.add_instruction(allocate{migraphx::shape{migraphx::shape::float_type, {2, 5, 8, 8}}});
         auto p3          = m.add_instruction(simple_op{}, a3);
-        std::size_t axis = 1;
+        int axis = 1;
         auto a4          = m.add_instruction(
             allocate{migraphx::shape{migraphx::shape::float_type, {2, 10, 8, 8}}});
         m.add_instruction(concat(axis), m1, m2, p3, a4);
@@ -384,7 +384,7 @@ TEST_CASE(wont_work)
         auto a3 =
             m.add_instruction(allocate{migraphx::shape{migraphx::shape::float_type, {2, 5, 8, 8}}});
         auto p3          = m.add_instruction(simple_op{}, a3);
-        std::size_t axis = 1;
+        int axis = 1;
         auto a4          = m.add_instruction(
             allocate{migraphx::shape{migraphx::shape::float_type, {2, 10, 8, 8}}});
         m.add_instruction(concat(axis), m1, m2, p3, a4);

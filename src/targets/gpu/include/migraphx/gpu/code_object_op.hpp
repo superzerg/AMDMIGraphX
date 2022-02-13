@@ -17,8 +17,8 @@ struct code_object_op
 {
     value::binary code_object;
     std::string symbol_name;
-    std::size_t global;
-    std::size_t local;
+    int global;
+    int local;
     std::vector<shape> expected_inputs;
     shape output;
     kernel k{};

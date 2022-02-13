@@ -11,7 +11,7 @@ namespace gpu {
 
 struct record_event
 {
-    std::size_t event = 0;
+    int event = 0;
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
@@ -34,7 +34,7 @@ struct record_event
 
 struct wait_event
 {
-    std::size_t event = 0;
+    int event = 0;
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
@@ -52,7 +52,7 @@ struct wait_event
 
 struct set_stream
 {
-    std::size_t stream = 0;
+    int stream = 0;
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
@@ -76,8 +76,8 @@ MIGRAPHX_REGISTER_OP(record_event)
 MIGRAPHX_REGISTER_OP(wait_event)
 MIGRAPHX_REGISTER_OP(set_stream)
 
-std::size_t schedule_model::concurrency() const { return streams; }
-void schedule_model::sched(module& p, instruction_ref ins, std::size_t n) const
+int schedule_model::concurrency() const { return streams; }
+void schedule_model::sched(module& p, instruction_ref ins, int n) const
 {
     auto last_stream = std::find_if(std::make_reverse_iterator(ins),
                                     std::make_reverse_iterator(p.begin()),
@@ -92,16 +92,16 @@ void schedule_model::sched(module& p, instruction_ref ins, std::size_t n) const
     p.insert_instruction(ins, set_stream{n});
 }
 
-void schedule_model::wait(module& p, instruction_ref ins, std::size_t wait_id) const
+void schedule_model::wait(module& p, instruction_ref ins, int wait_id) const
 {
     p.insert_instruction(ins, wait_event{wait_id});
 }
-void schedule_model::record(module& p, instruction_ref ins, std::size_t wait_id) const
+void schedule_model::record(module& p, instruction_ref ins, int wait_id) const
 {
     p.insert_instruction(std::next(ins), record_event{wait_id});
 }
 
-static std::unordered_map<std::string, std::size_t> create_weight_map()
+static std::unordered_map<std::string, int> create_weight_map()
 {
     return {{"hip::load_literal", 0},
             {"hip::hip_allocate_memory", 0},
@@ -113,13 +113,13 @@ static std::unordered_map<std::string, std::size_t> create_weight_map()
             {"gpu::gemm", 4}};
 }
 
-static const std::unordered_map<std::string, std::size_t>& weight_map()
+static const std::unordered_map<std::string, int>& weight_map()
 {
-    static const std::unordered_map<std::string, std::size_t> m = create_weight_map();
+    static const std::unordered_map<std::string, int> m = create_weight_map();
     return m;
 }
 
-std::size_t schedule_model::weight(const operation& op) const
+int schedule_model::weight(const operation& op) const
 {
     if(weight_map().count(op.name()) == 0)
     {

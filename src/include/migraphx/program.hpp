@@ -53,7 +53,7 @@ struct program
 
     std::vector<argument> eval(parameter_map params) const;
 
-    std::size_t size() const;
+    int size() const;
 
     std::vector<shape> get_output_shapes() const;
 
@@ -68,7 +68,7 @@ struct program
     void finalize();
 
     void
-    perf_report(std::ostream& os, std::size_t n, parameter_map params, std::size_t batch = 1) const;
+    perf_report(std::ostream& os, int n, parameter_map params, int batch = 1) const;
 
     void mark(const parameter_map& params, marker&& m);
 

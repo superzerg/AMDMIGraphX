@@ -46,15 +46,15 @@ bool no_allocate(const migraphx::module& m)
     return std::none_of(m.begin(), m.end(), [](auto&& ins) { return ins.name() == "allocate"; });
 }
 
-bool is_overlap(std::pair<std::size_t, std::size_t> x, std::pair<std::size_t, std::size_t> y)
+bool is_overlap(std::pair<int, int> x, std::pair<int, int> y)
 {
     return std::max(x.first, y.first) < std::min(x.second, y.second);
 }
 
-std::pair<std::size_t, std::size_t> get_load_interval(migraphx::instruction_ref a)
+std::pair<int, int> get_load_interval(migraphx::instruction_ref a)
 {
     auto v      = a->get_operator().to_value();
-    auto offset = v.at("offset").to<std::size_t>();
+    auto offset = v.at("offset").to<int>();
     auto s      = migraphx::from_value<migraphx::shape>(v.at("shape"));
     return {offset, offset + s.bytes()};
 }

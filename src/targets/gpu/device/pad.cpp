@@ -15,7 +15,7 @@ namespace device {
 argument
 pad(hipStream_t stream, argument result, argument arg1, float value, std::vector<std::int64_t> pads)
 {
-    std::size_t nelements = arg1.get_shape().elements();
+    int nelements = arg1.get_shape().elements();
     hip_visit_all(result, arg1)([&](auto output, auto input) {
         using type      = typename decltype(output)::value_type;
         using hip_index = typename decltype(output)::hip_index;
@@ -27,7 +27,7 @@ pad(hipStream_t stream, argument result, argument arg1, float value, std::vector
         std::copy(pads.begin(), pads.begin() + offsets.size(), offsets.begin());
         gs_launch(stream, nelements)([=](auto i) __device__ {
             auto idx = input.get_shape().multi(i);
-            for(std::size_t j = 0; j < offsets.size(); j++)
+            for(int j = 0; j < offsets.size(); j++)
             {
                 idx[j] += offsets[j];
             }

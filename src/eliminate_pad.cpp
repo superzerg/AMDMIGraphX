@@ -19,19 +19,19 @@ static void update_op(const instruction_ref& input, const instruction_ref& ins, 
     auto kdims    = input->get_shape().lens().size() - 2;
     auto kdims_it = pad_op.pads.begin() + 2;
 
-    std::vector<size_t> pads_l(kdims_it, kdims_it + kdims);
-    std::vector<size_t> pads_r(kdims_it + kdims + 2, pad_op.pads.end());
+    std::vector<int> pads_l(kdims_it, kdims_it + kdims);
+    std::vector<int> pads_r(kdims_it + kdims + 2, pad_op.pads.end());
 
     auto op = ins->get_operator();
-    std::vector<size_t> padding(kdims * 2, 0);
+    std::vector<int> padding(kdims * 2, 0);
 
     std::transform(
-        pads_l.begin(), pads_l.end(), padding.begin(), padding.begin(), std::plus<size_t>());
+        pads_l.begin(), pads_l.end(), padding.begin(), padding.begin(), std::plus<int>());
     std::transform(pads_r.begin(),
                    pads_r.end(),
                    padding.begin() + kdims,
                    padding.begin() + kdims,
-                   std::plus<size_t>());
+                   std::plus<int>());
 
     op.from_value({{"padding", padding}});
 
@@ -53,16 +53,16 @@ static void update_pooling(const instruction_ref& input, const instruction_ref& 
     auto kdims    = input->get_shape().lens().size() - 2;
     auto kdims_it = pad_op.pads.begin() + 2;
 
-    std::vector<size_t> pads_l(kdims_it, kdims_it + kdims);
-    std::vector<size_t> pads_r(kdims_it + kdims + 2, pad_op.pads.end());
+    std::vector<int> pads_l(kdims_it, kdims_it + kdims);
+    std::vector<int> pads_r(kdims_it + kdims + 2, pad_op.pads.end());
 
     std::transform(
-        pads_l.begin(), pads_l.end(), op.padding.begin(), op.padding.begin(), std::plus<size_t>());
+        pads_l.begin(), pads_l.end(), op.padding.begin(), op.padding.begin(), std::plus<int>());
     std::transform(pads_r.begin(),
                    pads_r.end(),
                    op.padding.begin() + kdims,
                    op.padding.begin() + kdims,
-                   std::plus<size_t>());
+                   std::plus<int>());
 
     std::vector<instruction_ref> new_inputs{ins->inputs()};
     new_inputs.front() = input->inputs().front();

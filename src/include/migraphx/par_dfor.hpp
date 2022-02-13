@@ -13,10 +13,10 @@ template <class... Ts>
 auto par_dfor(Ts... xs)
 {
     return [=](auto f) {
-        using array_type = std::array<std::size_t, sizeof...(Ts)>;
-        array_type lens  = {{static_cast<std::size_t>(xs)...}};
-        auto n = std::accumulate(lens.begin(), lens.end(), 1, std::multiplies<std::size_t>{});
-        const std::size_t min_grain = 8;
+        using array_type = std::array<int, sizeof...(Ts)>;
+        array_type lens  = {{static_cast<int>(xs)...}};
+        auto n = std::accumulate(lens.begin(), lens.end(), 1, std::multiplies<int>{});
+        const int min_grain = 8;
         if(n > 2 * min_grain)
         {
             array_type strides;
@@ -24,16 +24,16 @@ auto par_dfor(Ts... xs)
             std::partial_sum(lens.rbegin(),
                              lens.rend() - 1,
                              strides.rbegin() + 1,
-                             std::multiplies<std::size_t>());
+                             std::multiplies<int>());
             auto size =
-                std::accumulate(lens.begin(), lens.end(), 1, std::multiplies<std::size_t>());
-            par_for(size, min_grain, [&](std::size_t i) {
+                std::accumulate(lens.begin(), lens.end(), 1, std::multiplies<int>());
+            par_for(size, min_grain, [&](int i) {
                 array_type indices;
                 std::transform(strides.begin(),
                                strides.end(),
                                lens.begin(),
                                indices.begin(),
-                               [&](size_t stride, size_t len) { return (i / stride) % len; });
+                               [&](int stride, int len) { return (i / stride) % len; });
                 migraphx::unpack(f, indices);
             });
         }

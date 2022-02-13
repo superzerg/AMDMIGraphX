@@ -57,7 +57,7 @@ struct pooling
         const shape& input = inputs.at(0);
 
         auto input_lens   = input.lens();
-        size_t kdims      = input_lens.size() - 2;
+        int kdims      = input_lens.size() - 2;
         auto input_size   = inputs[0].lens().size();
         auto padding_size = padding.size();
         if(not(input_size == padding_size / 2 + 2 or input_size == padding_size + 2))
@@ -67,7 +67,7 @@ struct pooling
 
         std::vector<int> output_lens(input_lens.begin(), input_lens.begin() + 2);
 
-        for(size_t i = 0; i < kdims; i++)
+        for(int i = 0; i < kdims; i++)
         {
             std::ptrdiff_t dim_size;
             auto padding_factor = 2 * padding[i];
@@ -83,7 +83,7 @@ struct pooling
         return inputs[0].with_lens(output_lens);
     }
 
-    size_t kdims() const
+    int kdims() const
     {
         check_attribute_size();
         return stride.size();

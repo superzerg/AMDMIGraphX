@@ -22,7 +22,7 @@ argument to_gpu(const argument& arg, bool host = false);
 
 argument from_gpu(const argument& arg);
 
-void set_device(std::size_t id);
+void set_device(int id);
 
 void gpu_sync();
 void gpu_sync(const context& ctx);

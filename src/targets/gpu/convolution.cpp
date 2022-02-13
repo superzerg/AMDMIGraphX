@@ -21,7 +21,7 @@ inline shape reshape_if_1d(const shape& input)
 
     if(dims.size() == 3)
     {
-        std::vector<size_t> new_dims = dims;
+        std::vector<int> new_dims = dims;
         new_dims.insert(new_dims.begin() + 2, 1);
         new_shape = shape{input.type(), new_dims};
     }
@@ -71,7 +71,7 @@ shape miopen_convolution::find(context& ctx, const shape& output_shape, std::vec
                                              cd.get(),
                                              y_desc.get(),
                                              &workspace_size);
-    workspace_shape = shape{shape::int8_type, {workspace_size}};
+    workspace_shape = shape{shape::int8_type, {static_cast<int>(workspace_size)}};
 
     auto x         = to_gpu(generate_argument(inputs[0]));
     auto w         = to_gpu(generate_argument(inputs[1]));
@@ -98,7 +98,7 @@ shape miopen_convolution::find(context& ctx, const shape& output_shape, std::vec
         MIGRAPHX_THROW("MIOpen Convolution: find convolution failed");
     algo = perf.fwd_algo;
 
-    size_t solution_count;
+    std::size_t solution_count;
 
     status = miopenConvolutionForwardGetSolutionCount(ctx.get_stream().get_miopen(),
                                                       w_desc.get(),
@@ -124,7 +124,7 @@ shape miopen_convolution::find(context& ctx, const shape& output_shape, std::vec
 
     solution_id = solutions.front().solution_id;
 
-    return shape{shape::int8_type, {perf.memory}};
+    return shape{shape::int8_type, {static_cast<int>(perf.memory)}};
 }
 
 void miopen_convolution::finalize(context& ctx,

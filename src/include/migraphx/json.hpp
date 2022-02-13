@@ -10,7 +10,7 @@ inline namespace MIGRAPHX_INLINE_NS {
 
 std::string to_json_string(const value& val);
 value from_json_string(const std::string& str);
-value from_json_string(const char* str, std::size_t size);
+value from_json_string(const char* str, int size);
 
 } // namespace MIGRAPHX_INLINE_NS
 } // namespace migraphx

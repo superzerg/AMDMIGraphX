@@ -17,7 +17,7 @@ struct value_base_impl : cloneable<value_base_impl>
     virtual const cpp_type* if_##vt() const { return nullptr; }
     MIGRAPHX_VISIT_VALUE_TYPES(MIGRAPHX_VALUE_GENERATE_BASE_FUNCTIONS)
     virtual std::vector<value>* if_array() { return nullptr; }
-    virtual std::unordered_map<std::string, std::size_t>* if_object() { return nullptr; }
+    virtual std::unordered_map<std::string, int>* if_object() { return nullptr; }
     virtual value_base_impl* if_value() const { return nullptr; }
     value_base_impl()                       = default;
     value_base_impl(const value_base_impl&) = default;
@@ -47,15 +47,15 @@ struct array_value_holder : value_base_impl::derive<array_value_holder>
 struct object_value_holder : value_base_impl::derive<object_value_holder>
 {
     object_value_holder() {}
-    object_value_holder(std::vector<value> d, std::unordered_map<std::string, std::size_t> l)
+    object_value_holder(std::vector<value> d, std::unordered_map<std::string, int> l)
         : data(std::move(d)), lookup(std::move(l))
     {
     }
     virtual value::type_t get_type() override { return value::object_type; }
     virtual std::vector<value>* if_array() override { return &data; }
-    virtual std::unordered_map<std::string, std::size_t>* if_object() override { return &lookup; }
+    virtual std::unordered_map<std::string, int>* if_object() override { return &lookup; }
     std::vector<value> data;
-    std::unordered_map<std::string, std::size_t> lookup;
+    std::unordered_map<std::string, int> lookup;
 };
 
 value::value(const value& rhs) : x(rhs.x ? rhs.x->clone() : nullptr), key(rhs.key) {}
@@ -85,8 +85,8 @@ void set_vector(std::shared_ptr<value_base_impl>& x,
     }
     else
     {
-        std::unordered_map<std::string, std::size_t> lookup;
-        std::size_t i = 0;
+        std::unordered_map<std::string, int> lookup;
+        int i = 0;
         for(auto&& e : v)
         {
             lookup[e.get_key()] = i;
@@ -251,7 +251,7 @@ bool value::contains(const std::string& pkey) const
         return false;
     return true;
 }
-std::size_t value::size() const
+int value::size() const
 {
     auto* a = if_array_impl(x);
     if(a == nullptr)
@@ -307,14 +307,14 @@ const value& value::back() const
     assert(this->size() > 0);
     return *std::prev(end());
 }
-value& value::at(std::size_t i)
+value& value::at(int i)
 {
     auto* a = if_array_impl(x);
     if(a == nullptr)
         MIGRAPHX_THROW("Not an array");
     return a->at(i);
 }
-const value& value::at(std::size_t i) const
+const value& value::at(int i) const
 {
     auto* a = if_array_impl(x);
     if(a == nullptr)
@@ -339,12 +339,12 @@ const value& value::at(const std::string& pkey) const
         MIGRAPHX_THROW("Key not found: " + pkey);
     return *r;
 }
-value& value::operator[](std::size_t i)
+value& value::operator[](int i)
 {
     assert(i < this->size());
     return *(begin() + i);
 }
-const value& value::operator[](std::size_t i) const
+const value& value::operator[](int i) const
 {
     assert(i < this->size());
     return *(begin() + i);
@@ -352,13 +352,13 @@ const value& value::operator[](std::size_t i) const
 value& value::operator[](const std::string& pkey) { return *emplace(pkey, nullptr).first; }
 
 void value::clear() { get_array_throw(x).clear(); }
-void value::resize(std::size_t n)
+void value::resize(int n)
 {
     if(not is_array())
         MIGRAPHX_THROW("Expected an array.");
     get_array_impl(x).resize(n);
 }
-void value::resize(std::size_t n, const value& v)
+void value::resize(int n, const value& v)
 {
     if(not is_array())
         MIGRAPHX_THROW("Expected an array.");

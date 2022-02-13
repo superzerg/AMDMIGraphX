@@ -19,8 +19,8 @@ struct module;
 struct capture_arguments_pass
 {
     std::vector<std::string> ins_names = {"dot", "convolution"};
-    std::function<void(std::size_t, std::vector<argument>)> f{};
-    std::size_t* param_index = nullptr;
+    std::function<void(int, std::vector<argument>)> f{};
+    int* param_index = nullptr;
     std::string name() const { return "capture_arguments"; }
     void apply(module& m) const;
 };

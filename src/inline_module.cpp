@@ -20,7 +20,7 @@ static void inline_submodule(module& m, instruction_ref ins, bool cond)
     {
         auto val = out->get_operator().to_value();
         assert(val.contains("index"));
-        auto index = val.at("index").to<std::size_t>();
+        auto index = val.at("index").to<int>();
         m.replace_instruction(out, mod_outputs.at(index));
     }
 }

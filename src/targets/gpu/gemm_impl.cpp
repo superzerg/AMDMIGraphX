@@ -90,7 +90,7 @@ void gemm_impl(context& ctx,
         }
 
         auto num_matrices = std::accumulate(
-            out_lens.rbegin() + 2, out_lens.rend(), std::size_t{1}, std::multiplies<std::size_t>());
+            out_lens.rbegin() + 2, out_lens.rend(), int{1}, std::multiplies<int>());
         if(num_matrices == 1)
         {
             // the rocblas_gemm API handles inputs and output matrices as

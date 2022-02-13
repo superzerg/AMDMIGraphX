@@ -8,7 +8,7 @@ namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 
 template <typename T>
-std::shared_ptr<T> make_shared_array(size_t size)
+std::shared_ptr<T> make_shared_array(int size)
 {
     return std::shared_ptr<T>(new T[size](), std::default_delete<T[]>()); // NOLINT
 }

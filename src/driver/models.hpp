@@ -5,9 +5,9 @@ namespace migraphx {
 namespace driver {
 inline namespace MIGRAPHX_INLINE_NS {
 
-migraphx::program resnet50(unsigned batch);
-migraphx::program inceptionv3(unsigned batch);
-migraphx::program alexnet(unsigned batch);
+migraphx::program resnet50(int batch);
+migraphx::program inceptionv3(int batch);
+migraphx::program alexnet(int batch);
 
 } // namespace MIGRAPHX_INLINE_NS
 } // namespace driver

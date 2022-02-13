@@ -26,7 +26,7 @@ struct swallow
     }
 };
 
-template <size_t N>
+template <int N>
 struct print_buffer
 {
     char buffer[N + 1] = {0};
@@ -43,7 +43,7 @@ struct print_buffer
         }
     }
 
-    template <size_t M>
+    template <int M>
     constexpr void append(const char (&array)[M])
     {
         for(int i = 0; i < M; i++)

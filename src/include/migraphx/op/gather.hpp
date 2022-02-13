@@ -62,7 +62,7 @@ struct gather
         argument result{output_shape};
         // negative axis means counting dimensions from back
         auto lens                 = args[0].get_shape().lens();
-        std::size_t axis_dim_size = lens[axis];
+        int axis_dim_size = lens[axis];
         // max dimension in axis
         visit_all(result, args[0])([&](auto output, auto data) {
             args[1].visit([&](auto indices) {

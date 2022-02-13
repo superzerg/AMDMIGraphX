@@ -14,11 +14,11 @@
 
 TEST_CASE(rnn_forward)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 2;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 2;
+    int seq_len     = 2;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 1;
     std::vector<float> w_data{0.4691,
                               0.3185,
                               -0.2227,
@@ -331,11 +331,11 @@ TEST_CASE(rnn_forward)
 
 TEST_CASE(rnn_reverse)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 2;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 2;
+    int seq_len     = 2;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 1;
     std::vector<float> w_data{-0.0296,
                               -0.1341,
                               0.1761,
@@ -595,11 +595,11 @@ TEST_CASE(rnn_reverse)
 
 TEST_CASE(rnn_bidirectional)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 2;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 2;
+    int batch_size  = 2;
+    int seq_len     = 2;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 2;
     std::vector<float> w_data{0.4691,  0.3185,  -0.2227, 0.4423,  -0.0609, -0.2803,
                               0.1744,  0.3146,  0.4049,  -0.3973, -0.0890, -0.1636,
                               -0.0296, -0.1341, 0.1761,  -0.2325, -0.0717, 0.1852,
@@ -911,11 +911,11 @@ TEST_CASE(rnn_bidirectional)
 
 TEST_CASE(gru_forward)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 3;
-    std::size_t hidden_size = 5;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 2;
+    int seq_len     = 3;
+    int hidden_size = 5;
+    int input_size  = 3;
+    int num_dirct   = 1;
     migraphx::shape w_shape{migraphx::shape::float_type, {num_dirct, 3 * hidden_size, input_size}};
     std::vector<float> w_data{
         0.3485,  -0.0378, -0.1782, 0.1416,  -0.3096, -0.2212, -0.3883, 0.1983,  -0.2418,
@@ -1149,11 +1149,11 @@ TEST_CASE(gru_forward)
 
 TEST_CASE(gru_forward_args)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 3;
-    std::size_t hidden_size = 5;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 2;
+    int seq_len     = 3;
+    int hidden_size = 5;
+    int input_size  = 3;
+    int num_dirct   = 1;
     migraphx::shape w_shape{migraphx::shape::float_type, {num_dirct, 3 * hidden_size, input_size}};
     std::vector<float> w_data{
         0.3485,  -0.0378, -0.1782, 0.1416,  -0.3096, -0.2212, -0.3883, 0.1983,  -0.2418,
@@ -1322,11 +1322,11 @@ TEST_CASE(gru_forward_args)
 
 TEST_CASE(gru_forward_actv_funcs)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 3;
-    std::size_t hidden_size = 5;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 2;
+    int seq_len     = 3;
+    int hidden_size = 5;
+    int input_size  = 3;
+    int num_dirct   = 1;
     migraphx::shape w_shape{migraphx::shape::float_type, {num_dirct, 3 * hidden_size, input_size}};
     std::vector<float> w_data{
         0.3485,  -0.0378, -0.1782, 0.1416,  -0.3096, -0.2212, -0.3883, 0.1983,  -0.2418,
@@ -1560,11 +1560,11 @@ TEST_CASE(gru_forward_actv_funcs)
 
 TEST_CASE(gru_reverse)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 3;
-    std::size_t hidden_size = 5;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 2;
+    int seq_len     = 3;
+    int hidden_size = 5;
+    int input_size  = 3;
+    int num_dirct   = 1;
     migraphx::shape w_shape{migraphx::shape::float_type, {num_dirct, 3 * hidden_size, input_size}};
     std::vector<float> w_data{
         0.3485,  -0.0378, -0.1782, 0.1416,  -0.3096, -0.2212, -0.3883, 0.1983,  -0.2418,
@@ -1873,11 +1873,11 @@ TEST_CASE(gru_reverse)
 
 TEST_CASE(gru_bidirectional)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 3;
-    std::size_t hidden_size = 5;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 2;
+    int batch_size  = 2;
+    int seq_len     = 3;
+    int hidden_size = 5;
+    int input_size  = 3;
+    int num_dirct   = 2;
     migraphx::shape w_shape{migraphx::shape::float_type, {num_dirct, 3 * hidden_size, input_size}};
     std::vector<float> w_data{
         0.3809,  0.4283,  0.2294,  -0.1018, -0.1226, -0.0037, 0.2449,  -0.2712, -0.1418,
@@ -2173,11 +2173,11 @@ TEST_CASE(gru_bidirectional)
 
 TEST_CASE(gru_bidirectional_args)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 3;
-    std::size_t hidden_size = 5;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 2;
+    int batch_size  = 2;
+    int seq_len     = 3;
+    int hidden_size = 5;
+    int input_size  = 3;
+    int num_dirct   = 2;
     migraphx::shape w_shape{migraphx::shape::float_type, {num_dirct, 3 * hidden_size, input_size}};
     std::vector<float> w_data{
         0.3809,  0.4283,  0.2294,  -0.1018, -0.1226, -0.0037, 0.2449,  -0.2712, -0.1418,
@@ -2375,11 +2375,11 @@ TEST_CASE(gru_bidirectional_args)
 
 TEST_CASE(gru_bidirectional_actv_funcs)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 3;
-    std::size_t hidden_size = 5;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 2;
+    int batch_size  = 2;
+    int seq_len     = 3;
+    int hidden_size = 5;
+    int input_size  = 3;
+    int num_dirct   = 2;
     migraphx::shape w_shape{migraphx::shape::float_type, {num_dirct, 3 * hidden_size, input_size}};
     std::vector<float> w_data{
         0.3809,  0.4283,  0.2294,  -0.1018, -0.1226, -0.0037, 0.2449,  -0.2712, -0.1418,
@@ -2664,11 +2664,11 @@ TEST_CASE(gru_bidirectional_actv_funcs)
 
 TEST_CASE(gru_bidirectional_seq_1)
 {
-    std::size_t batch_size  = 2;
-    std::size_t seq_len     = 1;
-    std::size_t hidden_size = 5;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 2;
+    int batch_size  = 2;
+    int seq_len     = 1;
+    int hidden_size = 5;
+    int input_size  = 3;
+    int num_dirct   = 2;
     migraphx::shape w_shape{migraphx::shape::float_type, {num_dirct, 3 * hidden_size, input_size}};
     std::vector<float> w_data{
         0.3809,  0.4283,  0.2294,  -0.1018, -0.1226, -0.0037, 0.2449,  -0.2712, -0.1418,
@@ -2778,11 +2778,11 @@ TEST_CASE(gru_bidirectional_seq_1)
 
 TEST_CASE(lstm_forward)
 {
-    std::size_t batch_size  = 3;
-    std::size_t seq_len     = 4;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 3;
+    int seq_len     = 4;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 1;
     std::vector<float> w_data{
         0.1236,  -0.3942, 0.4149,  0.0795,  0.4934,  -0.2858, 0.2602,  -0.3098, 0.0567,  0.3344,
         0.3607,  -0.0551, 0.4952,  0.3799,  0.0630,  -0.3532, 0.0023,  -0.0592, 0.4267,  0.2382,
@@ -3016,11 +3016,11 @@ TEST_CASE(lstm_forward)
 
 TEST_CASE(lstm_forward_more)
 {
-    std::size_t batch_size  = 3;
-    std::size_t seq_len     = 4;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 3;
+    int seq_len     = 4;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 1;
     std::vector<float> w_data{
         0.1236,  -0.3942, 0.4149,  0.0795,  0.4934,  -0.2858, 0.2602,  -0.3098, 0.0567,  0.3344,
         0.3607,  -0.0551, 0.4952,  0.3799,  0.0630,  -0.3532, 0.0023,  -0.0592, 0.4267,  0.2382,
@@ -3307,11 +3307,11 @@ TEST_CASE(lstm_forward_more)
 
 TEST_CASE(lstm_reverse)
 {
-    std::size_t batch_size  = 3;
-    std::size_t seq_len     = 4;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 3;
+    int seq_len     = 4;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 1;
     std::vector<float> w_data{
         -0.2763, -0.4715, -0.3010, -0.2306, -0.2283, -0.2656, 0.2035,  0.3570,  -0.1499, 0.4390,
         -0.1843, 0.2351,  0.3357,  0.1217,  0.1401,  0.3300,  -0.0429, 0.3266,  0.4834,  -0.3914,
@@ -3627,11 +3627,11 @@ TEST_CASE(lstm_reverse)
 // lstm activation function test
 TEST_CASE(lstm_reverse_actv)
 {
-    std::size_t batch_size  = 3;
-    std::size_t seq_len     = 4;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 1;
+    int batch_size  = 3;
+    int seq_len     = 4;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 1;
     std::vector<float> w_data{
         -0.2763, -0.4715, -0.3010, -0.2306, -0.2283, -0.2656, 0.2035,  0.3570,  -0.1499, 0.4390,
         -0.1843, 0.2351,  0.3357,  0.1217,  0.1401,  0.3300,  -0.0429, 0.3266,  0.4834,  -0.3914,
@@ -3831,11 +3831,11 @@ TEST_CASE(lstm_reverse_actv)
 
 TEST_CASE(lstm_bidirectional)
 {
-    std::size_t batch_size  = 3;
-    std::size_t seq_len     = 4;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 2;
+    int batch_size  = 3;
+    int seq_len     = 4;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 2;
     std::vector<float> w_data{
         0.1236,  -0.3942, 0.4149,  0.0795,  0.4934,  -0.2858, 0.2602,  -0.3098, 0.0567,  0.3344,
         0.3607,  -0.0551, 0.4952,  0.3799,  0.0630,  -0.3532, 0.0023,  -0.0592, 0.4267,  0.2382,
@@ -4124,11 +4124,11 @@ TEST_CASE(lstm_bidirectional)
 
 TEST_CASE(lstm_bidirectional_var_seq_lens)
 {
-    std::size_t batch_size  = 3;
-    std::size_t seq_len     = 4;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 2;
+    int batch_size  = 3;
+    int seq_len     = 4;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 2;
     std::vector<float> w_data{
         0.1236,  -0.3942, 0.4149,  0.0795,  0.4934,  -0.2858, 0.2602,  -0.3098, 0.0567,  0.3344,
         0.3607,  -0.0551, 0.4952,  0.3799,  0.0630,  -0.3532, 0.0023,  -0.0592, 0.4267,  0.2382,
@@ -4365,11 +4365,11 @@ TEST_CASE(lstm_bidirectional_var_seq_lens)
 
 TEST_CASE(lstm_bidirectional_actv_func)
 {
-    std::size_t batch_size  = 3;
-    std::size_t seq_len     = 4;
-    std::size_t hidden_size = 4;
-    std::size_t input_size  = 3;
-    std::size_t num_dirct   = 2;
+    int batch_size  = 3;
+    int seq_len     = 4;
+    int hidden_size = 4;
+    int input_size  = 3;
+    int num_dirct   = 2;
     std::vector<float> w_data{
         0.1236,  -0.3942, 0.4149,  0.0795,  0.4934,  -0.2858, 0.2602,  -0.3098, 0.0567,  0.3344,
         0.3607,  -0.0551, 0.4952,  0.3799,  0.0630,  -0.3532, 0.0023,  -0.0592, 0.4267,  0.2382,

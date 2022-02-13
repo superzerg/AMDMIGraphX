@@ -12,7 +12,7 @@ extern hipError_t hipExtModuleLaunchKernel(hipFunction_t, // NOLINT
                                            uint32_t,
                                            uint32_t,
                                            uint32_t,
-                                           size_t,
+                                           int,
                                            hipStream_t,
                                            void**,
                                            void**,
@@ -54,10 +54,10 @@ kernel::kernel(const char* image, const std::string& name) : impl(std::make_shar
 
 void launch_kernel(hipFunction_t fun,
                    hipStream_t stream,
-                   std::size_t global,
-                   std::size_t local,
+                   int global,
+                   int local,
                    void* kernargs,
-                   std::size_t size)
+                   int size)
 {
     void* config[] = {
 // HIP_LAUNCH_PARAM_* are macros that do horrible things
@@ -79,25 +79,25 @@ void launch_kernel(hipFunction_t fun,
 }
 
 void kernel::launch(hipStream_t stream,
-                    std::size_t global,
-                    std::size_t local,
+                    int global,
+                    int local,
                     std::vector<void*> args) const
 {
     assert(impl != nullptr);
     void* kernargs   = args.data();
-    std::size_t size = args.size() * sizeof(void*);
+    int size = args.size() * sizeof(void*);
 
     launch_kernel(impl->fun, stream, global, local, kernargs, size);
 }
 
 void kernel::launch(hipStream_t stream,
-                    std::size_t global,
-                    std::size_t local,
+                    int global,
+                    int local,
                     const std::vector<kernel_argument>& args) const
 {
     assert(impl != nullptr);
     std::vector<char> kernargs = pack_args(args);
-    std::size_t size           = kernargs.size();
+    int size           = kernargs.size();
 
     launch_kernel(impl->fun, stream, global, local, kernargs.data(), size);
 }

@@ -22,14 +22,14 @@ struct parse_slice : op_parser<parse_slice>
         auto starts     = args[1]->eval().get<int32_t>().to_vector();
         auto size       = args[2]->eval().get<int32_t>().to_vector();
         auto axes       = args[0]->get_shape().lens();
-        size_t num_axes = axes.size();
+        int num_axes = axes.size();
 
         std::vector<int64_t> axes_int64(axes.begin(), axes.end());
         std::vector<int64_t> starts_int64(starts.begin(), starts.end());
         std::vector<int64_t> ends(num_axes);
         std::vector<int64_t> op_axes(num_axes);
         std::iota(op_axes.begin(), op_axes.end(), 0);
-        for(size_t i = 0; i < num_axes; i++)
+        for(int i = 0; i < num_axes; i++)
         {
             if(size[i] == -1)
                 ends[i] = axes_int64[i];

@@ -39,8 +39,8 @@ struct dot
                            "} x {" + to_string_range(b.lens()) + "}");
         }
 
-        std::size_t dim_0 = a.lens().size() - 2;
-        std::size_t dim_1 = a.lens().size() - 1;
+        int dim_0 = a.lens().size() - 2;
+        int dim_1 = a.lens().size() - 1;
         if(a.lens()[dim_1] != b.lens()[dim_0])
         {
             MIGRAPHX_THROW("DOT: inner dimensions do not match: {" + to_string_range(a.lens()) +

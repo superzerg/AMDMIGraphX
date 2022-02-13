@@ -579,7 +579,7 @@ std::vector<instruction_ref> rewrite_rnn::gru_cell(bool is_forward,
 
     // initial states
     auto sih  = prog.insert_instruction(ins, make_op("squeeze", {{"axes", {0}}}), ih);
-    size_t bs = ih->get_shape().lens()[1];
+    int bs = ih->get_shape().lens()[1];
 
     // bias
     instruction_ref bwb{};
@@ -592,7 +592,7 @@ std::vector<instruction_ref> rewrite_rnn::gru_cell(bool is_forward,
             ins, make_op("slice", {{"axes", {0}}, {"starts", {0}}, {"ends", {3 * hs}}}), sbias);
         bwb = prog.insert_instruction(
             ins,
-            make_op("broadcast", {{"axis", 1}, {"out_lens", {bs, static_cast<size_t>(3 * hs)}}}),
+            make_op("broadcast", {{"axis", 1}, {"out_lens", {bs, static_cast<int>(3 * hs)}}}),
             wb);
 
         auto rb_zr = prog.insert_instruction(
@@ -605,11 +605,11 @@ std::vector<instruction_ref> rewrite_rnn::gru_cell(bool is_forward,
             sbias);
         brb_zr = prog.insert_instruction(
             ins,
-            make_op("broadcast", {{"axis", 1}, {"out_lens", {bs, static_cast<size_t>(2 * hs)}}}),
+            make_op("broadcast", {{"axis", 1}, {"out_lens", {bs, static_cast<int>(2 * hs)}}}),
             rb_zr);
         brb_h = prog.insert_instruction(
             ins,
-            make_op("broadcast", {{"axis", 1}, {"out_lens", {bs, static_cast<size_t>(hs)}}}),
+            make_op("broadcast", {{"axis", 1}, {"out_lens", {bs, static_cast<int>(hs)}}}),
             rb_h);
     }
 
@@ -1067,7 +1067,7 @@ std::vector<instruction_ref> rewrite_rnn::lstm_cell(bool is_forward,
 
         wrb = prog.insert_instruction(
             ins,
-            make_op("broadcast", {{"axis", 1}, {"out_lens", {bs, 4 * static_cast<size_t>(hs)}}}),
+            make_op("broadcast", {{"axis", 1}, {"out_lens", {bs, 4 * static_cast<int>(hs)}}}),
             ub_wrb);
     }
 

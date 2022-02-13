@@ -1763,7 +1763,7 @@ TEST_CASE(reorder_reshape_slice)
 {
     std::vector<int64_t> perm0 = {0, 2, 1, 3};
     std::vector<int64_t> perm1 = {0, 2, 3, 1};
-    auto create_m1             = [&](std::size_t batch_size) {
+    auto create_m1             = [&](int batch_size) {
         migraphx::module m1;
         auto s     = migraphx::shape{migraphx::shape::float_type, {batch_size, 128, 1920}};
         auto input = m1.add_parameter("input", s);
@@ -1796,7 +1796,7 @@ TEST_CASE(reorder_reshape_slice)
         return m1;
     };
 
-    auto create_m2 = [&](std::size_t batch_size) {
+    auto create_m2 = [&](int batch_size) {
         migraphx::module m2;
         auto s     = migraphx::shape{migraphx::shape::float_type, {batch_size, 128, 1920}};
         auto input = m2.add_parameter("input", s);
@@ -1824,7 +1824,7 @@ TEST_CASE(reorder_reshape_slice)
         return m2;
     };
 
-    auto test = [&](std::size_t batch_size) {
+    auto test = [&](int batch_size) {
         auto m1 = create_m1(batch_size);
         run_pass(m1);
         auto m2 = create_m2(batch_size);
@@ -1838,7 +1838,7 @@ TEST_CASE(reorder_reshape_slice)
 
 TEST_CASE(reorder_reshape_slice_move_axis1)
 {
-    auto create_m1 = [](std::size_t batch_size) {
+    auto create_m1 = [](int batch_size) {
         migraphx::module m1;
         auto s = migraphx::shape{migraphx::shape::float_type, {batch_size, 256, 96}};
         std::vector<int64_t> perm0 = {0, 2, 1, 3};
@@ -1871,7 +1871,7 @@ TEST_CASE(reorder_reshape_slice_move_axis1)
         return m1;
     };
 
-    auto create_m2 = [](std::size_t batch_size) {
+    auto create_m2 = [](int batch_size) {
         migraphx::module m;
         auto s = migraphx::shape{migraphx::shape::float_type, {batch_size, 256, 96}};
         std::vector<int64_t> perm0 = {0, 2, 1, 3};
@@ -1896,7 +1896,7 @@ TEST_CASE(reorder_reshape_slice_move_axis1)
         return m;
     };
 
-    auto test = [&](std::size_t batch_size) {
+    auto test = [&](int batch_size) {
         auto m1 = create_m1(batch_size);
         auto m2 = create_m2(batch_size);
         run_pass(m1);
@@ -1999,7 +1999,7 @@ TEST_CASE(reorder_reshape_slice_not_apply)
 
 TEST_CASE(reorder_reshape_slice_diff_dims)
 {
-    auto create_m1 = [](std::size_t batch_size) {
+    auto create_m1 = [](int batch_size) {
         migraphx::module m1;
         auto s = migraphx::shape{migraphx::shape::float_type, {batch_size, 96, 96}};
         std::vector<int64_t> perm0 = {0, 2, 1, 3};
@@ -2027,7 +2027,7 @@ TEST_CASE(reorder_reshape_slice_diff_dims)
         return m1;
     };
 
-    auto test = [&](std::size_t batch_size) {
+    auto test = [&](int batch_size) {
         auto m1 = create_m1(batch_size);
         auto m2 = m1;
         run_pass(m1);
@@ -2041,7 +2041,7 @@ TEST_CASE(reorder_reshape_slice_diff_dims)
 TEST_CASE(reorder_slice_trans)
 {
     std::vector<int64_t> perm = {0, 2, 1};
-    auto create_m1            = [&](std::size_t batch_size) {
+    auto create_m1            = [&](int batch_size) {
         migraphx::module m1;
         auto s     = migraphx::shape{migraphx::shape::float_type, {batch_size, 128, 1920}};
         auto input = m1.add_parameter("input", s);
@@ -2065,7 +2065,7 @@ TEST_CASE(reorder_slice_trans)
         return m1;
     };
 
-    auto create_m2 = [&](std::size_t batch_size) {
+    auto create_m2 = [&](int batch_size) {
         migraphx::module m2;
         auto s     = migraphx::shape{migraphx::shape::float_type, {batch_size, 128, 1920}};
         auto input = m2.add_parameter("input", s);
@@ -2085,7 +2085,7 @@ TEST_CASE(reorder_slice_trans)
         return m2;
     };
 
-    auto test = [&](std::size_t batch_size) {
+    auto test = [&](int batch_size) {
         auto m1 = create_m1(batch_size);
         run_pass(m1);
         auto m2 = create_m2(batch_size);
@@ -2098,7 +2098,7 @@ TEST_CASE(reorder_slice_trans)
 
 TEST_CASE(reorder_slice_trans_diff_perm)
 {
-    auto create_m1 = [](std::size_t batch_size) {
+    auto create_m1 = [](int batch_size) {
         migraphx::module m1;
         auto s = migraphx::shape{migraphx::shape::float_type, {batch_size, 128, 1920}};
         std::vector<int64_t> perm0 = {0, 2, 1};
@@ -2127,7 +2127,7 @@ TEST_CASE(reorder_slice_trans_diff_perm)
         return m1;
     };
 
-    auto test = [&](std::size_t batch_size) {
+    auto test = [&](int batch_size) {
         auto m1 = create_m1(batch_size);
         run_pass(m1);
         auto m2 = m1;

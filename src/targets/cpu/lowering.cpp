@@ -77,35 +77,35 @@ struct cpu_im2col
         auto input_shape   = args[0].get_shape();
         auto weights_shape = args[1].get_shape();
         visit_all(result, args[0])([&](auto col, auto input) {
-            const std::size_t& height   = input_shape.lens()[2];
-            const std::size_t& width    = input_shape.lens()[3];
-            const std::size_t& channels = weights_shape.lens()[1];
-            const std::size_t& kernel_h = weights_shape.lens()[2];
-            const std::size_t& kernel_w = weights_shape.lens()[3];
-            const std::size_t& pad_h    = op.padding[0];
-            const std::size_t& pad_w    = op.padding[1];
-            const std::size_t& stride_h = op.stride[0];
-            const std::size_t& stride_w = op.stride[1];
+            const int& height   = input_shape.lens()[2];
+            const int& width    = input_shape.lens()[3];
+            const int& channels = weights_shape.lens()[1];
+            const int& kernel_h = weights_shape.lens()[2];
+            const int& kernel_w = weights_shape.lens()[3];
+            const int& pad_h    = op.padding[0];
+            const int& pad_w    = op.padding[1];
+            const int& stride_h = op.stride[0];
+            const int& stride_w = op.stride[1];
 
             long kdiv2_h = long(kernel_h) / 2;
             long kdiv2_w = long(kernel_w) / 2;
             // calculate output sizes
-            const std::size_t col_height = (height - kernel_h + 2 * pad_h) / stride_h + 1;
-            const std::size_t col_width  = (width - kernel_w + 2 * pad_w) / stride_w + 1;
+            const int col_height = (height - kernel_h + 2 * pad_h) / stride_h + 1;
+            const int col_width  = (width - kernel_w + 2 * pad_w) / stride_w + 1;
             // account for padding for the starting position of the input pixels
             long iinput = kdiv2_h - long(pad_h);
             // loop over output pixels (ioutput, joutput)
-            for(std::size_t ioutput = 0; ioutput < col_height; ioutput++, iinput += stride_h)
+            for(int ioutput = 0; ioutput < col_height; ioutput++, iinput += stride_h)
             {
                 long jinput = kdiv2_w - long(pad_w);
-                for(std::size_t joutput = 0; joutput < col_width; joutput++, jinput += stride_w)
+                for(int joutput = 0; joutput < col_width; joutput++, jinput += stride_w)
                 {
                     // compute linear index for output
-                    std::size_t ldx = ioutput * col_width + joutput;
-                    std::size_t p   = 0;
+                    int ldx = ioutput * col_width + joutput;
+                    int p   = 0;
                     dfor(channels,
                          kernel_h,
-                         kernel_w)([&](std::size_t c, std::size_t koffset, std::size_t loffset) {
+                         kernel_w)([&](int c, int koffset, int loffset) {
                         auto idx    = iinput + long(koffset) - kdiv2_h;
                         auto jdx    = jinput + long(loffset) - kdiv2_w;
                         col(ldx, p) = ((idx >= 0) && (idx < height) && (jdx >= 0) && (jdx < width))
@@ -177,7 +177,7 @@ struct cpu_pad
 
         visit_all(result, args[0])([&](auto output, auto input) {
             shape_for_each(input.get_shape(), [&](const auto& idx) {
-                std::vector<std::size_t> new_idx(idx.size());
+                std::vector<int> new_idx(idx.size());
                 std::transform(
                     idx.begin(), idx.end(), op.pads.begin(), new_idx.begin(), [](auto i, auto j) {
                         return i + j;
@@ -307,7 +307,7 @@ struct cpu_apply
                            outputs_alias.begin(),
                            [](const auto& i) { return instruction::get_output_alias(i); });
 
-            std::size_t index = 0;
+            int index = 0;
             for(auto ins : outputs_alias)
             {
                 prog_output_names[ins] = modl->name() + ":#output_" + std::to_string(index++);

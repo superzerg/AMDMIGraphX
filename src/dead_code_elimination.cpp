@@ -14,7 +14,7 @@ std::ptrdiff_t bidistance(const Range& r, Iterator start, Iterator last)
 {
     auto start_forward   = start;
     auto start_backwards = start;
-    std::size_t n        = 0;
+    int n        = 0;
     while(start_forward != last and start_backwards != last)
     {
         n++;

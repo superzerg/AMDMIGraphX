@@ -18,13 +18,13 @@ struct parse_pad : op_parser<parse_pad>
                           const tf_parser::node_info& info,
                           std::vector<instruction_ref> args) const
     {
-        size_t ndims = args.front()->get_shape().lens().size();
+        int ndims = args.front()->get_shape().lens().size();
 
         // in tf, the paddings are arranged as a 2d shape (ndims, 2),
         // the last dim contains the left padding and right padding respectively
         std::vector<std::pair<int32_t, int32_t>> pad_per_dim(ndims);
         auto tf_padding = args[1]->eval().get<int32_t>().to_vector();
-        for(size_t i = 0; i < 2 * ndims; i += 2)
+        for(int i = 0; i < 2 * ndims; i += 2)
         {
             pad_per_dim[i / 2].first  = tf_padding[i];
             pad_per_dim[i / 2].second = tf_padding[i + 1];
@@ -32,7 +32,7 @@ struct parse_pad : op_parser<parse_pad>
         parser.reorder_data(pad_per_dim);
 
         std::vector<int64_t> pads(ndims * 2);
-        for(size_t i = 0; i < ndims; i++)
+        for(int i = 0; i < ndims; i++)
         {
             pads[i]         = pad_per_dim[i].first;
             pads[i + ndims] = pad_per_dim[i].second;

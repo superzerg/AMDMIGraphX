@@ -127,7 +127,7 @@ struct module
 
     bool has_instruction(instruction_ref ins) const;
 
-    std::size_t size() const;
+    int size() const;
     instruction_ref begin() const;
     instruction_ref end() const;
 

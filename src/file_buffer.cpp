@@ -31,7 +31,7 @@ std::string read_string(const std::string& filename)
     return generic_read_file<std::string>(filename);
 }
 
-void write_buffer(const std::string& filename, const char* buffer, std::size_t size)
+void write_buffer(const std::string& filename, const char* buffer, int size)
 {
     std::ofstream os(filename);
     os.write(buffer, size);

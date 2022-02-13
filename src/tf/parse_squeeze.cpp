@@ -23,7 +23,7 @@ struct parse_squeeze : op_parser<parse_squeeze>
 
         if(op_axes.empty()) // no squeeze_dims provided, remove any dim that equals 1
         {
-            for(size_t i = 0; i < input_dims.size(); i++)
+            for(int i = 0; i < input_dims.size(); i++)
             {
                 if(input_dims.at(i) == 1)
                 {

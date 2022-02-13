@@ -38,10 +38,10 @@ struct pad
     {
         check_shapes{inputs, *this}.has(1);
         auto&& idims = inputs.front().lens();
-        std::vector<std::size_t> rdims(idims.begin(), idims.end());
-        std::size_t num_dims = rdims.size();
+        std::vector<int> rdims(idims.begin(), idims.end());
+        int num_dims = rdims.size();
 
-        for(std::size_t i = 0; i < num_dims; i++)
+        for(int i = 0; i < num_dims; i++)
         {
             rdims[i] += pads[i] + pads[i + num_dims];
         }
@@ -50,7 +50,7 @@ struct pad
         return s;
     }
 
-    std::size_t pad_ndims() const
+    int pad_ndims() const
     {
         assert(pads.size() % 2 == 0);
         return pads.size() / 2;
@@ -58,7 +58,7 @@ struct pad
 
     bool symmetric() const
     {
-        std::size_t num_dims = pads.size() / 2;
+        int num_dims = pads.size() / 2;
         return std::equal(
             pads.begin(), pads.begin() + num_dims, pads.begin() + num_dims, pads.end());
     }

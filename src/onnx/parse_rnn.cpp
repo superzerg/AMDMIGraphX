@@ -20,11 +20,11 @@ struct parse_rnn : op_parser<parse_rnn>
                                        std::vector<instruction_ref> args) const
     {
         migraphx::shape input_shape = args[0]->get_shape();
-        std::size_t hidden_size     = args[1]->get_shape().lens()[1];
+        int hidden_size     = args[1]->get_shape().lens()[1];
 
         if(contains(info.attributes, "hidden_size"))
         {
-            std::size_t hidden_size_att =
+            int hidden_size_att =
                 parser.parse_value(info.attributes.at("hidden_size")).at<int>();
             if(hidden_size != hidden_size_att)
             {

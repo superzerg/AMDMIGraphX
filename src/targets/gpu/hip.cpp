@@ -27,10 +27,10 @@ using hip_host_ptr = MIGRAPHX_MANAGE_PTR(void, hipHostUnregister);
 
 std::string hip_error(int error) { return hipGetErrorString(static_cast<hipError_t>(error)); }
 
-std::size_t get_available_gpu_memory()
+int get_available_gpu_memory()
 {
-    size_t free;
-    size_t total;
+    std::size_t free;
+    std::size_t total;
     auto status = hipMemGetInfo(&free, &total);
     if(status != hipSuccess)
         MIGRAPHX_THROW("Failed getting available memory: " + hip_error(status));
@@ -46,7 +46,7 @@ void* get_device_ptr(void* hptr)
     return result;
 }
 
-hip_ptr allocate_gpu(std::size_t sz, bool host = false)
+hip_ptr allocate_gpu(int sz, bool host = false)
 {
     if(sz > get_available_gpu_memory())
         MIGRAPHX_THROW("Memory not available to allocate buffer: " + std::to_string(sz));
@@ -62,7 +62,7 @@ hip_ptr allocate_gpu(std::size_t sz, bool host = false)
     return hip_ptr{result};
 }
 
-hip_host_ptr register_on_gpu(void* ptr, std::size_t sz)
+hip_host_ptr register_on_gpu(void* ptr, int sz)
 {
     auto status = hipHostRegister(ptr, sz, hipHostRegisterMapped);
     if(status != hipSuccess)
@@ -71,7 +71,7 @@ hip_host_ptr register_on_gpu(void* ptr, std::size_t sz)
 }
 
 template <class T>
-std::vector<T> read_from_gpu(const void* x, std::size_t sz)
+std::vector<T> read_from_gpu(const void* x, int sz)
 {
     gpu_sync();
     std::vector<T> result(sz);
@@ -81,7 +81,7 @@ std::vector<T> read_from_gpu(const void* x, std::size_t sz)
     return result;
 }
 
-hip_ptr write_to_gpu(const void* x, std::size_t sz, bool host = false)
+hip_ptr write_to_gpu(const void* x, int sz, bool host = false)
 {
     gpu_sync();
     auto result = allocate_gpu(sz, host);
@@ -133,7 +133,7 @@ argument from_gpu(const argument& arg)
     return result;
 }
 
-void set_device(std::size_t id)
+void set_device(int id)
 {
     auto status = hipSetDevice(id);
     if(status != hipSuccess)
@@ -151,8 +151,8 @@ void gpu_sync(const context& ctx) { ctx.finish(); }
 
 void hip_async_copy(context& ctx, const argument& src, const argument& dst, hipMemcpyKind kind)
 {
-    std::size_t src_size = src.get_shape().bytes();
-    std::size_t dst_size = dst.get_shape().bytes();
+    int src_size = src.get_shape().bytes();
+    int dst_size = dst.get_shape().bytes();
     if(src_size > dst_size)
         MIGRAPHX_THROW("Not enough memory available in destination to do copy");
     auto status = hipMemcpyAsync(dst.data(), src.data(), src_size, kind, ctx.get_stream().get());

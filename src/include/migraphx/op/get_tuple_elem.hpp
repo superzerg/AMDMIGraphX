@@ -15,7 +15,7 @@ namespace op {
 
 struct get_tuple_elem
 {
-    std::size_t index = 0;
+    int index = 0;
 
     template <class Self, class F>
     static auto reflect(Self& self, F f)

@@ -22,15 +22,15 @@
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 
-static const std::size_t invalid_offset = std::numeric_limits<std::size_t>::max();
+static const int invalid_offset = std::numeric_limits<int>::max();
 
 struct live_range
 {
-    std::size_t begin;  // begin point in the instruction stream.
-    std::size_t end;    // end point in the instruction stream.
-    std::size_t offset; // offset to base pointer of allocated memory trunk.
-    std::size_t vn;     // value number that identifies this live_range.
-    std::size_t size;   // size of required memory in bytes
+    int begin;  // begin point in the instruction stream.
+    int end;    // end point in the instruction stream.
+    int offset; // offset to base pointer of allocated memory trunk.
+    int vn;     // value number that identifies this live_range.
+    int size;   // size of required memory in bytes
 #ifdef MIGRAPHX_DEBUG_OPT
     void dump();
 #endif
@@ -42,9 +42,9 @@ struct live_interval
     {
     }
 
-    void add_use(std::size_t use) { use_points.push_front(use); }
-    std::size_t get_begin() const { return segment.begin; }
-    std::size_t get_end() const { return segment.end; }
+    void add_use(int use) { use_points.push_front(use); }
+    int get_begin() const { return segment.begin; }
+    int get_end() const { return segment.end; }
     long long get_offset() const { return segment.offset; }
 
 #ifdef MIGRAPHX_DEBUG_OPT
@@ -52,9 +52,9 @@ struct live_interval
 #endif
 
     live_range segment;
-    std::size_t id = invalid_offset;
-    std::list<std::size_t> use_points{};
-    std::size_t def_point = invalid_offset;
+    int id = invalid_offset;
+    std::list<int> use_points{};
+    int def_point = invalid_offset;
     shape result{};
     bool is_literal       = false;
     bool is_live_on_entry = false;
@@ -152,7 +152,7 @@ struct memory_coloring_impl
 
     int num_of_lives           = 0;
     int max_value_number       = -1;
-    std::size_t required_bytes = 0;
+    int required_bytes = 0;
     // The earliest program point where an live interval ends.
     int earliest_end_point = -1;
     // The latest program point where an live interval ends.

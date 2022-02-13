@@ -14,7 +14,7 @@ MIGRAPHX_DECLARE_ENV_VAR(MIGRAPHX_COPY_LITERALS)
 void write_literals::apply(module& p) const
 {
     assert(ctx != nullptr);
-    std::size_t n = 0;
+    int n = 0;
     for(auto ins : iterator_for(p))
     {
         if(ins->name() == "@literal")

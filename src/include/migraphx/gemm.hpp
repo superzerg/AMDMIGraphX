@@ -12,9 +12,9 @@ inline namespace MIGRAPHX_INLINE_NS {
 template <class T, class F>
 void gemm(tensor_view<T> cmat, tensor_view<T> amat, tensor_view<T> bmat, F alpha, F beta)
 {
-    std::size_t n_dims = cmat.get_shape().lens().size();
-    std::size_t dim_0  = n_dims - 2;
-    std::size_t dim_1  = n_dims - 1;
+    int n_dims = cmat.get_shape().lens().size();
+    int dim_0  = n_dims - 2;
+    int dim_1  = n_dims - 1;
     auto k             = amat.get_shape().lens()[dim_1];
 
     assert(amat.get_shape().lens()[dim_1] == bmat.get_shape().lens()[dim_0]);

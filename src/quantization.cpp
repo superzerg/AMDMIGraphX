@@ -57,7 +57,7 @@ void quantize_int8(program& prog,
         std::make_shared<std::vector<std::pair<float, float>>>();
     std::shared_ptr<std::vector<float>> max_abs_vals = std::make_shared<std::vector<float>>();
 
-    auto calc_quant_params = [int8_quant_params, max_abs_vals, &t](std::size_t ins_index,
+    auto calc_quant_params = [int8_quant_params, max_abs_vals, &t](int ins_index,
                                                                    std::vector<argument> args) {
         std::pair<float, float> param_pair{64.0f, 0.0f};
         // scale and shift is need for only int8 type, and we do not
@@ -83,7 +83,7 @@ void quantize_int8(program& prog,
     };
 
     // pass to add capture argument op
-    std::size_t param_num = 0;
+    int param_num = 0;
     run_passes(prog, {capture_arguments_pass{ins_names, calc_quant_params, &param_num}});
     int8_quant_params->resize(param_num, std::pair<float, float>(64.0f, 0.0f));
     max_abs_vals->resize(param_num, 0.0f);
@@ -115,7 +115,7 @@ void quantize_int8(program& prog,
     // print the quantization parameters in only the main module
     if(enabled(MIGRAPHX_INT8_QUANTIZATION_PARAMS{}))
     {
-        for(std::size_t i = 0; i < int8_quant_params->size(); ++i)
+        for(int i = 0; i < int8_quant_params->size(); ++i)
         {
             auto param = int8_quant_params->at(i);
             std::cout << "ins_index = " << i << ", scale = " << param.first

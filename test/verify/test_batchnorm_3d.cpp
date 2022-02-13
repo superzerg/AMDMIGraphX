@@ -6,11 +6,11 @@
 
 struct test_batchnorm_3d : verify_program<test_batchnorm_3d>
 {
-    const size_t d1       = 2;
-    const size_t d2       = 2;
-    const size_t d3       = 2;
-    const size_t channels = 2;
-    const size_t batches  = 2;
+    const int d1       = 2;
+    const int d2       = 2;
+    const int d3       = 2;
+    const int channels = 2;
+    const int batches  = 2;
 
     migraphx::program create_program() const
     {

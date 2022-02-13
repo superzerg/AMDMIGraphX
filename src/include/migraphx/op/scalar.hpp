@@ -18,7 +18,7 @@ namespace op {
 
 struct scalar
 {
-    std::vector<std::size_t> scalar_bcast_lens;
+    std::vector<int> scalar_bcast_lens;
 
     template <class Self, class F>
     static auto reflect(Self& self, F f)
@@ -32,7 +32,7 @@ struct scalar
     {
         check_shapes{inputs, *this}.has(1).only_dims(1).nelements(1);
         auto t = inputs.at(0).type();
-        std::vector<std::size_t> strides(scalar_bcast_lens.size(), 0);
+        std::vector<int> strides(scalar_bcast_lens.size(), 0);
         return {t, scalar_bcast_lens, strides};
     }
 

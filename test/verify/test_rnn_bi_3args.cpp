@@ -12,11 +12,11 @@ struct test_rnn_bi_3args : verify_program<test_rnn_bi_3args>
 {
     migraphx::program create_program() const
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 10;
-        std::size_t hidden_size = 4;
-        std::size_t input_size  = 3;
-        std::size_t num_dirct   = 2;
+        int batch_size  = 2;
+        int seq_len     = 10;
+        int hidden_size = 4;
+        int input_size  = 3;
+        int num_dirct   = 2;
         float clip              = 0.0f;
 
         migraphx::program p;

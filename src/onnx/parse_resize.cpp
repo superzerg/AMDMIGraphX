@@ -11,26 +11,26 @@ namespace onnx {
 
 const auto& get_nearest_op(const std::string& mode)
 {
-    using nearest_op = std::function<std::size_t(std::size_t, double)>;
+    using nearest_op = std::function<int(int, double)>;
     static std::unordered_map<std::string, nearest_op> const nearest_ops = {
         {"round_prefer_floor",
-         [=](std::size_t d_in, double val) {
+         [=](int d_in, double val) {
              val = std::max(0.0, std::min(d_in - 1.0, val));
-             return static_cast<std::size_t>(std::ceil((val - 0.5)));
+             return static_cast<int>(std::ceil((val - 0.5)));
          }},
         {"round_prefer_ceil",
-         [=](std::size_t d_in, double val) {
+         [=](int d_in, double val) {
              val = std::max(0.0, std::min(d_in - 1.0, val));
-             return static_cast<std::size_t>(std::round((val)));
+             return static_cast<int>(std::round((val)));
          }},
         {"floor",
-         [=](std::size_t d_in, double val) {
+         [=](int d_in, double val) {
              val = std::max(0.0, std::min(d_in - 1.0, val));
-             return static_cast<std::size_t>(std::floor((val)));
+             return static_cast<int>(std::floor((val)));
          }},
-        {"ceil", [=](std::size_t d_in, double val) {
+        {"ceil", [=](int d_in, double val) {
              val = std::max(0.0, std::min(d_in - 1.0, val));
-             return static_cast<std::size_t>(std::ceil((val)));
+             return static_cast<int>(std::ceil((val)));
          }}};
 
     if(!contains(nearest_ops, mode))
@@ -43,23 +43,23 @@ const auto& get_nearest_op(const std::string& mode)
 
 const auto& get_original_idx_op(const std::string& mode)
 {
-    using original_idx_op = std::function<double(std::size_t, std::size_t, std::size_t, double)>;
+    using original_idx_op = std::function<double(int, int, int, double)>;
     static std::unordered_map<std::string, original_idx_op> const idx_ops = {
         {"half_pixel",
-         [=](std::size_t, std::size_t, std::size_t idx, double scale) {
+         [=](int, int, int idx, double scale) {
              return (idx + 0.5) / scale - 0.5;
          }},
         {"pytorch_half_pixel",
-         [=](std::size_t, std::size_t l_out, std::size_t idx, double scale) {
+         [=](int, int l_out, int idx, double scale) {
              return l_out > 1 ? (idx + 0.5) / scale - 0.5 : 0.0;
          }},
         {"align_corners",
-         [=](std::size_t l_in, std::size_t l_out, std::size_t idx, double) {
+         [=](int l_in, int l_out, int idx, double) {
              return (l_out == 1) ? 0.0 : (1.0 * idx * (l_in - 1.0) / (l_out - 1.0));
          }},
         {"asymmetric",
-         [=](std::size_t, std::size_t, std::size_t idx, double scale) { return idx / scale; }},
-        {"tf_half_pixel_for_nn", [=](std::size_t, std::size_t, std::size_t idx, double scale) {
+         [=](int, int, int idx, double scale) { return idx / scale; }},
+        {"tf_half_pixel_for_nn", [=](int, int, int idx, double scale) {
              return (idx + 0.5) / scale;
          }}};
 
@@ -72,9 +72,9 @@ const auto& get_original_idx_op(const std::string& mode)
 }
 
 static std::vector<int>
-calc_neighbor_points(const std::vector<std::vector<std::vector<std::size_t>>>& vvv_ind,
+calc_neighbor_points(const std::vector<std::vector<std::vector<int>>>& vvv_ind,
                      int i_dim,
-                     const std::vector<std::vector<std::size_t>>& vec_dims,
+                     const std::vector<std::vector<int>>& vec_dims,
                      const shape& in_s)
 {
     if(i_dim == vvv_ind.size())
@@ -90,8 +90,8 @@ calc_neighbor_points(const std::vector<std::vector<std::vector<std::size_t>>>& v
 
     const auto& vv_ind = vvv_ind[i_dim];
     const auto& vv_lo  = vv_ind.at(0);
-    std::vector<std::vector<std::size_t>> vec_dims1;
-    for(std::size_t start = 0; start < vec_dims.size(); start += vv_lo.size())
+    std::vector<std::vector<int>> vec_dims1;
+    for(int start = 0; start < vec_dims.size(); start += vv_lo.size())
     {
         std::transform(vv_lo.begin(),
                        vv_lo.end(),
@@ -104,7 +104,7 @@ calc_neighbor_points(const std::vector<std::vector<std::vector<std::size_t>>>& v
     }
 
     const auto& vv_hi = vv_ind.at(1);
-    for(std::size_t start = 0; start < vec_dims.size(); start += vv_lo.size())
+    for(int start = 0; start < vec_dims.size(); start += vv_lo.size())
     {
         std::transform(vv_hi.begin(),
                        vv_hi.end(),
@@ -191,7 +191,7 @@ struct parse_resize : op_parser<parse_resize>
         auto in_lens = in_s.lens();
 
         // output shape is explicitly specified
-        std::vector<std::size_t> out_lens(in_lens.size());
+        std::vector<int> out_lens(in_lens.size());
 
         // scale
         std::vector<double> vec_scale;
@@ -256,14 +256,14 @@ struct parse_resize : op_parser<parse_resize>
                                    vec_scale.begin(),
                                    out_lens.begin(),
                                    [&](auto idx, auto scale) {
-                                       return static_cast<std::size_t>(idx * scale);
+                                       return static_cast<int>(idx * scale);
                                    });
                 }
             }
         }
 
         shape out_s{in_s.type(), out_lens};
-        std::size_t out_elements = out_s.elements();
+        int out_elements = out_s.elements();
         auto idx_op              = get_original_idx_op(coord_trans_mode);
 
         // reshape input to one-dimension
@@ -299,9 +299,9 @@ struct parse_resize : op_parser<parse_resize>
             auto nearest_ceil  = get_nearest_op("ceil");
 
             // get the number of dimensions
-            std::size_t n_dim = out_lens.size();
-            std::vector<std::vector<std::size_t>> vv_ind(2, std::vector<std::size_t>(out_elements));
-            std::vector<std::vector<std::vector<std::size_t>>> vvv_ind(n_dim, vv_ind);
+            int n_dim = out_lens.size();
+            std::vector<std::vector<int>> vv_ind(2, std::vector<int>(out_elements));
+            std::vector<std::vector<std::vector<int>>> vvv_ind(n_dim, vv_ind);
             std::vector<std::vector<float>> delta(n_dim, std::vector<float>(out_elements));
 
             shape_for_each(out_s, [&](auto idx) {
@@ -316,22 +316,22 @@ struct parse_resize : op_parser<parse_resize>
                 }
             });
 
-            std::vector<std::vector<std::size_t>> vec_dims(out_elements);
+            std::vector<std::vector<int>> vec_dims(out_elements);
             auto ind      = calc_neighbor_points(vvv_ind, 0, vec_dims, in_s);
             auto ind_lens = out_lens;
-            ind_lens[0] *= (std::size_t{1} << n_dim);
+            ind_lens[0] *= (int{1} << n_dim);
             shape ind_s{shape::int32_type, ind_lens};
             auto ins_ind = info.add_literal(literal(ind_s, ind));
             auto data    = info.add_instruction(make_op("gather", {{"axis", 0}}), rsp, ins_ind);
 
             auto dim_lens = out_lens;
-            dim_lens[0] *= (std::size_t{1} << (n_dim - 1));
-            for(std::size_t i = 0; i < n_dim; ++i)
+            dim_lens[0] *= (int{1} << (n_dim - 1));
+            for(int i = 0; i < n_dim; ++i)
             {
                 shape dim_s{shape::float_type, dim_lens};
                 const auto& dim_delta = delta[n_dim - i - 1];
                 std::vector<float> delta_data;
-                for(std::size_t j = 0; j < dim_lens[0] / out_lens[0]; ++j)
+                for(int j = 0; j < dim_lens[0] / out_lens[0]; ++j)
                 {
                     delta_data.insert(delta_data.begin(), dim_delta.begin(), dim_delta.end());
                 }

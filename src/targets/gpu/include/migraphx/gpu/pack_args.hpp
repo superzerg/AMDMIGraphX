@@ -18,8 +18,8 @@ struct kernel_argument
     kernel_argument(T&& x) : size(sizeof(U)), align(alignof(U)), data(&x) // NOLINT
     {
     }
-    std::size_t size;
-    std::size_t align;
+    int size;
+    int align;
     void* data;
 };
 

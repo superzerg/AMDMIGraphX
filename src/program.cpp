@@ -120,7 +120,7 @@ std::unordered_map<std::string, shape> program::get_parameter_shapes() const
     return mm->get_parameter_shapes();
 }
 
-std::size_t program::size() const { return impl->modules.size(); }
+int program::size() const { return impl->modules.size(); }
 
 std::vector<shape> program::get_output_shapes() const
 {
@@ -565,7 +565,7 @@ void program::from_value(const value& v)
 
 double common_average(const std::vector<double>& v)
 {
-    std::size_t n = v.size() / 4;
+    int n = v.size() / 4;
     double total  = std::accumulate(v.begin() + n, v.end() - n, 0.0);
     return total / std::distance(v.begin() + n, v.end() - n);
 }
@@ -597,9 +597,9 @@ void program::mark(const parameter_map& params, marker&& m)
 }
 
 void program::perf_report(std::ostream& os,
-                          std::size_t n,
+                          int n,
                           parameter_map params,
-                          std::size_t batch) const
+                          int batch) const
 {
     auto& ctx = this->impl->ctx;
     // Run once by itself
@@ -608,7 +608,7 @@ void program::perf_report(std::ostream& os,
     // Run and time entire program
     std::vector<double> total_vec;
     total_vec.reserve(n);
-    for(std::size_t i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
         total_vec.push_back(time<milliseconds>([&] {
             eval(params);
@@ -624,7 +624,7 @@ void program::perf_report(std::ostream& os,
     }));
 
     // Run and time each instruction
-    for(std::size_t i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
         generic_eval(*this, ctx, params, always([&](auto ins, auto f) {
             argument result;
@@ -640,7 +640,7 @@ void program::perf_report(std::ostream& os,
     // Run and time implicit overhead
     std::vector<double> overhead_vec;
     overhead_vec.reserve(n);
-    for(std::size_t i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
         overhead_vec.push_back(time<milliseconds>([&] { dry_run(params); }));
     }

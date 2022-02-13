@@ -50,11 +50,11 @@ struct unsqueeze
                 MIGRAPHX_THROW("UNSQUEEZE: Input must be a scalar");
         }
 
-        std::size_t new_size = old_lens.size() + axes.size();
+        int new_size = old_lens.size() + axes.size();
 
-        std::vector<std::size_t> new_lens(new_size);
-        std::size_t p = 0;
-        for(std::size_t i = 0; i < new_size; i++)
+        std::vector<int> new_lens(new_size);
+        int p = 0;
+        for(int i = 0; i < new_size; i++)
         {
             if(std::find(axes.begin(), axes.end(), i) != axes.end())
             {

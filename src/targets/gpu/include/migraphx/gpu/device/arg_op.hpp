@@ -73,7 +73,7 @@ void arg_op(Op op, hipStream_t stream, const argument& result, const argument& a
 {
     auto arg_shape        = arg.get_shape();
     auto batch_lens       = arg_shape.lens();
-    size_t batch_item_num = batch_lens[axis];
+    int batch_item_num = batch_lens[axis];
     batch_lens[axis]      = 1;
     migraphx::shape batch_shape{arg_shape.type(), batch_lens};
     migraphx::shape std_arg_shape{arg_shape.type(), arg_shape.lens()};
@@ -82,8 +82,8 @@ void arg_op(Op op, hipStream_t stream, const argument& result, const argument& a
         auto* output = device_cast(result.get<int64_t>().data());
         using type   = device_type<std::remove_cv_t<typename decltype(input)::value_type>>;
         // use one block for items in one batch.
-        const size_t max_block_size  = 256;
-        const std::size_t block_size = compute_block_size(batch_item_num, max_block_size);
+        const int max_block_size  = 256;
+        const int block_size = compute_block_size(batch_item_num, max_block_size);
         gs_launch(stream,
                   batch_shape.elements() * block_size,
                   block_size)([=](auto i, auto idx) __device__ {

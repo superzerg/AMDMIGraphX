@@ -2,12 +2,12 @@
 #include <migraphx/permutation.hpp>
 #include "test.hpp"
 
-migraphx::shape make_shape(std::vector<std::size_t> lens)
+migraphx::shape make_shape(std::vector<int> lens)
 {
     return {migraphx::shape::float_type, std::move(lens)};
 }
 
-migraphx::shape make_shape(std::vector<std::size_t> lens, std::vector<std::size_t> strides)
+migraphx::shape make_shape(std::vector<int> lens, std::vector<int> strides)
 {
     return {migraphx::shape::float_type, std::move(lens), std::move(strides)};
 }

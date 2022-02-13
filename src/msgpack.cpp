@@ -47,7 +47,7 @@ MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
             }
             case msgpack::type::BIN:
             {
-                v = migraphx::value::binary{o.via.bin.ptr, o.via.bin.size};
+                v = migraphx::value::binary{o.via.bin.ptr, static_cast<int>(o.via.bin.size)};
                 break;
             }
             case msgpack::type::ARRAY:
@@ -150,7 +150,7 @@ inline namespace MIGRAPHX_INLINE_NS {
 struct vector_stream
 {
     std::vector<char> buffer{};
-    vector_stream& write(const char* b, std::size_t n)
+    vector_stream& write(const char* b, int n)
     {
         buffer.insert(buffer.end(), b, b + n);
         return *this;
@@ -163,7 +163,7 @@ std::vector<char> to_msgpack(const value& v)
     msgpack::pack(vs, v);
     return vs.buffer;
 }
-value from_msgpack(const char* buffer, std::size_t size)
+value from_msgpack(const char* buffer, int size)
 {
     msgpack::object_handle oh = msgpack::unpack(buffer, size);
     return oh.get().as<value>();

@@ -28,7 +28,7 @@ static literal get_scalar(instruction_ref ins)
 
 static void create_pointwise_modules(module_pass_manager& mpm)
 {
-    std::size_t n = 0;
+    int n = 0;
     for(auto ins : iterator_for(mpm.get_module()))
     {
         if(not ins->get_operator().attributes().get("pointwise", false))
@@ -39,7 +39,7 @@ static void create_pointwise_modules(module_pass_manager& mpm)
 
         std::unordered_map<instruction_ref, instruction_ref> param_map;
         std::vector<instruction_ref> pointwise_inputs;
-        std::size_t i = 0;
+        int i = 0;
         for(auto input : ins->inputs())
         {
             if(contains(param_map, input))

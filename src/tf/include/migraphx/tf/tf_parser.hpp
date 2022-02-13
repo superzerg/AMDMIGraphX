@@ -60,8 +60,8 @@ struct tf_parser
     module* mm                    = prog.get_main_module();
     bool is_nhwc                  = true;
     unsigned int batch_size       = 1;
-    std::size_t default_dim_value = 1;
-    std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims;
+    int default_dim_value = 1;
+    std::unordered_map<std::string, std::vector<int>> map_input_dims;
 
     std::unordered_map<std::string, op_func> ops;
 
@@ -73,7 +73,7 @@ struct tf_parser
     instruction_ref to_kcxy(instruction_ref ins) const;
     std::vector<instruction_ref> to_nchw(const std::vector<instruction_ref>& args) const;
     std::vector<instruction_ref> to_nhwc(const std::vector<instruction_ref>& args) const;
-    int64_t parse_axis(int64_t dim, size_t num_dims) const;
+    int64_t parse_axis(int64_t dim, int num_dims) const;
     // tf stores certain attributes such as strides, dilations, as a 4D input.
     // The first and last dims are equal to 1, and the relevant data is in dims 2 and 3.
     // This helper function reorders the data to store for the respective operator member variables.
@@ -81,7 +81,7 @@ struct tf_parser
     void reorder_data(std::vector<T>& prev_data) const
     {
         std::vector<T> new_data(prev_data.size());
-        for(size_t i = 0; i < new_data.size(); i++)
+        for(int i = 0; i < new_data.size(); i++)
         {
             auto new_idx         = parse_axis(i, new_data.size());
             new_data.at(new_idx) = prev_data.at(i);
@@ -91,7 +91,7 @@ struct tf_parser
 
     void parse_undefined(module* mm, const std::string& name);
     void parse_from(std::istream& is);
-    void parse_from(const void* data, std::size_t size);
+    void parse_from(const void* data, int size);
     void parse_graph(const tensorflow::GraphDef& graph);
     void parse_node(const std::string& name);
     literal parse_tensor(const tensorflow::TensorProto& t) const;
@@ -99,7 +99,7 @@ struct tf_parser
     std::vector<std::string> find_outputs() const;
 };
 
-std::vector<int64_t> get_axes_from_mask(size_t num_axes, uint32_t mask);
+std::vector<int64_t> get_axes_from_mask(int num_axes, uint32_t mask);
 
 } // namespace tf
 } // namespace MIGRAPHX_INLINE_NS

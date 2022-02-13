@@ -37,10 +37,10 @@ void memory_coloring_impl::run()
 bool memory_coloring_impl::allocate(interval_ptr interval)
 {
     shape s          = interval->result;
-    std::size_t size = s.bytes();
+    int size = s.bytes();
     if(size == 0)
         return false;
-    std::size_t element_size = (s.elements() == 0 ? 4 : (size / s.elements()));
+    int element_size = (s.elements() == 0 ? 4 : (size / s.elements()));
     live_range& segment      = interval->segment;
     int vn                   = segment.vn;
     std::priority_queue<live_range*, std::vector<live_range*>, ordering> conflict_queue;
@@ -72,11 +72,11 @@ bool memory_coloring_impl::allocate(interval_ptr interval)
         }
     }
 
-    std::size_t offset = 0;
+    int offset = 0;
     while(!conflict_queue.empty())
     {
         live_range* range       = conflict_queue.top();
-        std::size_t iter_offset = range->offset;
+        int iter_offset = range->offset;
         if(offset > iter_offset)
         {
             offset = std::max(offset, iter_offset + range->size);
@@ -105,7 +105,7 @@ bool memory_coloring_impl::allocate(interval_ptr interval)
 
 void memory_coloring_impl::build()
 {
-    std::size_t num_of_instrs = p_mod->size();
+    int num_of_instrs = p_mod->size();
     if(num_of_instrs == 0)
         return;
 
@@ -199,7 +199,7 @@ void memory_coloring_impl::build()
 
 void memory_coloring_impl::rewrite()
 {
-    std::vector<std::size_t> dims;
+    std::vector<int> dims;
     dims.push_back((required_bytes + sizeof(float) - 1) / sizeof(float));
     shape s                       = {shape::float_type, dims};
     instruction_ref scratch_param = p_mod->add_parameter("scratch", s);
@@ -215,7 +215,7 @@ void memory_coloring_impl::rewrite()
             if(!unify_literals && interval->is_literal)
                 continue;
 
-            std::size_t offset = 0;
+            int offset = 0;
             if(interval->get_offset() != invalid_offset)
             {
                 offset = interval->get_offset();

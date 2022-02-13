@@ -32,7 +32,7 @@ struct parse_selu : op_parser<parse_selu>
 
         auto l_alpha = info.add_literal({{type, {1}}, {alpha}});
         auto l_gamma = info.add_literal({{type, {1}}, {gamma / 2.0f}});
-        if(lens != std::vector<std::size_t>{1})
+        if(lens != std::vector<int>{1})
         {
             l_alpha =
                 info.add_instruction(make_op("multibroadcast", {{"out_lens", lens}}), l_alpha);

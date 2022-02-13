@@ -12,7 +12,7 @@ TEST_CASE(load_tf)
 TEST_CASE(load_tf_default_dim)
 {
     migraphx::tf_options tf_options;
-    size_t batch = 2;
+    int batch = 2;
     tf_options.set_default_dim_value(batch);
     tf_options.set_nhwc();
     auto p      = migraphx::parse_tf("conv_batch_test.pb", tf_options);
@@ -24,7 +24,7 @@ TEST_CASE(load_tf_default_dim)
 TEST_CASE(load_tf_param_shape)
 {
     migraphx::tf_options tf_options;
-    std::vector<size_t> new_shape{1, 3};
+    std::vector<int> new_shape{1, 3};
     tf_options.set_input_parameter_shape("0", new_shape);
     tf_options.set_input_parameter_shape("1", new_shape);
     auto p      = migraphx::parse_tf("add_test.pb", tf_options);

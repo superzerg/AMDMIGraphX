@@ -9,7 +9,7 @@ namespace device {
 void reduce_mean(hipStream_t stream, const argument& result, const argument& arg)
 {
     index_int item_num = arg.get_shape().elements() / result.get_shape().elements();
-    reduce(stream, result, arg, sum{}, 0, id{}, mean{item_num});
+    reduce(stream, result, arg, sum{}, 0, id{}, mean{static_cast<int>(item_num)});
 }
 
 } // namespace device

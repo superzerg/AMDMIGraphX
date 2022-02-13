@@ -31,28 +31,28 @@ struct reshape
     {
         check_shapes{inputs, *this}.has(1).standard();
         auto&& idims = inputs.front().lens();
-        std::vector<std::size_t> rdims(dims.begin(), dims.end());
+        std::vector<int> rdims(dims.begin(), dims.end());
         auto n_neg_dims = std::count(dims.begin(), dims.end(), -1);
         if(n_neg_dims > 1)
             MIGRAPHX_THROW("Reshape: Dimensions for reshape can only have one -1 dim");
 
-        for(std::size_t i = 0; i < dims.size(); i++)
+        for(int i = 0; i < dims.size(); i++)
         {
             if(dims[i] == 0)
                 rdims[i] = idims[i];
 
-            // since rdims using size_t type, -1 is the max value
-            // is size_t that cause later compuation incorrect
+            // since rdims using int type, -1 is the max value
+            // is int that cause later compuation incorrect
             if(dims[i] == -1)
                 rdims[i] = 1;
         }
 
         if(n_neg_dims > 0)
         {
-            size_t missing_dim =
+            int missing_dim =
                 inputs.front().elements() /
                 std::accumulate(rdims.begin(), rdims.end(), 1, std::multiplies<int64_t>());
-            for(std::size_t i = 0; i < rdims.size(); i++)
+            for(int i = 0; i < rdims.size(); i++)
             {
                 if(dims[i] == -1)
                     rdims[i] = missing_dim;

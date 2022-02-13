@@ -8,7 +8,7 @@ namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 namespace onnx {
 
-void recalc_conv_attributes(value& v, size_t kdims);
+void recalc_conv_attributes(value& v, int kdims);
 
 } // namespace onnx
 } // namespace MIGRAPHX_INLINE_NS

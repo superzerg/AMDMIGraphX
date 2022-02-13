@@ -218,7 +218,7 @@ struct ref_convolution : auto_register_op<ref_convolution<Op>>
             auto wei_lens = weights.get_shape().lens();
             auto wei_n    = wei_lens[0];
             auto wei_c    = wei_lens[1];
-            std::vector<std::size_t> win_size(wei_lens.begin() + 1, wei_lens.end());
+            std::vector<int> win_size(wei_lens.begin() + 1, wei_lens.end());
 
             par_for(output_shape.elements(), [&](auto i) {
                 auto idx_o = output_shape.multi(i);
@@ -226,7 +226,7 @@ struct ref_convolution : auto_register_op<ref_convolution<Op>>
                 auto n_dim = idx_o.size();
 
                 std::vector<std::ptrdiff_t> win_start;
-                for(std::size_t dim = 2; dim < n_dim; ++dim)
+                for(int dim = 2; dim < n_dim; ++dim)
                 {
                     auto d_2 = dim - 2;
                     win_start.push_back(std::ptrdiff_t(idx_o[dim] * op.stride[d_2]) -
@@ -291,35 +291,35 @@ struct ref_im2col
         auto input_shape   = args[0].get_shape();
         auto weights_shape = args[1].get_shape();
         visit_all(result, args[0])([&](auto col, auto input) {
-            const std::size_t& height   = input_shape.lens()[2];
-            const std::size_t& width    = input_shape.lens()[3];
-            const std::size_t& channels = weights_shape.lens()[1];
-            const std::size_t& kernel_h = weights_shape.lens()[2];
-            const std::size_t& kernel_w = weights_shape.lens()[3];
-            const std::size_t& pad_h    = op.padding[0];
-            const std::size_t& pad_w    = op.padding[1];
-            const std::size_t& stride_h = op.stride[0];
-            const std::size_t& stride_w = op.stride[1];
+            const int& height   = input_shape.lens()[2];
+            const int& width    = input_shape.lens()[3];
+            const int& channels = weights_shape.lens()[1];
+            const int& kernel_h = weights_shape.lens()[2];
+            const int& kernel_w = weights_shape.lens()[3];
+            const int& pad_h    = op.padding[0];
+            const int& pad_w    = op.padding[1];
+            const int& stride_h = op.stride[0];
+            const int& stride_w = op.stride[1];
 
             long kdiv2_h = long(kernel_h) / 2;
             long kdiv2_w = long(kernel_w) / 2;
             // calculate output sizes
-            const std::size_t col_height = (height - kernel_h + 2 * pad_h) / stride_h + 1;
-            const std::size_t col_width  = (width - kernel_w + 2 * pad_w) / stride_w + 1;
+            const int col_height = (height - kernel_h + 2 * pad_h) / stride_h + 1;
+            const int col_width  = (width - kernel_w + 2 * pad_w) / stride_w + 1;
             // account for padding for the starting position of the input pixels
             long iinput = kdiv2_h - long(pad_h);
             // loop over output pixels (ioutput, joutput)
-            for(std::size_t ioutput = 0; ioutput < col_height; ioutput++, iinput += stride_h)
+            for(int ioutput = 0; ioutput < col_height; ioutput++, iinput += stride_h)
             {
                 long jinput = kdiv2_w - long(pad_w);
-                for(std::size_t joutput = 0; joutput < col_width; joutput++, jinput += stride_w)
+                for(int joutput = 0; joutput < col_width; joutput++, jinput += stride_w)
                 {
                     // compute linear index for output
-                    std::size_t ldx = ioutput * col_width + joutput;
-                    std::size_t p   = 0;
+                    int ldx = ioutput * col_width + joutput;
+                    int p   = 0;
                     dfor(channels,
                          kernel_h,
-                         kernel_w)([&](std::size_t c, std::size_t koffset, std::size_t loffset) {
+                         kernel_w)([&](int c, int koffset, int loffset) {
                         auto idx    = iinput + long(koffset) - kdiv2_h;
                         auto jdx    = jinput + long(loffset) - kdiv2_w;
                         col(ldx, p) = ((idx >= 0) && (idx < height) && (jdx >= 0) && (jdx < width))
@@ -350,7 +350,7 @@ struct max_pool
         return (m);
     }
 
-    static double final(double x, std::size_t) { return (x); }
+    static double final(double x, int) { return (x); }
 };
 
 struct avg_pool
@@ -365,7 +365,7 @@ struct avg_pool
 
     static double apply(double x, double y) { return x + y; }
 
-    static double final(double x, std::size_t y) { return (y == 0) ? 0.0 : (x / y); }
+    static double final(double x, int y) { return (y == 0) ? 0.0 : (x / y); }
 };
 
 template <class Op>
@@ -395,14 +395,14 @@ struct ref_pooling : auto_register_op<ref_pooling<Op>>
             using type   = typename decltype(output)::value_type;
             auto in_s    = input.get_shape();
             auto in_lens = in_s.lens();
-            std::vector<std::size_t> vec_len(in_lens.begin() + 2, in_lens.end());
+            std::vector<int> vec_len(in_lens.begin() + 2, in_lens.end());
 
             par_for(output_shape.elements(), [&](auto i) {
                 auto idx_o = output_shape.multi(i);
                 auto n_dim = idx_o.size();
-                std::vector<std::size_t> win_start;
-                std::vector<std::size_t> win_size;
-                for(std::size_t dim = 2; dim < n_dim; ++dim)
+                std::vector<int> win_start;
+                std::vector<int> win_size;
+                for(int dim = 2; dim < n_dim; ++dim)
                 {
                     auto d_2  = dim - 2;
                     int start = static_cast<int>(idx_o[dim] * op.stride[d_2]) -
@@ -494,7 +494,7 @@ struct ref_pad
 
         visit_all(result, args[0])([&](auto output, auto input) {
             shape_for_each(input.get_shape(), [&](const auto& idx) {
-                std::vector<std::size_t> new_idx(idx.size());
+                std::vector<int> new_idx(idx.size());
                 std::transform(
                     idx.begin(), idx.end(), op.pads.begin(), new_idx.begin(), [](auto i, auto j) {
                         return i + j;
@@ -650,7 +650,7 @@ struct ref_softmax : auto_register_op<ref_softmax<Op>>
         argument result{output_shape};
         auto batch_lens        = output_shape.lens();
         int64_t tuned_axis     = tune_axis(args[0].get_shape().lens().size(), op.axis, op.name());
-        std::size_t n_dims     = batch_lens[tuned_axis];
+        int n_dims     = batch_lens[tuned_axis];
         batch_lens[tuned_axis] = 1;
         shape batch_shape{shape::int32_type, batch_lens};
 
@@ -661,27 +661,27 @@ struct ref_softmax : auto_register_op<ref_softmax<Op>>
             std::vector<value_type> batch_sum(batch_shape.elements(), value_type(0));
             par_for(batch_shape.elements(), [&](auto i) {
                 auto idx = batch_shape.multi(i);
-                for(std::size_t j = 0; j < n_dims; ++j)
+                for(int j = 0; j < n_dims; ++j)
                 {
                     idx[tuned_axis] = j;
                     batch_max[i] =
                         std::max<value_type>(batch_max[i], input(idx.begin(), idx.end()));
                 }
 
-                for(std::size_t j = 0; j < n_dims; ++j)
+                for(int j = 0; j < n_dims; ++j)
                 {
                     idx[tuned_axis]   = j;
-                    std::size_t index = output_shape.index(idx);
+                    int index = output_shape.index(idx);
                     output[index]     = std::exp(input[index] - batch_max[i]);
                 }
 
-                for(std::size_t j = 0; j < n_dims; ++j)
+                for(int j = 0; j < n_dims; ++j)
                 {
                     idx[tuned_axis] = j;
                     batch_sum[i] += output(idx.begin(), idx.end());
                 }
 
-                for(std::size_t j = 0; j < n_dims; ++j)
+                for(int j = 0; j < n_dims; ++j)
                 {
                     idx[tuned_axis] = j;
                     output(idx.begin(), idx.end()) =

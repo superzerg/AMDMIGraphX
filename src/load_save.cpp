@@ -16,7 +16,7 @@ program load_buffer(const std::vector<char>& buffer, const file_options& options
 {
     return load_buffer(buffer.data(), buffer.size(), options);
 }
-program load_buffer(const char* buffer, std::size_t size, const file_options& options)
+program load_buffer(const char* buffer, int size, const file_options& options)
 {
     program p;
     if(options.format == "msgpack")

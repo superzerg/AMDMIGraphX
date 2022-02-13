@@ -18,7 +18,7 @@ struct dynamic_loader
 
     dynamic_loader(const fs::path& p);
 
-    dynamic_loader(const char* image, std::size_t size);
+    dynamic_loader(const char* image, int size);
 
     dynamic_loader(const std::vector<char>& buffer);
 

@@ -85,7 +85,7 @@ struct loop
 
                 auto* in_data        = iter_stat.data();
                 auto* out_data       = scan_out.data();
-                std::size_t out_size = iter_stat.get_shape().bytes();
+                int out_size = iter_stat.get_shape().bytes();
                 assert((iter + 1) * out_size <= scan_out.get_shape().bytes());
                 std::copy(in_data, in_data + out_size, out_data + iter * out_size);
             }

@@ -15,7 +15,7 @@ instruction_ref parse_prefix_scan_oper(const std::string& op_name,
 {
     migraphx::argument in = args[1]->eval();
     check_arg_empty(in, "PARSE_PREFIX_SCAN: axis - dynamic shape not supported");
-    std::vector<std::size_t> axis_in;
+    std::vector<int> axis_in;
     in.visit([&](auto input) { axis_in.assign(input.begin(), input.end()); });
     int64_t axis = axis_in[0];
 

@@ -25,16 +25,16 @@ struct kernel
     }
 
     void launch(hipStream_t stream,
-                std::size_t global,
-                std::size_t local,
+                int global,
+                int local,
                 const std::vector<kernel_argument>& args) const;
 
     void launch(hipStream_t stream,
-                std::size_t global,
-                std::size_t local,
+                int global,
+                int local,
                 std::vector<void*> args) const;
 
-    auto launch(hipStream_t stream, std::size_t global, std::size_t local) const
+    auto launch(hipStream_t stream, int global, int local) const
     {
         return [=](auto&&... xs) {
             launch(stream, global, local, std::vector<kernel_argument>{xs...});

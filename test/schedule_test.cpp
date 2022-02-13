@@ -82,8 +82,8 @@ struct stream_free_op
 
 struct wait_event
 {
-    std::shared_ptr<std::vector<std::size_t>> wait_for =
-        std::make_shared<std::vector<std::size_t>>();
+    std::shared_ptr<std::vector<int>> wait_for =
+        std::make_shared<std::vector<int>>();
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
@@ -102,22 +102,22 @@ struct wait_event
     }
 };
 
-using instruction_map = std::unordered_map<migraphx::instruction_ref, std::size_t>;
-using int_map         = std::unordered_map<std::size_t, std::size_t>;
+using instruction_map = std::unordered_map<migraphx::instruction_ref, int>;
+using int_map         = std::unordered_map<int, int>;
 using wait_map =
-    std::unordered_map<migraphx::instruction_ref, std::shared_ptr<std::vector<std::size_t>>>;
+    std::unordered_map<migraphx::instruction_ref, std::shared_ptr<std::vector<int>>>;
 
 struct schedule_model_test
 {
     std::shared_ptr<instruction_map> ins2stream = std::make_shared<instruction_map>();
     std::shared_ptr<int_map> wait2stream        = std::make_shared<int_map>();
     std::shared_ptr<wait_map> ins2wait_for      = std::make_shared<wait_map>();
-    std::size_t concurrency() const { return 4; }
-    void sched(migraphx::module&, migraphx::instruction_ref ins, std::size_t n) const
+    int concurrency() const { return 4; }
+    void sched(migraphx::module&, migraphx::instruction_ref ins, int n) const
     {
         (*ins2stream)[ins] = n;
     }
-    void wait(migraphx::module& m, migraphx::instruction_ref ins, std::size_t wait_id) const
+    void wait(migraphx::module& m, migraphx::instruction_ref ins, int wait_id) const
     {
         if(ins2wait_for->count(ins) == 0)
         {
@@ -127,11 +127,11 @@ struct schedule_model_test
         }
         (*ins2wait_for)[ins]->push_back(wait2stream->at(wait_id));
     }
-    void record(migraphx::module&, migraphx::instruction_ref ins, std::size_t wait_id) const
+    void record(migraphx::module&, migraphx::instruction_ref ins, int wait_id) const
     {
         (*wait2stream)[wait_id] = ins2stream->at(ins);
     }
-    std::size_t weight(const migraphx::operation& op) const
+    int weight(const migraphx::operation& op) const
     {
         if(op.name() == "stream_free")
             return 0;
@@ -159,11 +159,11 @@ struct scheduler
 {
     schedule_model_test model{};
 
-    std::size_t get_stream(migraphx::instruction_ref ins) { return model.ins2stream->at(ins); }
+    int get_stream(migraphx::instruction_ref ins) { return model.ins2stream->at(ins); }
 
-    std::vector<std::size_t> get_streams(std::vector<migraphx::instruction_ref> inss)
+    std::vector<int> get_streams(std::vector<migraphx::instruction_ref> inss)
     {
-        std::vector<std::size_t> result;
+        std::vector<int> result;
         std::transform(inss.begin(), inss.end(), std::back_inserter(result), [&](auto ins) {
             return this->get_stream(ins);
         });
@@ -211,18 +211,18 @@ std::vector<T> unique(std::vector<T> x)
     return x;
 }
 
-std::vector<std::size_t> get_wait_for(std::vector<std::size_t> wait_for)
+std::vector<int> get_wait_for(std::vector<int> wait_for)
 {
     return unique(std::move(wait_for));
 }
 
-std::vector<std::size_t> get_wait_for(std::size_t wait_on, std::vector<std::size_t> wait_for)
+std::vector<int> get_wait_for(int wait_on, std::vector<int> wait_for)
 {
     wait_for.erase(std::find(wait_for.begin(), wait_for.end(), wait_on));
     return unique(wait_for);
 }
 
-std::vector<std::size_t> get_wait_for(migraphx::instruction_ref ins)
+std::vector<int> get_wait_for(migraphx::instruction_ref ins)
 {
     auto wait_ins = std::prev(ins);
     // Skip identity operators
@@ -237,10 +237,10 @@ std::vector<std::size_t> get_wait_for(migraphx::instruction_ref ins)
 
 template <class T>
 std::vector<migraphx::instruction_ref>
-chain(migraphx::module& m, std::size_t n, T x, migraphx::instruction_ref input)
+chain(migraphx::module& m, int n, T x, migraphx::instruction_ref input)
 {
     std::vector<migraphx::instruction_ref> result;
-    for(std::size_t i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
         result.push_back(m.add_instruction(x, input));
         input = result.back();
@@ -508,9 +508,9 @@ TEST_CASE(four_branches_eq)
     t.run_pass(m);
     EXPECT(not t.has_stream(one));
     EXPECT(
-        sorted<std::size_t>(
+        sorted<int>(
             {t.get_stream(onem1), t.get_stream(onem2), t.get_stream(onep3), t.get_stream(onep4)}) ==
-        unique<std::size_t>(
+        unique<int>(
             {t.get_stream(onem1), t.get_stream(onem2), t.get_stream(onep3), t.get_stream(onep4)}));
     EXPECT(t.get_stream(binary) == 0);
     EXPECT(

@@ -96,12 +96,12 @@ void set_default_dim_value(tf_options& options, size_t value) { options.batch_si
 
 void set_input_parameter_shape(onnx_options& options,
                                const char* name,
-                               std::vector<std::size_t> dims)
+                               std::vector<int> dims)
 {
     options.map_input_dims[std::string(name)] = std::move(dims);
 }
 
-void set_input_parameter_shape(tf_options& options, const char* name, std::vector<std::size_t> dims)
+void set_input_parameter_shape(tf_options& options, const char* name, std::vector<int> dims)
 {
     options.map_input_dims[std::string(name)] = std::move(dims);
 }
@@ -388,7 +388,7 @@ extern "C" migraphx_status migraphx_shape_destroy(migraphx_shape_t shape)
 extern "C" migraphx_status migraphx_shape_create(migraphx_shape_t* shape,
                                                  migraphx_shape_datatype_t type,
                                                  size_t* lengths,
-                                                 size_t lengths_size)
+                                                 int lengths_size)
 {
     auto api_error_result = migraphx::try_([&] {
         if(lengths == nullptr and lengths_size != 0)
@@ -403,9 +403,9 @@ extern "C" migraphx_status migraphx_shape_create(migraphx_shape_t* shape,
 extern "C" migraphx_status migraphx_shape_create_with_strides(migraphx_shape_t* shape,
                                                               migraphx_shape_datatype_t type,
                                                               size_t* lengths,
-                                                              size_t lengths_size,
+                                                              int lengths_size,
                                                               size_t* strides,
-                                                              size_t strides_size)
+                                                              int strides_size)
 {
     auto api_error_result = migraphx::try_([&] {
         if(lengths == nullptr and lengths_size != 0)
@@ -431,7 +431,7 @@ extern "C" migraphx_status migraphx_shape_create_scalar(migraphx_shape_t* shape,
 }
 
 extern "C" migraphx_status
-migraphx_shape_lengths(const size_t** out, size_t* out_size, const_migraphx_shape_t shape)
+migraphx_shape_lengths(const int** out, int* out_size, const_migraphx_shape_t shape)
 {
     auto api_error_result = migraphx::try_([&] {
         if(out == nullptr or out_size == nullptr)
@@ -446,7 +446,7 @@ migraphx_shape_lengths(const size_t** out, size_t* out_size, const_migraphx_shap
 }
 
 extern "C" migraphx_status
-migraphx_shape_strides(const size_t** out, size_t* out_size, const_migraphx_shape_t shape)
+migraphx_shape_strides(const int** out, int* out_size, const_migraphx_shape_t shape)
 {
     auto api_error_result = migraphx::try_([&] {
         if(out == nullptr or out_size == nullptr)
@@ -847,7 +847,7 @@ extern "C" migraphx_status migraphx_operation_create(migraphx_operation_t* opera
 }
 
 extern "C" migraphx_status
-migraphx_operation_name(char* out, size_t out_size, migraphx_operation_t operation)
+migraphx_operation_name(char* out, int out_size, migraphx_operation_t operation)
 {
     auto api_error_result = migraphx::try_([&] {
         if(out == nullptr)
@@ -855,7 +855,7 @@ migraphx_operation_name(char* out, size_t out_size, migraphx_operation_t operati
         if(operation == nullptr)
             MIGRAPHX_THROW(migraphx_status_bad_param, "Bad parameter operation: Null pointer");
         auto&& api_result = (operation->object).name();
-        auto* it = std::copy_n(api_result.begin(), std::min(api_result.size(), out_size - 1), out);
+        auto* it = std::copy_n(api_result.begin(), std::min(static_cast<int>(api_result.size()), out_size - 1), out);
         *it      = '\0';
     });
     return api_error_result;
@@ -900,7 +900,7 @@ extern "C" migraphx_status migraphx_onnx_options_create(migraphx_onnx_options_t*
 }
 
 extern "C" migraphx_status migraphx_onnx_options_set_input_parameter_shape(
-    migraphx_onnx_options_t onnx_options, const char* name, size_t* dims, size_t dims_size)
+    migraphx_onnx_options_t onnx_options, const char* name, size_t* dims, int dims_size)
 {
     auto api_error_result = migraphx::try_([&] {
         if(onnx_options == nullptr)
@@ -908,7 +908,7 @@ extern "C" migraphx_status migraphx_onnx_options_set_input_parameter_shape(
         if(dims == nullptr and dims_size != 0)
             MIGRAPHX_THROW(migraphx_status_bad_param, "Bad parameter dims: Null pointer");
         migraphx::set_input_parameter_shape(
-            (onnx_options->object), (name), (std::vector<size_t>(dims, dims + dims_size)));
+            (onnx_options->object), (name), (std::vector<int>(dims, dims + dims_size)));
     });
     return api_error_result;
 }
@@ -1053,7 +1053,7 @@ extern "C" migraphx_status migraphx_tf_options_set_nhwc(migraphx_tf_options_t tf
 }
 
 extern "C" migraphx_status migraphx_tf_options_set_input_parameter_shape(
-    migraphx_tf_options_t tf_options, const char* name, size_t* dims, size_t dims_size)
+    migraphx_tf_options_t tf_options, const char* name, int* dims, int dims_size)
 {
     auto api_error_result = migraphx::try_([&] {
         if(tf_options == nullptr)
@@ -1061,7 +1061,7 @@ extern "C" migraphx_status migraphx_tf_options_set_input_parameter_shape(
         if(dims == nullptr and dims_size != 0)
             MIGRAPHX_THROW(migraphx_status_bad_param, "Bad parameter dims: Null pointer");
         migraphx::set_input_parameter_shape(
-            (tf_options->object), (name), (std::vector<size_t>(dims, dims + dims_size)));
+            (tf_options->object), (name), (std::vector<int>(dims, dims + dims_size)));
     });
     return api_error_result;
 }
@@ -1079,7 +1079,7 @@ migraphx_tf_options_set_default_dim_value(migraphx_tf_options_t tf_options, size
 
 extern "C" migraphx_status migraphx_tf_options_set_output_names(migraphx_tf_options_t tf_options,
                                                                 const char** names,
-                                                                size_t names_size)
+                                                                int names_size)
 {
     auto api_error_result = migraphx::try_([&] {
         if(tf_options == nullptr)

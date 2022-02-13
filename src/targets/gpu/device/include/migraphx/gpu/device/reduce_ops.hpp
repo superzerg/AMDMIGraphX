@@ -37,7 +37,7 @@ struct id
 
 struct mean
 {
-    size_t item_num = 1;
+    int item_num = 1;
     template <class T>
     MIGRAPHX_DEVICE_CONSTEXPR auto operator()(T x) const
     {

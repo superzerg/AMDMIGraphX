@@ -88,7 +88,7 @@ struct miopen_apply
                            outputs_alias.begin(),
                            [](const auto& i) { return instruction::get_output_alias(i); });
 
-            std::size_t index = 0;
+            int index = 0;
             for(auto ins : outputs_alias)
             {
                 prog_output_names[ins] = mod->name() + ":#output_" + std::to_string(index++);

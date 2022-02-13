@@ -75,7 +75,7 @@ TEST_CASE(gather_test_1)
     EXPECT(m1 == m2);
 }
 
-migraphx::module create_padded_op(const std::vector<size_t>& pad_vals)
+migraphx::module create_padded_op(const std::vector<int>& pad_vals)
 {
     migraphx::module m;
     migraphx::shape s{migraphx::shape::float_type, {2, 3, 4, 5}};

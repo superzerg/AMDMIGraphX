@@ -13,7 +13,7 @@ inline Vector reorder_dims(const Vector& dims, const std::vector<int64_t>& permu
 {
     Vector result(dims.size());
     assert(dims.size() == permutation.size());
-    for(std::size_t i = 0; i < dims.size(); i++)
+    for(int i = 0; i < dims.size(); i++)
     {
         result[i] = dims[permutation[i]];
     }

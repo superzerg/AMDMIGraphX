@@ -17,7 +17,7 @@ argument gather(hipStream_t stream, argument result, argument arg1, argument arg
     auto axis_dim_size      = lens[axis];
     lens[axis]              = arg2.get_shape().elements();
     shape out_comp_shape{result.get_shape().type(), lens};
-    std::size_t nelements = result.get_shape().elements();
+    int nelements = result.get_shape().elements();
 
     visit_all(result, arg1)([&](auto output, auto input_v) {
         hip_visit_views(input_v, out_comp_shape)([&](auto input, auto out_comp) {

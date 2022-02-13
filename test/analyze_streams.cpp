@@ -7,7 +7,7 @@
 
 struct record_event
 {
-    std::size_t event = 0;
+    int event = 0;
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
@@ -24,7 +24,7 @@ struct record_event
 
 struct wait_event
 {
-    std::size_t event = 0;
+    int event = 0;
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
@@ -41,7 +41,7 @@ struct wait_event
 
 struct set_stream
 {
-    std::size_t stream = 0;
+    int stream = 0;
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
@@ -58,14 +58,14 @@ struct set_stream
 
 struct test_stream_model
 {
-    std::size_t max_stream = 0;
-    std::unordered_map<migraphx::instruction_ref, std::size_t> ins2stream{};
-    std::size_t get_nstream() const { return max_stream + 1; }
-    std::size_t get_stream(migraphx::instruction_ref ins) const { return ins2stream.at(ins); }
-    std::size_t get_event_id(migraphx::instruction_ref ins) const
+    int max_stream = 0;
+    std::unordered_map<migraphx::instruction_ref, int> ins2stream{};
+    int get_nstream() const { return max_stream + 1; }
+    int get_stream(migraphx::instruction_ref ins) const { return ins2stream.at(ins); }
+    int get_event_id(migraphx::instruction_ref ins) const
     {
         auto v = ins->get_operator().to_value();
-        return v["event"].to<std::size_t>();
+        return v["event"].to<int>();
     }
     bool has_stream(migraphx::instruction_ref ins) const { return ins2stream.count(ins) > 0; }
     bool is_record(migraphx::instruction_ref ins) const { return ins->name() == "record_event"; }
@@ -76,8 +76,8 @@ struct program_model
 {
     migraphx::program p;
     migraphx::module* mm = p.get_main_module();
-    std::unordered_map<migraphx::instruction_ref, std::size_t> ins2stream{};
-    std::size_t max_stream = 0;
+    std::unordered_map<migraphx::instruction_ref, int> ins2stream{};
+    int max_stream = 0;
 
     template <class... Ts>
     migraphx::instruction_ref add_literal(Ts... xs)
@@ -92,7 +92,7 @@ struct program_model
     }
 
     template <class... Ts>
-    migraphx::instruction_ref add_instruction_stream(std::size_t n, Ts... xs)
+    migraphx::instruction_ref add_instruction_stream(int n, Ts... xs)
     {
         max_stream      = std::max(max_stream, n);
         auto ins        = mm->add_instruction(xs...);
@@ -107,7 +107,7 @@ struct program_model
     }
 
     template <class... Ts>
-    migraphx::instruction_ref add_return_stream(std::size_t n, Ts... xs)
+    migraphx::instruction_ref add_return_stream(int n, Ts... xs)
     {
         max_stream      = std::max(max_stream, n);
         auto ins        = mm->add_return({xs...});

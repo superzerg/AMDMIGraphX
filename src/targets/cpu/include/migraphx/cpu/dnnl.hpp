@@ -38,7 +38,7 @@ dnnl_context& get_dnnl_context();
 
 dnnl::memory::data_type to_dnnl_memory_data_type(shape::type_t t);
 
-dnnl::memory::format_tag to_dnnl_memory_format_tag(std::size_t n);
+dnnl::memory::format_tag to_dnnl_memory_format_tag(int n);
 
 template <class R>
 inline dnnl::memory::dims to_dnnl_dims(R&& r)
@@ -105,14 +105,14 @@ struct dnnl_op : auto_register_op<Derived>
         return {{"group", g}};
     }
 
-    std::size_t get_extra_post_op_args() const
+    int get_extra_post_op_args() const
     {
         return std::count_if(post_ops.begin(), post_ops.end(), [](const auto& po) {
             return contains(po.algo, "binary");
         });
     }
 
-    static std::size_t get_binary_post_op_arg(std::size_t pos)
+    static int get_binary_post_op_arg(int pos)
     {
         return MIGRAPHX_DNNL_PREFIX(ARG_ATTR_MULTIPLE_POST_OP)(pos) | // NOLINT
                MIGRAPHX_DNNL_PREFIX(ARG_SRC_1);                       // NOLINT
@@ -154,7 +154,7 @@ struct dnnl_op : auto_register_op<Derived>
                            strides.end(),
                            lens.begin(),
                            lens.begin(),
-                           [](auto stride, auto len) -> std::size_t {
+                           [](auto stride, auto len) -> int {
                                if(stride == 0)
                                    return 1;
                                else
@@ -182,7 +182,7 @@ struct dnnl_op : auto_register_op<Derived>
         }
     }
     shape adjust_shape(const shape& s, int) const { return base_adjust_shape(s); }
-    std::vector<int> create_arg_map(std::size_t input_size) const
+    std::vector<int> create_arg_map(int input_size) const
     {
         const auto& self     = static_cast<const Derived&>(*this);
         auto npost_ops       = get_extra_post_op_args();

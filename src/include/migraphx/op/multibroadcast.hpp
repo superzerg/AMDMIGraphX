@@ -18,7 +18,7 @@ namespace op {
 
 struct multibroadcast
 {
-    std::vector<std::size_t> output_lens;
+    std::vector<int> output_lens;
 
     template <class Self, class F>
     static auto reflect(Self& self, F f)
@@ -55,7 +55,7 @@ struct multibroadcast
             }
         }
 
-        std::vector<size_t> bcast_strides(output_lens.size(), 0);
+        std::vector<int> bcast_strides(output_lens.size(), 0);
         for(std::ptrdiff_t i = input.lens().size() - 1; i >= 0; i--)
         {
             if(output_lens[i + offset] == input.lens()[i])

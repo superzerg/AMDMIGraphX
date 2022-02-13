@@ -18,8 +18,8 @@ inline shape reshape_to_2d(const shape& input)
     if(dims.size() >= 4)
         return input;
 
-    std::vector<size_t> new_dims(dims.begin(), dims.end());
-    std::size_t num = 4 - dims.size();
+    std::vector<int> new_dims(dims.begin(), dims.end());
+    int num = 4 - dims.size();
     new_dims.insert(new_dims.end(), num, 1);
     return {input.type(), new_dims};
 }

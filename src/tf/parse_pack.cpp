@@ -23,7 +23,7 @@ struct parse_pack : op_parser<parse_pack>
         int64_t axis = 0;
         if(contains(info.attributes, "axis"))
             axis = info.attributes.at("axis").i();
-        size_t input_size = args.front()->get_shape().lens().size();
+        int input_size = args.front()->get_shape().lens().size();
         if(axis > input_size)
         {
             MIGRAPHX_THROW("TF_PARSER: axis value of " + to_string(axis) +

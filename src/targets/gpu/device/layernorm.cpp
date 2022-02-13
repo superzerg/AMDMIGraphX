@@ -81,7 +81,7 @@ __device__ auto auto_block_reduce(index idx, Op op, T init, index_int n, F f)
 template <index_int MaxBlockSize, class Input, class Output>
 __device__ void layernorm(index_int i,
                           index idx,
-                          std::size_t block_size_div,
+                          int block_size_div,
                           index_int relements,
                           Input input,
                           Output output)
@@ -129,9 +129,9 @@ void layernorm_vec_impl(hipStream_t stream,
 {
     hip_vec_visit_all<N>(result, args...)([&](auto output, auto... inputs) {
         const auto relements_v           = relements / N;
-        const std::size_t max_block_size = 256;
-        const std::size_t block_size     = compute_block_size(relements_v, max_block_size);
-        const std::size_t block_size_div = encode_divisor(block_size);
+        const int max_block_size = 256;
+        const int block_size     = compute_block_size(relements_v, max_block_size);
+        const int block_size_div = encode_divisor(block_size);
         assert(relements_v <= block_size);
 
         gs_launch(stream, nelements * block_size, block_size)([=](auto i, auto idx) __device__ {
@@ -158,9 +158,9 @@ void layernorm_impl(hipStream_t stream,
                     const Arguments&... args)
 {
     hip_visit_all(result, args...)([&](auto output, auto... inputs) {
-        const std::size_t max_block_size = 256;
-        const std::size_t block_size     = compute_block_size(relements, max_block_size);
-        const std::size_t block_size_div = encode_divisor(block_size);
+        const int max_block_size = 256;
+        const int block_size     = compute_block_size(relements, max_block_size);
+        const int block_size_div = encode_divisor(block_size);
         assert(relements <= block_size);
 
         gs_launch(stream, nelements * block_size, block_size)([=](auto i, auto idx) __device__ {

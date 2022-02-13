@@ -9,7 +9,7 @@ template <>
 struct hash<dnnl::algorithm>
 {
     using argument_type = dnnl::algorithm;
-    using result_type   = std::size_t;
+    using result_type   = int;
     result_type operator()(const argument_type& x) const noexcept
     {
         return std::hash<underlying_type_t<argument_type>>{}(
@@ -52,7 +52,7 @@ dnnl::memory::data_type to_dnnl_memory_data_type(shape::type_t t)
 #pragma clang diagnostic pop
 #endif
 
-dnnl::memory::format_tag to_dnnl_memory_format_tag(std::size_t n)
+dnnl::memory::format_tag to_dnnl_memory_format_tag(int n)
 {
     switch(n)
     {

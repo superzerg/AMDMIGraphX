@@ -115,7 +115,7 @@ T range_product(R1&& r1, R2&& r2, T state, Reducer r, Product p)
 }
 
 template <class R1, class R2, class Compare>
-std::size_t mismatch_idx(R1&& r1, R2&& r2, Compare compare)
+int mismatch_idx(R1&& r1, R2&& r2, Compare compare)
 {
     auto p = std::mismatch(r1.begin(), r1.end(), r2.begin(), compare);
     return std::distance(r1.begin(), p.first);
@@ -138,7 +138,7 @@ double max_diff(R1&& r1, R2&& r2)
 }
 
 template <class R1, class R2, class T>
-std::size_t mismatch_diff(R1&& r1, R2&& r2, T diff)
+int mismatch_diff(R1&& r1, R2&& r2, T diff)
 {
     return mismatch_idx(r1, r2, [&](auto x, auto y) {
         auto d = abs_diff(x, y);
@@ -149,7 +149,7 @@ std::size_t mismatch_diff(R1&& r1, R2&& r2, T diff)
 template <class R1, class R2>
 double rms_range(const R1& r1, const R2& r2)
 {
-    std::size_t n = range_distance(r1);
+    int n = range_distance(r1);
     if(n == range_distance(r2))
     {
         double square_difference = range_product(r1, r2, 0.0, sum_fn{}, square_diff);

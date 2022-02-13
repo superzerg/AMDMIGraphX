@@ -13,7 +13,7 @@ namespace gpu {
 
 void eliminate_workspace::apply(module& p) const
 {
-    std::size_t n = 0;
+    int n = 0;
     std::vector<instruction_ref> allocs;
     for(auto ins : iterator_for(p))
     {

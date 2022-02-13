@@ -6,10 +6,10 @@
 
 struct test_batchnorm_inference : verify_program<test_batchnorm_inference>
 {
-    const size_t width    = 3;
-    const size_t height   = 3;
-    const size_t channels = 3;
-    const size_t batches  = 4;
+    const int width    = 3;
+    const int height   = 3;
+    const int channels = 3;
+    const int batches  = 4;
 
     migraphx::program create_program() const
     {

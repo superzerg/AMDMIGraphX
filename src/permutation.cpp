@@ -32,7 +32,7 @@ std::vector<int64_t> find_permutation(const std::vector<shape>& shapes)
 {
     if(shapes.empty())
         return {};
-    std::map<std::vector<int64_t>, std::size_t> count;
+    std::map<std::vector<int64_t>, int> count;
     for(auto&& s : shapes)
     {
         if(s.broadcasted())

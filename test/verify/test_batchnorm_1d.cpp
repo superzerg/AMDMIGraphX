@@ -6,9 +6,9 @@
 
 struct test_batchnorm_1d : verify_program<test_batchnorm_1d>
 {
-    const size_t size     = 3;
-    const size_t channels = 3;
-    const size_t batches  = 4;
+    const int size     = 3;
+    const int channels = 3;
+    const int batches  = 4;
 
     migraphx::program create_program() const
     {

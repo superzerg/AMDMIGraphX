@@ -439,7 +439,7 @@ TEST_CASE(mean_test)
     });
 
     migraphx::parameter_map pp;
-    for(std::size_t i = 0; i < num_data; ++i)
+    for(int i = 0; i < num_data; ++i)
         pp[std::to_string(i)] = migraphx::argument(s, data[i].data());
 
     auto result = p.eval(pp).back();

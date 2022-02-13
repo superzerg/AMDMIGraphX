@@ -25,7 +25,7 @@ struct array_type<void, Ts...> : std::common_type<Ts...>
 template <class R, class... Ts>
 using array_type_t = typename array_type<R, Ts...>::type;
 
-template <class T, std::size_t N, std::size_t... I>
+template <class T, int N, int... I>
 constexpr std::array<std::remove_cv_t<T>, N> to_array_impl(T (&a)[N], seq<I...>)
 {
     return {{a[I]...}};
@@ -41,7 +41,7 @@ constexpr std::array<detail::array_type_t<Result, Ts...>, sizeof...(Ts)> make_ar
 
 constexpr std::array<int, 0> make_array() { return {}; }
 
-template <class T, std::size_t N>
+template <class T, int N>
 constexpr auto to_array(T (&a)[N])
 {
     return detail::to_array_impl(a, detail::gens<N>{});
@@ -49,7 +49,7 @@ constexpr auto to_array(T (&a)[N])
 
 namespace detail {
 
-template <std::size_t Offset = 0, class Array, std::size_t... I>
+template <int Offset = 0, class Array, int... I>
 constexpr auto rearray_impl(Array a, seq<I...>)
 {
     return make_array(a[I + Offset]...);
@@ -57,13 +57,13 @@ constexpr auto rearray_impl(Array a, seq<I...>)
 
 } // namespace detail
 
-template <class T, std::size_t N>
+template <class T, int N>
 constexpr auto pop_front(std::array<T, N> a)
 {
     return detail::rearray_impl(a, detail::gens<N - 1>{});
 }
 
-template <class T, std::size_t N>
+template <class T, int N>
 constexpr auto pop_back(std::array<T, N> a)
 {
     return detail::rearray_impl<1>(a, detail::gens<N - 1>{});

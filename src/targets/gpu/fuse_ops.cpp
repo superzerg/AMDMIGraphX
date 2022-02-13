@@ -64,7 +64,7 @@ struct fusion
 
     bool empty() const { return fp == nullptr; }
 
-    op_t operator[](std::size_t i) const
+    op_t operator[](int i) const
     {
         assert(fp);
         op_t result;
@@ -118,7 +118,7 @@ struct fusion
     {
         // assert(fp);
         // TODO: Use zero workspace for now
-        std::size_t ws_size = 0;
+        int ws_size = 0;
         // int algo_count = 1;
         // miopenConvFwdAlgorithm_t algo;
         // miopenFusionPlanConvolutionGetAlgo(fp.get(), 1, &algo_count, &algo);
@@ -596,7 +596,7 @@ struct miopen_fusion
     {
         // Compensate for allocation
         inputs.pop_back();
-        std::size_t i = 0;
+        int i = 0;
         f             = fusion(inputs[i]);
         i++;
         std::vector<std::function<void(const fused_operator_args&, const std::vector<argument>&)>>

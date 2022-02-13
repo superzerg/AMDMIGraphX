@@ -16,9 +16,9 @@ void run_pass(migraphx::module& m)
 }
 
 migraphx::instruction_ref
-create_im2col(migraphx::instruction_ref& l_img, size_t channels, migraphx::module& m)
+create_im2col(migraphx::instruction_ref& l_img, int channels, migraphx::module& m)
 {
-    size_t f[2] = {1, 1};
+    int f[2] = {1, 1};
     std::vector<int32_t> weights(channels * f[0] * f[1]);
     migraphx::shape s_weights{migraphx::shape::int32_type, {1, channels, f[0], f[1]}};
     auto l_weights = m.add_literal(migraphx::literal{s_weights, weights});
@@ -28,7 +28,7 @@ create_im2col(migraphx::instruction_ref& l_img, size_t channels, migraphx::modul
 
 migraphx::instruction_ref
 create_conv(migraphx::instruction_ref& l_img,
-            size_t channels,
+            int channels,
             migraphx::module& m,
             migraphx::op::padding_mode_t padding_mode = migraphx::op::padding_mode_t::default_)
 {
@@ -44,8 +44,8 @@ create_conv(migraphx::instruction_ref& l_img,
 TEST_CASE(rewrite_pad)
 {
     migraphx::module m;
-    size_t img_dim[2] = {2, 2};
-    size_t channels   = 1;
+    int img_dim[2] = {2, 2};
+    int channels   = 1;
     std::vector<int32_t> input(channels * img_dim[0] * img_dim[1]);
     std::iota(input.begin(), input.end(), 0);
 
@@ -68,8 +68,8 @@ TEST_CASE(rewrite_pad_symmetric)
 {
     migraphx::module m;
 
-    size_t img_dim[2] = {2, 2};
-    size_t channels   = 1;
+    int img_dim[2] = {2, 2};
+    int channels   = 1;
     std::vector<int32_t> input(channels * img_dim[0] * img_dim[1]);
     std::iota(input.begin(), input.end(), 0);
 

@@ -21,7 +21,7 @@ inline shape reshape_if_1d(const shape& input)
 
     if(dims.size() == 3)
     {
-        std::vector<size_t> new_dims = dims;
+        std::vector<int> new_dims = dims;
         new_dims.insert(new_dims.begin() + 2, 1);
         new_shape = shape{input.type(), new_dims};
     }
@@ -72,7 +72,7 @@ shape miopen_deconvolution::compile(context& ctx,
                                              cd.get(),
                                              y_desc.get(),
                                              &workspace_size);
-    workspace_shape = shape{shape::int8_type, {workspace_size}};
+    workspace_shape = shape{shape::int8_type, {static_cast<int>(workspace_size)}};
 
     auto x         = to_gpu(generate_argument(inputs[0]));
     auto w         = to_gpu(generate_argument(inputs[1]));
@@ -99,7 +99,7 @@ shape miopen_deconvolution::compile(context& ctx,
         MIGRAPHX_THROW("Find deconvolution failed");
     handle = ctx.get_stream().get_miopen();
     algo   = perf.fwd_algo;
-    return shape{shape::int8_type, {perf.memory}};
+    return shape{shape::int8_type, {static_cast<int>(perf.memory)}};
 }
 
 void miopen_deconvolution::finalize(context& ctx,

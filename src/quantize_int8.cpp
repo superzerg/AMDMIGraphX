@@ -38,7 +38,7 @@ void quantize_int8_pass::apply(module& m) const // NOLINT
         auto op_val = ins->get_operator().to_value();
         assert(op_val.contains("ins_index"));
 
-        auto param_index = op_val.at("ins_index").to<std::size_t>();
+        auto param_index = op_val.at("ins_index").to<int>();
         auto param       = quant_params[param_index];
 
         auto input = ins->inputs().front();

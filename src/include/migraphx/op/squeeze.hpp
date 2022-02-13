@@ -46,8 +46,8 @@ struct squeeze
         {
             MIGRAPHX_THROW("squeeze axis dimension should be equal to 1");
         }
-        std::vector<std::size_t> new_lens;
-        std::vector<std::size_t> new_strides;
+        std::vector<int> new_lens;
+        std::vector<int> new_strides;
         if(axes.empty())
         {
             for(auto i : range(old_lens.size()))

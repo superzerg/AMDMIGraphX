@@ -27,10 +27,10 @@ void argument::assign_buffer(std::function<char*()> d)
         return;
     }
     // Collect all shapes
-    std::unordered_map<std::size_t, shape> shapes;
+    std::unordered_map<int, shape> shapes;
     {
         // cppcheck-suppress variableScope
-        std::size_t i = 0;
+        int i = 0;
         fix([&](auto self, auto ss) {
             if(ss.sub_shapes().empty())
             {
@@ -45,14 +45,14 @@ void argument::assign_buffer(std::function<char*()> d)
         })(s);
     }
     // Sort by type size
-    std::vector<std::size_t> order(shapes.size());
+    std::vector<int> order(shapes.size());
     std::iota(order.begin(), order.end(), 0);
     std::sort(order.begin(), order.end(), by(std::greater<>{}, [&](auto i) {
                   return shapes[i].type_size();
               }));
     // Compute offsets
-    std::unordered_map<std::size_t, std::size_t> offsets;
-    std::size_t offset = 0;
+    std::unordered_map<int, int> offsets;
+    int offset = 0;
     for(auto i : order)
     {
         offsets[i] = offset;
@@ -61,7 +61,7 @@ void argument::assign_buffer(std::function<char*()> d)
     assert(offset == s.bytes());
 
     // cppcheck-suppress variableScope
-    std::size_t i = 0;
+    int i = 0;
     m_data        = fix<data_t>([&](auto self, auto ss) {
         data_t result;
         if(ss.sub_shapes().empty())
@@ -155,7 +155,7 @@ std::vector<argument> argument::get_sub_objects() const
     return result;
 }
 
-argument argument::element(std::size_t i) const
+argument argument::element(int i) const
 {
     assert(this->get_shape().sub_shapes().empty());
     auto idx    = this->get_shape().index(i);

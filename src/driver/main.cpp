@@ -37,7 +37,7 @@ struct loader
     std::string model;
     std::string file;
     std::string file_type;
-    unsigned batch              = 1;
+    int batch              = 1;
     bool is_nhwc                = true;
     unsigned trim               = 0;
     bool optimize               = false;
@@ -99,7 +99,7 @@ struct loader
 
     static auto parse_param_dims(const std::vector<std::string>& param_dims_info)
     {
-        std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims;
+        std::unordered_map<std::string, std::vector<int>> map_input_dims;
         std::string name = "";
         for(auto&& x : param_dims_info)
         {
@@ -109,7 +109,7 @@ struct loader
             }
             else
             {
-                map_input_dims[name].push_back(value_parser<std::size_t>::apply(x));
+                map_input_dims[name].push_back(value_parser<int>::apply(x));
             }
         }
 

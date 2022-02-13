@@ -11,10 +11,10 @@ namespace device {
 argument concat(hipStream_t stream,
                 const migraphx::shape&,
                 std::vector<migraphx::argument> args,
-                std::vector<std::size_t> offsets)
+                std::vector<int> offsets)
 {
     auto ninputs = args.size() - 1;
-    for(std::size_t j = 0; j < ninputs; j++)
+    for(int j = 0; j < ninputs; j++)
     {
         auto&& arg        = args[j];
         auto offset       = offsets[j];

@@ -19,7 +19,7 @@ struct max_pool
     }
 
     template <class T>
-    MIGRAPHX_DEVICE_CONSTEXPR T final(T x, std::size_t)
+    MIGRAPHX_DEVICE_CONSTEXPR T final(T x, int)
     {
         return (x);
     }
@@ -36,7 +36,7 @@ struct avg_pool
     }
 
     template <class T>
-    MIGRAPHX_DEVICE_CONSTEXPR T final(T x, std::size_t y)
+    MIGRAPHX_DEVICE_CONSTEXPR T final(T x, int y)
     {
         return (y == 0) ? 0.0 : (x / y);
     }
@@ -44,13 +44,13 @@ struct avg_pool
 
 template <class T, class Op>
 MIGRAPHX_DEVICE_CONSTEXPR T bilinear_interpolate(const T* data,
-                                                 const array<std::size_t, 2>& dims,
+                                                 const array<int, 2>& dims,
                                                  array<float, 2> xy,
                                                  Op pooling)
 {
     array<int, 2> low{};
     array<int, 2> high{};
-    for(std::size_t ii = 0; ii < xy.size(); ++ii)
+    for(int ii = 0; ii < xy.size(); ++ii)
     {
         if(xy[ii] < -1.0f or xy[ii] > dims[ii])
         {
@@ -65,7 +65,7 @@ MIGRAPHX_DEVICE_CONSTEXPR T bilinear_interpolate(const T* data,
             xy[ii] = high[ii] = low[ii] = dims[ii] - 1;
         }
     }
-    array<std::size_t, 4> locs = {low[0] * dims[1] + low[1],
+    array<int, 4> locs = {low[0] * dims[1] + low[1],
                                   low[0] * dims[1] + high[1],
                                   high[0] * dims[1] + low[1],
                                   high[0] * dims[1] + high[1]};
@@ -86,15 +86,15 @@ MIGRAPHX_DEVICE_CONSTEXPR T calc_pooling(const T*& data,
                                          const array<float, 2>& roi_starts,
                                          const array<float, 2>& bin_size,
                                          const array<int, 2>& idx,
-                                         const array<std::size_t, 2>& bin_grid_size,
-                                         const array<std::size_t, 2>& dims,
+                                         const array<int, 2>& bin_grid_size,
+                                         const array<int, 2>& dims,
                                          float roi_offset,
                                          Op op)
 {
     T output_val        = op.init();
     const int64_t count = bin_grid_size[0] * bin_grid_size[1];
     dfor(bin_grid_size[0], bin_grid_size[1])([&](auto iy, auto ix) {
-        array<std::size_t, 2> id = {iy, ix};
+        array<int, 2> id = {iy, ix};
         array<float, 2> locs =
             roi_starts + idx * bin_size + bin_size * (id + 0.5f) / bin_grid_size + roi_offset;
 
@@ -134,7 +134,7 @@ __device__ void roialign(const T& x_t, const U& rois_t, const V& ind_t, const W&
     auto channel_num = x_lens[1];
     // input dims of height and width, in all 2-dim arrays, the first dim
     // is for height and second dim is for width
-    array<std::size_t, 2> in_dims = {x_lens[2], x_lens[3]};
+    array<int, 2> in_dims = {x_lens[2], x_lens[3]};
 
     const auto stride   = index.nglobal();
     auto out_s          = y_t.get_shape();
@@ -143,7 +143,7 @@ __device__ void roialign(const T& x_t, const U& rois_t, const V& ind_t, const W&
     // output dims of height and width, in all 2-dim arrays, the first dim
     // is for height and second dim is for width
     const auto& out_lens           = out_s.lens;
-    array<std::size_t, 2> out_dims = {out_lens[2], out_lens[3]};
+    array<int, 2> out_dims = {out_lens[2], out_lens[3]};
 
     for(index_int i = index.global; i < out_s.elements(); i += stride)
     {
@@ -163,9 +163,9 @@ __device__ void roialign(const T& x_t, const U& rois_t, const V& ind_t, const W&
 
         array<float, 2> roi_size{};
         array<float, 2> bin_size{};
-        array<std::size_t, 2> bin_grid_size{};
+        array<int, 2> bin_grid_size{};
 
-        for(std::size_t ii = 0; ii < roi_size.size(); ++ii)
+        for(int ii = 0; ii < roi_size.size(); ++ii)
         {
             roi_size[ii] = roi_ends[ii] - roi_starts[ii];
             roi_size[ii] = max(roi_size[ii], 1.0f);

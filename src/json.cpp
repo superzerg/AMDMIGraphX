@@ -133,7 +133,7 @@ std::string to_json_string(const value& val)
     return j.dump();
 }
 
-migraphx::value from_json_string(const char* str, std::size_t size)
+migraphx::value from_json_string(const char* str, int size)
 {
     json j = json::parse(str, str + size);
     return j.get<value>();

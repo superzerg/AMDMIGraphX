@@ -12,11 +12,11 @@ struct test_gru_bidirct_seq1 : verify_program<test_gru_bidirct_seq1>
 {
     migraphx::program create_program() const
     {
-        std::size_t batch_size  = 2;
-        std::size_t seq_len     = 1;
-        std::size_t hidden_size = 5;
-        std::size_t input_size  = 8;
-        std::size_t num_dirct   = 2;
+        int batch_size  = 2;
+        int seq_len     = 1;
+        int hidden_size = 5;
+        int input_size  = 8;
+        int num_dirct   = 2;
         float clip              = 0.0f;
 
         migraphx::program p;

@@ -5,7 +5,7 @@ namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 namespace onnx {
 
-void recalc_conv_attributes(value& v, size_t kdims)
+void recalc_conv_attributes(value& v, int kdims)
 {
     if(not(v["padding"].size() == kdims or v["padding"].size() == kdims * 2))
     {

@@ -17,7 +17,7 @@ struct module;
 struct eliminate_allocation
 {
     std::string allocation_op{};
-    std::size_t alignment = 32;
+    int alignment = 32;
     std::string name() const { return "eliminate_allocation"; }
     void apply(module& p) const;
 };

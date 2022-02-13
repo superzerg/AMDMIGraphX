@@ -21,7 +21,7 @@ struct reflectable_type
         class2,
         class3
     };
-    std::vector<std::size_t> ints = {};
+    std::vector<int> ints = {};
     std::string name              = "";
     float fvalue                  = 0.0;
     empty_type et{};
@@ -73,7 +73,7 @@ TEST_CASE(serialize_reflectable_type)
 
 TEST_CASE(serialize_empty_array)
 {
-    std::vector<std::size_t> ints = {};
+    std::vector<int> ints = {};
     migraphx::value v             = migraphx::to_value(ints);
     EXPECT(v.is_array());
     EXPECT(v.empty());

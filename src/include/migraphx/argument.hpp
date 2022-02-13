@@ -68,7 +68,7 @@ struct argument : raw_data<argument>
     std::vector<argument> get_sub_objects() const;
 
     /// Return the ith element
-    argument element(std::size_t i) const;
+    argument element(int i) const;
 
     private:
     void assign_buffer(std::function<char*()> d);

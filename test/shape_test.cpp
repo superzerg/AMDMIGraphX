@@ -333,19 +333,19 @@ TEST_CASE(test_shape4_transposed)
 
 TEST_CASE(test_shape4_nonpacked)
 {
-    std::vector<std::size_t> lens       = {100, 32, 8, 8};
-    std::array<std::size_t, 4> offsets  = {{5, 10, 0, 6}};
-    std::array<std::size_t, 4> adj_lens = {{0, 0, 0, 0}};
+    std::vector<int> lens       = {100, 32, 8, 8};
+    std::array<int, 4> offsets  = {{5, 10, 0, 6}};
+    std::array<int, 4> adj_lens = {{0, 0, 0, 0}};
 
     std::transform(
-        lens.begin(), lens.end(), offsets.begin(), adj_lens.begin(), std::plus<size_t>());
+        lens.begin(), lens.end(), offsets.begin(), adj_lens.begin(), std::plus<int>());
     // adj_lens should be: { 105, 42, 8, 14 }
-    std::vector<std::size_t> strides(4);
+    std::vector<int> strides(4);
     strides.back() = 1;
     std::partial_sum(adj_lens.rbegin(),
                      adj_lens.rend() - 1,
                      strides.rbegin() + 1,
-                     std::multiplies<std::size_t>());
+                     std::multiplies<int>());
 
     migraphx::shape s{migraphx::shape::float_type, lens, strides};
     EXPECT(not s.standard());

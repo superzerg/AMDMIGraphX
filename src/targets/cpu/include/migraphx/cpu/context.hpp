@@ -15,13 +15,13 @@ struct context
     void finish() const {}
 
     template <class F>
-    void bulk_execute(std::size_t n, std::size_t min_grain, F f)
+    void bulk_execute(int n, int min_grain, F f)
     {
         cpu::parallel_for(n, min_grain, f);
     }
 
     template <class F>
-    void bulk_execute(std::size_t n, F f)
+    void bulk_execute(int n, F f)
     {
         this->bulk_execute(n, 256, f);
     }

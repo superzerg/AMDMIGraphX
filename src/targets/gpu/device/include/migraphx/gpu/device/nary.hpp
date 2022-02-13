@@ -96,14 +96,14 @@ void nary_broadcast_vec_impl(
             launch(stream, nglobal, nlocal)([=](auto idx) __device__ {
                 MIGRAPHX_DEVICE_SHARED type buffer[2048 / vec_size];
                 // Load bias into LDS
-                for(size_t i = idx.local; i < bdim_vec_len; i += nlocal)
+                for(int i = idx.local; i < bdim_vec_len; i += nlocal)
                 {
                     buffer[i] = binput.data()[i];
                 }
                 __syncthreads();
                 auto* bp = as_pointer(buffer);
                 // Process the data
-                for(size_t i = idx.global; i < nelements; i += nglobal)
+                for(int i = idx.global; i < nelements; i += nglobal)
                 {
                     auto bidx = broadcast_idx(i * vec_size);
                     auto b    = bp[bidx];
@@ -141,13 +141,13 @@ void nary_broadcast_impl(hipStream_t stream, F f, argument result, argument barg
         launch(stream, nglobal, nlocal)([=](auto idx) __device__ {
             MIGRAPHX_DEVICE_SHARED type buffer[2048];
             // Load bias into LDS
-            for(size_t i = idx.local; i < bdim_len; i += nlocal)
+            for(int i = idx.local; i < bdim_len; i += nlocal)
             {
                 buffer[i] = binput.data()[i];
             }
             __syncthreads();
             // Process the data
-            for(size_t i = idx.global; i < nelements; i += nglobal)
+            for(int i = idx.global; i < nelements; i += nglobal)
             {
                 auto bidx        = broadcast_idx(i);
                 auto b           = buffer[bidx];
@@ -187,18 +187,18 @@ void nary_double_broadcast_vec_impl(
             launch(stream, nglobal, nlocal)([=](auto idx) __device__ {
                 MIGRAPHX_DEVICE_SHARED type buffer[2048 / vec_size];
                 // Load bias into LDS
-                for(size_t i = idx.local; i < bdim_vec_len; i += nlocal)
+                for(int i = idx.local; i < bdim_vec_len; i += nlocal)
                 {
                     buffer[i] = binput1.data()[i];
                 }
-                for(size_t i = idx.local; i < bdim_vec_len; i += nlocal)
+                for(int i = idx.local; i < bdim_vec_len; i += nlocal)
                 {
                     buffer[i + bdim_vec_len] = binput2.data()[i];
                 }
                 __syncthreads();
                 auto* bp = as_pointer(buffer);
                 // Process the data
-                for(size_t i = idx.global; i < nelements; i += nglobal)
+                for(int i = idx.global; i < nelements; i += nglobal)
                 {
                     auto bidx = broadcast_idx(i * vec_size);
                     auto b1   = bp[bidx];
@@ -242,17 +242,17 @@ void nary_double_broadcast_impl(
             launch(stream, nglobal, nlocal)([=](auto idx) __device__ {
                 MIGRAPHX_DEVICE_SHARED type buffer[2048];
                 // Load bias into LDS
-                for(size_t i = idx.local; i < bdim_len; i += nlocal)
+                for(int i = idx.local; i < bdim_len; i += nlocal)
                 {
                     buffer[i] = binput1.data()[i];
                 }
-                for(size_t i = idx.local; i < bdim_len; i += nlocal)
+                for(int i = idx.local; i < bdim_len; i += nlocal)
                 {
                     buffer[i + bdim_len] = binput2.data()[i];
                 }
                 __syncthreads();
                 // Process the data
-                for(size_t i = idx.global; i < nelements; i += nglobal)
+                for(int i = idx.global; i < nelements; i += nglobal)
                 {
                     auto bidx        = broadcast_idx(i);
                     auto b1          = buffer[bidx];

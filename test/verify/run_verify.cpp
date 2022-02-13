@@ -51,7 +51,7 @@ inline void compile_check(migraphx::program& p, const migraphx::target& t, bool 
     }
 
     auto num = shapes.size();
-    for(std::size_t i = 0; i < num; ++i)
+    for(int i = 0; i < num; ++i)
     {
         if(p.get_output_shapes()[i].lens() != shapes[i].lens())
         {
@@ -173,8 +173,8 @@ void run_verify::verify(const std::string& name, const migraphx::program& p) con
 
             bool passed = true;
             passed &= (gold.size() == result.size());
-            std::size_t num = gold.size();
-            for(std::size_t i = 0; ((i < num) and passed); ++i)
+            int num = gold.size();
+            for(int i = 0; ((i < num) and passed); ++i)
             {
                 passed &= migraphx::verify_args(tname, gold[i], result[i]);
             }

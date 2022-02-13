@@ -45,9 +45,9 @@ struct mlir_apply
     struct execution_spec
     {
         migraphx::value::binary binary;
-        size_t global_size;
-        size_t local_size;
-        execution_spec(migraphx::value::binary&& binary_m, size_t global_s, size_t local_s)
+        int global_size;
+        int local_size;
+        execution_spec(migraphx::value::binary&& binary_m, int global_s, int local_s)
             : binary(std::move(binary_m)), global_size(global_s), local_size(local_s)
         {
         }
@@ -152,7 +152,7 @@ struct mlir_apply
         auto bin_i = binary_map.find(mlir_options);
         if(bin_i == binary_map.end())
         {
-            size_t bin_size = 0;
+            int bin_size = 0;
 
             using mlir_handle = MIGRAPHX_MANAGE_PTR(MiirHandle, miirDestroyHandle);
             auto handle       = mlir_handle(miirCreateHandle(mlir_options.c_str()));
@@ -164,8 +164,8 @@ struct mlir_apply
                 if(miirBufferGet(handle.get(), reinterpret_cast<char*>(bin.data()), &bin_size) ==
                    MIIR_SUCCESS)
                 {
-                    size_t global_size;
-                    size_t block_size;
+                    int global_size;
+                    int block_size;
                     if(miirGetExecutionDims(handle.get(), &global_size, &block_size) ==
                        MIIR_SUCCESS)
                     {
@@ -224,7 +224,7 @@ struct mlir_apply
 
     void add_memref_descriptor(std::vector<instruction_ref>& refs, instruction_ref inst)
     {
-        const size_t offset = 0;
+        const int offset = 0;
         auto inst_t         = inst->get_shape();
         refs.push_back(inst);
         refs.push_back(inst);

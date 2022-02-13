@@ -16,7 +16,7 @@ argument hip_concat::compute(context& ctx,
                              const shape& output_shape,
                              const std::vector<argument>& args) const
 {
-    std::vector<std::size_t> offsets = op.compute_offsets(output_shape, args);
+    std::vector<int> offsets = op.compute_offsets(output_shape, args);
     return device::concat(ctx.get_stream().get(), output_shape, args, offsets);
 }
 

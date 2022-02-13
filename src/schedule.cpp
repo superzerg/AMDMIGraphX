@@ -37,19 +37,19 @@ auto get_outputs()
 
 struct stream_info
 {
-    std::unordered_map<instruction_ref, std::size_t> ins2stream;
-    std::unordered_map<instruction_ref, std::size_t> weights;
-    std::unordered_map<instruction_ref, std::size_t> iweights;
+    std::unordered_map<instruction_ref, int> ins2stream;
+    std::unordered_map<instruction_ref, int> weights;
+    std::unordered_map<instruction_ref, int> iweights;
     ins_dep_map mod_implicit_deps;
 
     void calc_implicit_deps(const module& p) { mod_implicit_deps = p.calc_implicit_deps(); }
 
     void accumulate_weights(instruction_ref last, const schedule_model& model)
     {
-        fix<std::size_t>([&](auto self, auto ins) -> std::size_t {
+        fix<int>([&](auto self, auto ins) -> int {
             if(not contains(weights, ins))
             {
-                std::size_t weight = 0;
+                int weight = 0;
                 auto&& op          = ins->get_operator();
                 if(not is_context_free(op) and op.name()[0] != '@')
                     weight = model.weight(op);
@@ -65,7 +65,7 @@ struct stream_info
                 }
 
                 weights[ins] = std::accumulate(
-                    inputs.begin(), inputs.end(), weight, [&](std::size_t w, instruction_ref i) {
+                    inputs.begin(), inputs.end(), weight, [&](int w, instruction_ref i) {
                         return w + self(i);
                     });
             }
@@ -91,13 +91,13 @@ struct stream_info
             return args.end();
         }
 
-        const std::size_t min_partition_threshold = 2;
+        const int min_partition_threshold = 2;
         sort_args_by_weight(args, std::greater<>{});
 
         auto it = std::lower_bound(std::next(args.begin()),
                                    args.end(),
                                    min_partition_threshold,
-                                   [&](auto i, std::size_t w) { return this->weights[i] > w; });
+                                   [&](auto i, int w) { return this->weights[i] > w; });
         assert(it == args.end() or this->weights[*it] <= min_partition_threshold);
         assert(it == args.end() or std::prev(it) == args.begin() or
                this->weights[*std::prev(it)] > min_partition_threshold);
@@ -106,17 +106,17 @@ struct stream_info
 
     struct partition
     {
-        std::size_t weight = 0;
+        int weight = 0;
         std::vector<instruction_ref> instructions{};
 
-        void add(instruction_ref ins, std::size_t w)
+        void add(instruction_ref ins, int w)
         {
             weight += w;
             instructions.push_back(ins);
         }
     };
 
-    std::size_t assign_streams(module& p, std::size_t n)
+    int assign_streams(module& p, int n)
     {
         assert(n > 0);
         partition critical;
@@ -166,7 +166,7 @@ struct stream_info
         }
         else
         {
-            std::vector<std::size_t> streams(n - 1);
+            std::vector<int> streams(n - 1);
             // Assign streams for the other partitions
             for(auto&& ins_part : partitions)
             {
@@ -187,7 +187,7 @@ struct stream_info
         }
     }
 
-    using weight_ins = std::pair<std::size_t, instruction_ref>;
+    using weight_ins = std::pair<int, instruction_ref>;
     struct compare_weight_ins
     {
         bool operator()(const weight_ins& x, const weight_ins& y) const
@@ -197,10 +197,10 @@ struct stream_info
         }
     };
 
-    void sort(module& p, std::size_t)
+    void sort(module& p, int)
     {
         std::set<weight_ins, compare_weight_ins> children;
-        std::unordered_map<instruction_ref, std::size_t> visited;
+        std::unordered_map<instruction_ref, int> visited;
         auto last      = std::prev(p.end());
         auto mw        = this->weights.at(last);
         auto nw        = mw / (p.size() + 1);
@@ -253,25 +253,25 @@ struct stream_info
         }
     }
 
-    void set_stream(const partition& p, std::size_t n)
+    void set_stream(const partition& p, int n)
     {
         for(auto ins : p.instructions)
             if(iweights[ins] > 0)
                 set_stream(ins, n);
     }
 
-    void set_stream(instruction_ref ins, std::size_t n)
+    void set_stream(instruction_ref ins, int n)
     {
         assert(iweights[ins] > 0);
         ins2stream[ins] = n;
     }
 
-    std::size_t get_stream(instruction_ref ins) const { return ins2stream.at(ins); }
+    int get_stream(instruction_ref ins) const { return ins2stream.at(ins); }
 
     bool has_stream(instruction_ref ins) const { return contains(ins2stream, ins); }
 
     template <class F>
-    bool different(F f, std::size_t stream) const
+    bool different(F f, int stream) const
     {
         bool result = false;
         f([&](auto s) {
@@ -313,11 +313,11 @@ struct stream_info
         };
     }
 
-    std::unordered_set<std::size_t> get_streams(instruction_ref ins) const
+    std::unordered_set<int> get_streams(instruction_ref ins) const
     {
         if(has_stream(ins))
             return {get_stream(ins)};
-        std::unordered_set<std::size_t> result;
+        std::unordered_set<int> result;
         get_streams_from(ins, get_inputs())([&](auto s) {
             result.insert(s);
             return true;
@@ -340,7 +340,7 @@ struct stream_info
     std::vector<instruction_ref> get_recorded_instructions(instruction_ref start)
     {
         std::vector<instruction_ref> result;
-        std::unordered_map<std::size_t, instruction_ref> m;
+        std::unordered_map<int, instruction_ref> m;
         fix([&](auto self, auto ins) {
             for(auto i : ins->inputs())
             {
@@ -424,8 +424,8 @@ struct stream_info
         auto concur_ins = this->find_concurrent_instructions(p);
 
         // Compute an index for each instruction
-        std::unordered_map<instruction_ref, std::size_t> ins2index;
-        std::size_t index_total = 0;
+        std::unordered_map<instruction_ref, int> ins2index;
+        int index_total = 0;
         for(auto ins : iterator_for(p))
             ins2index[ins] = index_total++;
 
@@ -544,10 +544,10 @@ void schedule::apply(module& p) const
         return;
 
     // Schedule instructions
-    std::size_t wait_id = 0;
-    std::unordered_map<instruction_ref, std::size_t> ins2wait;
-    std::unordered_map<std::size_t, std::unordered_set<std::size_t>> waited_for;
-    std::unordered_map<instruction_ref, std::unordered_set<std::size_t>> ins2waited;
+    int wait_id = 0;
+    std::unordered_map<instruction_ref, int> ins2wait;
+    std::unordered_map<int, std::unordered_set<int>> waited_for;
+    std::unordered_map<instruction_ref, std::unordered_set<int>> ins2waited;
     ins2wait.reserve(p.size());
     ins2waited.reserve(p.size());
     for(auto ins : iterator_for(p))

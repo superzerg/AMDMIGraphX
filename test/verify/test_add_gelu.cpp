@@ -10,7 +10,7 @@ struct test_add_gelu : verify_program<test_add_gelu>
     {
         migraphx::program p;
         auto* mm = p.get_main_module();
-        std::vector<size_t> input_lens{1, 1, 5};
+        std::vector<int> input_lens{1, 1, 5};
         auto x           = mm->add_parameter("x", {migraphx::shape::float_type, input_lens});
         auto y           = mm->add_parameter("y", {migraphx::shape::float_type, input_lens});
         auto half        = mm->add_literal(0.5f);

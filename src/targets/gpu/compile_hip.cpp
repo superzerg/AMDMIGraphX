@@ -67,7 +67,7 @@ struct hiprtc_program
         string_array() {}
         string_array(const string_array&) = delete;
 
-        std::size_t size() const { return strings.size(); }
+        int size() const { return strings.size(); }
 
         const char** data() { return c_strs.data(); }
 
@@ -125,7 +125,7 @@ struct hiprtc_program
 
     std::string log()
     {
-        std::size_t n = 0;
+        int n = 0;
         MIGRAPHX_HIPRTC(hiprtcGetProgramLogSize(prog.get(), &n));
         if(n < 2)
             return {};
@@ -137,7 +137,7 @@ struct hiprtc_program
 
     std::vector<char> get_code_obj()
     {
-        std::size_t n = 0;
+        int n = 0;
         MIGRAPHX_HIPRTC(hiprtcGetCodeSize(prog.get(), &n));
         std::vector<char> buffer(n);
         MIGRAPHX_HIPRTC(hiprtcGetCode(prog.get(), buffer.data()));
@@ -231,17 +231,17 @@ compile_hip_src(const std::vector<src_file>& srcs, std::string params, const std
     return {compiler.compile(srcs)};
 }
 
-std::string enum_params(std::size_t count, std::string param)
+std::string enum_params(int count, std::string param)
 {
     std::vector<std::string> items(count);
     transform(range(count), items.begin(), [&](auto i) { return param + std::to_string(i); });
     return join_strings(items, ",");
 }
 
-std::size_t compute_global(std::size_t n, std::size_t local)
+int compute_global(int n, int local)
 {
-    std::size_t groups  = (n + local - 1) / local;
-    std::size_t nglobal = std::min<std::size_t>(256, groups) * local;
+    int groups  = (n + local - 1) / local;
+    int nglobal = std::min<int>(256, groups) * local;
     return nglobal;
 }
 

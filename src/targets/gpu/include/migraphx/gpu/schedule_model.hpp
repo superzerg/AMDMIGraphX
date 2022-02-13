@@ -15,12 +15,12 @@ namespace gpu {
 
 struct schedule_model
 {
-    std::size_t streams = 0;
-    std::size_t concurrency() const;
-    void sched(module& p, instruction_ref ins, std::size_t n) const;
-    void wait(module& p, instruction_ref ins, std::size_t wait_id) const;
-    void record(module& p, instruction_ref ins, std::size_t wait_id) const;
-    std::size_t weight(const operation& op) const;
+    int streams = 0;
+    int concurrency() const;
+    void sched(module& p, instruction_ref ins, int n) const;
+    void wait(module& p, instruction_ref ins, int wait_id) const;
+    void record(module& p, instruction_ref ins, int wait_id) const;
+    int weight(const operation& op) const;
 };
 
 } // namespace gpu

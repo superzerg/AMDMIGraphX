@@ -17,7 +17,7 @@ struct dynamic_loader_impl
     {
     }
 
-    static std::shared_ptr<dynamic_loader_impl> from_buffer(const char* image, std::size_t size)
+    static std::shared_ptr<dynamic_loader_impl> from_buffer(const char* image, int size)
     {
         auto t = std::make_shared<tmp_dir>("dloader");
         auto f = t->path / "libtmp.so";
@@ -33,7 +33,7 @@ dynamic_loader::dynamic_loader(const fs::path& p) : impl(std::make_shared<dynami
 {
 }
 
-dynamic_loader::dynamic_loader(const char* image, std::size_t size)
+dynamic_loader::dynamic_loader(const char* image, int size)
     : impl(dynamic_loader_impl::from_buffer(image, size))
 {
 }

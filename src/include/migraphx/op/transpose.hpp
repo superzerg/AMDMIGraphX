@@ -43,9 +43,9 @@ struct transpose
         {
             MIGRAPHX_THROW("TRANSPOSE: Invalid permutation");
         }
-        std::vector<size_t> output_lens(input_lens.size());
-        std::vector<size_t> output_strides(input_lens.size());
-        for(std::size_t i = 0; i < output_lens.size(); i++)
+        std::vector<int> output_lens(input_lens.size());
+        std::vector<int> output_strides(input_lens.size());
+        for(int i = 0; i < output_lens.size(); i++)
         {
             output_lens[i]    = input_lens[dims[i]];
             output_strides[i] = input_strides[dims[i]];

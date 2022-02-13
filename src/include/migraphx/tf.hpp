@@ -11,9 +11,9 @@ inline namespace MIGRAPHX_INLINE_NS {
 struct tf_options
 {
     bool is_nhwc            = false;
-    unsigned int batch_size = 1;
+    int batch_size = 1;
     /// Explicitly specify the dims of an input
-    std::unordered_map<std::string, std::vector<std::size_t>> map_input_dims = {};
+    std::unordered_map<std::string, std::vector<int>> map_input_dims = {};
     std::vector<std::string> output_node_names                               = {};
 };
 

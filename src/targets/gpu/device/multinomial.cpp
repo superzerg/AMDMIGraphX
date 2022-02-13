@@ -40,9 +40,9 @@ void multinomial(hipStream_t stream,
                  const argument& arg0,
                  const argument& arg1)
 {
-    size_t batch_size  = arg0.get_shape().lens().front();
-    size_t class_size  = arg0.get_shape().lens().back();
-    size_t sample_size = result.get_shape().lens().back();
+    int batch_size  = arg0.get_shape().lens().front();
+    int class_size  = arg0.get_shape().lens().back();
+    int sample_size = result.get_shape().lens().back();
 
     hip_visit_all(arg0, arg1)([&](auto cdf, auto dist) {
         result.visit([&](auto out) {

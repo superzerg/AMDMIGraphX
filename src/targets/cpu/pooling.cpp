@@ -26,7 +26,7 @@ struct max_pool
         return (m);
     }
 
-    static double final(double x, std::size_t) { return (x); }
+    static double final(double x, int) { return (x); }
 };
 
 struct avg_pool
@@ -41,7 +41,7 @@ struct avg_pool
 
     static double apply(double x, double y) { return x + y; }
 
-    static double final(double x, std::size_t y) { return (y == 0) ? 0.0 : (x / y); }
+    static double final(double x, int y) { return (y == 0) ? 0.0 : (x / y); }
 };
 
 template <class Op>
@@ -77,14 +77,14 @@ struct cpu_pooling : auto_register_op<cpu_pooling<Op>>
             using type   = typename decltype(output)::value_type;
             auto in_s    = input.get_shape();
             auto in_lens = in_s.lens();
-            std::vector<std::size_t> vec_len(in_lens.begin() + 2, in_lens.end());
+            std::vector<int> vec_len(in_lens.begin() + 2, in_lens.end());
 
             par_for(output_shape.elements(), [&](auto i) {
                 auto idx_o = output_shape.multi(i);
                 auto n_dim = idx_o.size();
-                std::vector<std::size_t> win_start;
-                std::vector<std::size_t> win_size;
-                for(std::size_t dim = 2; dim < n_dim; ++dim)
+                std::vector<int> win_start;
+                std::vector<int> win_size;
+                for(int dim = 2; dim < n_dim; ++dim)
                 {
                     auto d_2  = dim - 2;
                     int start = static_cast<int>(idx_o[dim] * op.stride[d_2]) -
@@ -131,8 +131,8 @@ struct dnnl_pooling : dnnl_extend_op<dnnl_pooling, dnnl::pooling_forward, op::po
     {
         auto algo  = op.mode == "max" ? dnnl::algorithm::pooling_max : dnnl::algorithm::pooling_avg;
         auto kdims = op.kdims();
-        std::vector<size_t> padding_l(op.padding.begin(), op.padding.begin() + kdims);
-        std::vector<size_t> padding_r(op.padding.begin() + kdims, op.padding.end());
+        std::vector<int> padding_l(op.padding.begin(), op.padding.begin() + kdims);
+        std::vector<int> padding_r(op.padding.begin() + kdims, op.padding.end());
         return {dnnl::prop_kind::forward_inference,
                 algo,
                 m.at(MIGRAPHX_DNNL_PREFIX(ARG_SRC)),

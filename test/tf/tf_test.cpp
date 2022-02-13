@@ -23,7 +23,7 @@
 migraphx::program
 parse_tf(const std::string& name,
          bool is_nhwc,
-         const std::unordered_map<std::string, std::vector<std::size_t>>& dim_params = {},
+         const std::unordered_map<std::string, std::vector<int>>& dim_params = {},
          const std::vector<std::string>& output_node_names                           = {})
 {
     return migraphx::parse_tf(name,
@@ -356,7 +356,7 @@ TEST_CASE(conv_relu6_test)
 {
     migraphx::program p = create_conv();
     auto* mm            = p.get_main_module();
-    std::vector<size_t> input_lens{1, 32, 16, 16};
+    std::vector<int> input_lens{1, 32, 16, 16};
     auto l0      = std::prev(mm->end());
     auto min_val = mm->add_literal(0.0f);
     auto max_val = mm->add_literal(6.0f);
@@ -692,7 +692,7 @@ TEST_CASE(relu6_test)
     migraphx::program p;
 
     auto* mm = p.get_main_module();
-    std::vector<size_t> input_lens{1, 3, 16, 16};
+    std::vector<int> input_lens{1, 3, 16, 16};
     auto l0      = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, input_lens});
     auto min_val = mm->add_literal(0.0f);
     auto max_val = mm->add_literal(6.0f);
@@ -751,7 +751,7 @@ TEST_CASE(slice_test)
     migraphx::program p;
 
     auto* mm             = p.get_main_module();
-    std::size_t num_axes = 2;
+    int num_axes = 2;
     auto l0 = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {5, 10}});
     migraphx::shape s0{migraphx::shape::int32_type, {num_axes}};
     mm->add_literal(migraphx::literal{s0, {1, 0}});
@@ -892,7 +892,7 @@ TEST_CASE(stridedslice_test)
     auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {1, 10, 1, 1}});
     auto l1 =
         mm->add_instruction(migraphx::make_op("transpose", {{"permutation", {0, 2, 3, 1}}}), l0);
-    std::size_t num_axes = 4;
+    int num_axes = 4;
     migraphx::op::slice op;
     op.starts = {0, 0, 0, 0};
     op.ends   = {1, 1, 1, 5};
@@ -912,7 +912,7 @@ TEST_CASE(stridedslice_masks_test)
 
     auto* mm = p.get_main_module();
     auto l0  = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {1, 10, 3, 3}});
-    std::size_t num_axes = 4;
+    int num_axes = 4;
     migraphx::op::slice op;
     op.starts = {0, 1, 1, 0};
     op.ends   = {1, 3, 3, 10};

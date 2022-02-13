@@ -16,26 +16,26 @@ struct multi_index
 {
     constexpr multi_index() = default;
 
-    multi_index(const shape& s, std::size_t i) : n(s.lens().size())
+    multi_index(const shape& s, int i) : n(s.lens().size())
     {
         assert(n < max_size);
         std::copy(s.lens().begin(), s.lens().end(), dims);
         s.multi_copy(i, index, index + max_size);
     }
 
-    constexpr std::size_t size() const { return n; }
+    constexpr int size() const { return n; }
 
-    constexpr std::size_t* begin() { return index; }
-    constexpr const std::size_t* begin() const { return index; }
+    constexpr int* begin() { return index; }
+    constexpr const int* begin() const { return index; }
 
-    constexpr std::size_t* end() { return index + size(); }
-    constexpr const std::size_t* end() const { return index + size(); }
+    constexpr int* end() { return index + size(); }
+    constexpr const int* end() const { return index + size(); }
 
-    std::size_t offset(const shape& s) const { return s.index(begin(), end()); }
+    int offset(const shape& s) const { return s.index(begin(), end()); }
 
     constexpr void carry()
     {
-        std::size_t overflow = 0;
+        int overflow = 0;
         for(std::ptrdiff_t i = size() - 1; i > 0; i--)
         {
             auto z = index[i] + overflow;
@@ -57,13 +57,13 @@ struct multi_index
         index[0] += overflow;
     }
 
-    constexpr void increment(std::size_t i)
+    constexpr void increment(int i)
     {
         index[size() - 1] += i;
         carry();
     }
 
-    constexpr multi_index& operator+=(std::size_t i)
+    constexpr multi_index& operator+=(int i)
     {
         increment(i);
         return *this;
@@ -82,10 +82,10 @@ struct multi_index
     }
 
     private:
-    static const std::size_t max_size = 5;
-    std::size_t index[max_size]       = {};
-    std::size_t dims[max_size]        = {};
-    std::size_t n                     = 0;
+    static const int max_size = 5;
+    int index[max_size]       = {};
+    int dims[max_size]        = {};
+    int n                     = 0;
 };
 
 struct reduce_dims_base
@@ -97,7 +97,7 @@ struct reduce_dims_base
         reduce_shapes = reduce_dims(inputs);
     }
 
-    argument get_arg(const std::vector<argument>& args, std::size_t i) const
+    argument get_arg(const std::vector<argument>& args, int i) const
     {
         if(reduce_shapes.empty())
             return args[i];
@@ -111,7 +111,7 @@ struct reduce_dims_base
     }
 };
 
-template <class T, std::size_t N>
+template <class T, int N>
 struct vec
 {
     using array_type                                              = std::array<T, N>;
@@ -126,19 +126,19 @@ struct vec
 };
 
 template <class T>
-constexpr std::integral_constant<std::size_t, 0> vec_size(const T&)
+constexpr std::integral_constant<int, 0> vec_size(const T&)
 {
     return {};
 }
 
-template <class T, std::size_t N>
-constexpr std::integral_constant<std::size_t, N> vec_size(const vec<T, N>&)
+template <class T, int N>
+constexpr std::integral_constant<int, N> vec_size(const vec<T, N>&)
 {
     return {};
 }
 
 template <class T>
-constexpr std::size_t vec_size()
+constexpr int vec_size()
 {
     return decltype(vec_size(std::declval<T>())){};
 }
@@ -148,7 +148,7 @@ void vec_apply(F f, V& v, Vs... vs)
 {
     assert(all_of({vec_size<Vs>()...}, [&](auto n) { return n == vec_size<V>(); }));
     assert(vec_size<V>() == v.array.size());
-    for(std::size_t i = 0; i < vec_size<V>(); i++)
+    for(int i = 0; i < vec_size<V>(); i++)
         f(v.array[i], vs.vector[i]...);
 }
 
@@ -158,9 +158,9 @@ void vec_apply(F f, V& v, Vs&... vs)
     f(v, vs...);
 }
 
-inline std::size_t find_packed_len(const shape& s)
+inline int find_packed_len(const shape& s)
 {
-    for(std::size_t i = 0; i < s.lens().size(); i++)
+    for(int i = 0; i < s.lens().size(); i++)
     {
         if(s.lens()[i] > 1 and s.strides()[i] == 1)
         {
@@ -170,7 +170,7 @@ inline std::size_t find_packed_len(const shape& s)
     return -1;
 }
 
-template <std::size_t N>
+template <int N>
 shape vectorize(const shape& s)
 {
     assert(s.standard() or s.broadcasted());
@@ -188,7 +188,7 @@ shape vectorize(const shape& s)
     return {s.type(), lens};
 }
 
-template <std::size_t N, class T>
+template <int N, class T>
 tensor_view<vec<T, N>> vectorize(tensor_view<T> tv)
 {
     return {vectorize<N>(tv.get_shape()), reinterpret_cast<vec<T, N>*>(tv.data())};
@@ -209,7 +209,7 @@ struct is_vector_tensor_view : and_<is_vector_type<typename Ts::value_type>{}...
 {
 };
 
-template <std::size_t N, class... Xs>
+template <int N, class... Xs>
 bool is_vectorizable(const Xs&... xs)
 {
     return all_of({xs...}, [](const auto& s) {
@@ -223,7 +223,7 @@ bool is_vectorizable(const Xs&... xs)
                                         s.strides().begin(),
                                         0,
                                         std::plus<>{},
-                                        [&](auto len, auto stride) -> std::size_t {
+                                        [&](auto len, auto stride) -> int {
                                             if(stride > 0 and len == 1)
                                                 return 0;
                                             return stride;
@@ -272,7 +272,7 @@ bool is_standard_offset(const X& x, const Xs&... xs)
 template <class... Ts>
 auto pointwise_apply(Ts... ts)
 {
-    return [=](context& ctx, const shape& base_shape, std::size_t min_grain, auto f) mutable {
+    return [=](context& ctx, const shape& base_shape, int min_grain, auto f) mutable {
         if(is_standard_offset(ts.get_shape()...))
         {
             ctx.bulk_execute(base_shape.elements(), min_grain, [=](auto start, auto end) mutable {
@@ -300,7 +300,7 @@ auto pointwise_apply(Ts... ts)
 template <class... Ts>
 auto pointwise(Ts... ts)
 {
-    return [=](context& ctx, const shape& base_shape, std::size_t min_grain, auto f) mutable {
+    return [=](context& ctx, const shape& base_shape, int min_grain, auto f) mutable {
         auto_vectorize(base_shape, ts...)(
             [&](auto bs, auto... xs) { pointwise_apply(xs...)(ctx, bs, min_grain, f); });
     };

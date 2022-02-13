@@ -58,8 +58,8 @@ void verify_program(const std::string& name,
     auto x = run_ref(p, inputs);
     auto y = run_target(p, t, options, quantize, inputs);
 
-    std::size_t output_num = x.size();
-    for(std::size_t i = 0; i < output_num; ++i)
+    int output_num = x.size();
+    for(int i = 0; i < output_num; ++i)
     {
         verify_args(name, x[i], y[i], tolerance);
     }
@@ -136,7 +136,7 @@ void verify_reduced_program(const program& p,
 {
     const auto* mm = p.get_main_module();
     auto n         = std::distance(mm->begin(), mm->end());
-    for(std::size_t i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
         verify_reduced(p, i, t, options, quantize, inputs, tolerance);
     }

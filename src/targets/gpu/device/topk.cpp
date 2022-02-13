@@ -142,7 +142,7 @@ std::vector<argument> topk(hipStream_t stream,
     auto comp_lens  = in_lens;
     comp_lens[axis] = 1;
     shape comp_s{in_s.type(), comp_lens};
-    std::size_t elem_num = comp_s.elements();
+    int elem_num = comp_s.elements();
 
     hip_visit_all(val_res, arg, out_s, in_s, comp_s)(
         [&](auto out_val, auto input, auto oss, auto iss, auto css) {

@@ -476,7 +476,7 @@ std::unordered_map<std::string, shape> module::get_parameter_shapes() const
 
 bool module::has_instruction(instruction_ref ins) const { return impl->contains(ins); }
 
-std::size_t module::size() const { return impl->instructions.size(); }
+int module::size() const { return impl->instructions.size(); }
 instruction_ref module::begin() const { return impl->instructions.begin(); }
 instruction_ref module::end() const { return impl->instructions.end(); }
 

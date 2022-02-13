@@ -19,7 +19,7 @@ inline void reshape_if_1d(shape& input)
 
     if(dims.size() == 3)
     {
-        std::vector<size_t> new_dims = dims;
+        std::vector<int> new_dims = dims;
         new_dims.insert(new_dims.begin() + 2, 1);
         input = shape{input.type(), new_dims};
     }

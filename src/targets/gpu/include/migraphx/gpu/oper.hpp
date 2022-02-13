@@ -16,7 +16,7 @@ namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 namespace gpu {
 
-template <class Derived, std::size_t N>
+template <class Derived, int N>
 struct device_base : oper<Derived>
 {
     template <class Self, class F>
@@ -32,7 +32,7 @@ struct device_base : oper<Derived>
         reduce_shapes = reduce_dims(inputs);
     }
 
-    argument get_arg(const std::vector<argument>& args, std::size_t i) const
+    argument get_arg(const std::vector<argument>& args, int i) const
     {
         if(reduce_shapes.empty())
             return args[i];

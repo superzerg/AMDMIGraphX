@@ -7,7 +7,7 @@
 #include <migraphx/op/reduce_mean.hpp>
 
 migraphx::instruction_ref
-add_layernorm(migraphx::module& m, migraphx::instruction_ref x, std::vector<size_t> dims)
+add_layernorm(migraphx::module& m, migraphx::instruction_ref x, std::vector<int> dims)
 {
     auto scale =
         m.add_parameter("scale", migraphx::shape{migraphx::shape::float_type, {dims.back()}});
@@ -45,7 +45,7 @@ struct test_layernorm : verify_program<test_layernorm>
     {
         migraphx::program p;
         auto* mm                 = p.get_main_module();
-        std::vector<size_t> dims = {1, 1, 5};
+        std::vector<int> dims = {1, 1, 5};
         auto x = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, dims});
         add_layernorm(*mm, x, dims);
         return p;
@@ -58,7 +58,7 @@ struct test_layernorm2 : verify_program<test_layernorm2>
     {
         migraphx::program p;
         auto* mm                 = p.get_main_module();
-        std::vector<size_t> dims = {1, 4, 24};
+        std::vector<int> dims = {1, 4, 24};
         auto x = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, dims});
         add_layernorm(*mm, x, dims);
         return p;
@@ -71,7 +71,7 @@ struct test_layernorm_triadd : verify_program<test_layernorm_triadd>
     {
         migraphx::program p;
         auto* mm                 = p.get_main_module();
-        std::vector<size_t> dims = {1, 4, 24};
+        std::vector<int> dims = {1, 4, 24};
         auto x    = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, dims});
         auto y    = mm->add_parameter("y", migraphx::shape{migraphx::shape::float_type, dims});
         auto z    = mm->add_parameter("z", migraphx::shape{migraphx::shape::float_type, dims});
@@ -88,7 +88,7 @@ struct test_layernorm_triadd_large : verify_program<test_layernorm_triadd_large>
     {
         migraphx::program p;
         auto* mm                 = p.get_main_module();
-        std::vector<size_t> dims = {1, 384, 1024};
+        std::vector<int> dims = {1, 384, 1024};
         auto x    = mm->add_parameter("x", migraphx::shape{migraphx::shape::float_type, dims});
         auto y    = mm->add_parameter("y", migraphx::shape{migraphx::shape::float_type, dims});
         auto z    = mm->add_parameter("z", migraphx::shape{migraphx::shape::float_type, dims});

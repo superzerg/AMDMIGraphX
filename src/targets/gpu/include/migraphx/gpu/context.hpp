@@ -29,13 +29,13 @@ struct hip_device
         add_stream();
     }
 
-    hip_device(std::size_t id, std::size_t n) : device_id(id)
+    hip_device(int id, int n) : device_id(id)
     {
         auto status = hipGetDeviceProperties(&device_props, device_id);
         if(status != hipSuccess)
             MIGRAPHX_THROW("Failed to allocate stream");
 
-        for(std::size_t i = 0; i < n; i++)
+        for(int i = 0; i < n; i++)
             add_stream();
     }
 
@@ -45,7 +45,7 @@ struct hip_device
 
         stream() {}
 
-        stream(std::size_t device_number) : id(device_number) {}
+        stream(int device_number) : id(device_number) {}
 
         void setup() const { set_device(id); }
 
@@ -124,7 +124,7 @@ struct hip_device
         }
 
         private:
-        std::size_t id                      = 0;
+        int id                      = 0;
         shared<hip_stream_ptr> s            = nullptr;
         shared<miopen_handle> mihandle      = nullptr;
         shared<rocblas_handle_ptr> rbhandle = nullptr;
@@ -134,29 +134,29 @@ struct hip_device
 
     stream& get_stream() { return streams.at(current_stream); }
 
-    stream& get_stream(std::size_t n) { return streams.at(n); }
+    stream& get_stream(int n) { return streams.at(n); }
 
     const stream& get_stream() const { return streams.at(current_stream); }
 
-    const stream& get_stream(std::size_t n) const { return streams.at(n); }
+    const stream& get_stream(int n) const { return streams.at(n); }
 
-    void set_stream(std::size_t n) { current_stream = n; }
+    void set_stream(int n) { current_stream = n; }
 
-    std::size_t nstreams() const { return streams.size(); }
+    int nstreams() const { return streams.size(); }
 
-    std::size_t stream_id() const { return current_stream; }
+    int stream_id() const { return current_stream; }
 
     std::string get_device_name() const { return device_props.gcnArchName; }
 
-    std::size_t get_device_major() const { return device_props.major; }
+    int get_device_major() const { return device_props.major; }
 
-    std::size_t get_device_minor() const { return device_props.minor; }
+    int get_device_minor() const { return device_props.minor; }
 
-    std::size_t get_cu_count() const { return device_props.multiProcessorCount; }
+    int get_cu_count() const { return device_props.multiProcessorCount; }
 
     private:
-    std::size_t device_id      = 0;
-    std::size_t current_stream = 0;
+    int device_id      = 0;
+    int current_stream = 0;
     std::vector<stream> streams;
     hipDeviceProp_t device_props;
 
@@ -166,7 +166,7 @@ struct hip_device
 
 struct context
 {
-    context(std::size_t device_id = 0, std::size_t n = value_of(MIGRAPHX_NSTREAMS{}, 1))
+    context(int device_id = 0, int n = value_of(MIGRAPHX_NSTREAMS{}, 1))
         : current_device(std::make_shared<hip_device>(device_id, n))
     {
     }
@@ -184,23 +184,23 @@ struct context
     }
 
     hip_device::stream& get_stream() { return get_current_device().get_stream(); }
-    hip_device::stream& get_stream(std::size_t n) { return get_current_device().get_stream(n); }
+    hip_device::stream& get_stream(int n) { return get_current_device().get_stream(n); }
 
     const hip_device::stream& get_stream() const { return get_current_device().get_stream(); }
-    const hip_device::stream& get_stream(std::size_t n) const
+    const hip_device::stream& get_stream(int n) const
     {
         return get_current_device().get_stream(n);
     }
 
-    void set_stream(std::size_t n) { get_current_device().set_stream(n); }
+    void set_stream(int n) { get_current_device().set_stream(n); }
 
-    void create_events(std::size_t num_of_events)
+    void create_events(int num_of_events)
     {
-        for(std::size_t i = events.size(); i < num_of_events + 1; ++i)
+        for(int i = events.size(); i < num_of_events + 1; ++i)
             events.emplace_back(create_event());
     }
 
-    hipEvent_t get_event(std::size_t i) const { return events.at(i).get(); }
+    hipEvent_t get_event(int i) const { return events.at(i).get(); }
 
     std::vector<argument> literals{};
     void finish() const { get_stream().wait(); }
@@ -226,11 +226,11 @@ struct context
     void from_value(const value& v)
     {
         auto v_events        = v.at("events");
-        std::size_t n_events = v_events.without_key().to<std::size_t>();
+        int n_events = v_events.without_key().to<int>();
         this->create_events(n_events - 1);
 
         auto v_streams        = v.at("streams");
-        std::size_t n_streams = v_streams.without_key().to<std::size_t>();
+        int n_streams = v_streams.without_key().to<int>();
 
         this->current_device = std::make_shared<hip_device>(0, n_streams);
     }

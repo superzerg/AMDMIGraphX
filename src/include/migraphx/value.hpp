@@ -157,10 +157,10 @@ struct value
         {
         }
         template <class T>
-        binary(T* data, std::size_t s) : base(data, data + s)
+        binary(T* data, int s) : base(data, data + s)
         {
         }
-        explicit binary(std::size_t s) : base(s) {}
+        explicit binary(int s) : base(s) {}
     };
 
     value() = default;
@@ -263,7 +263,7 @@ struct value
     value* find(const std::string& pkey);
     const value* find(const std::string& pkey) const;
     bool contains(const std::string& pkey) const;
-    std::size_t size() const;
+    int size() const;
     bool empty() const;
     const value* data() const;
     value* data();
@@ -276,17 +276,17 @@ struct value
     const value& front() const;
     value& back();
     const value& back() const;
-    value& at(std::size_t i);
-    const value& at(std::size_t i) const;
+    value& at(int i);
+    const value& at(int i) const;
     value& at(const std::string& pkey);
     const value& at(const std::string& pkey) const;
-    value& operator[](std::size_t i);
-    const value& operator[](std::size_t i) const;
+    value& operator[](int i);
+    const value& operator[](int i) const;
     value& operator[](const std::string& pkey);
 
     void clear();
-    void resize(std::size_t n);
-    void resize(std::size_t n, const value& v);
+    void resize(int n);
+    void resize(int n, const value& v);
 
     std::pair<value*, bool> insert(const value& v);
     value* insert(const value* pos, const value& v);

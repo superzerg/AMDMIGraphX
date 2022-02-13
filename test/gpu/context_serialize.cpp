@@ -13,10 +13,10 @@ TEST_CASE(gpu_context)
     EXPECT(v.size() == 2);
 
     EXPECT(v.contains("events"));
-    EXPECT(v.at("events").without_key().to<std::size_t>() == 0);
+    EXPECT(v.at("events").without_key().to<int>() == 0);
 
     EXPECT(v.contains("streams"));
-    EXPECT(v.at("streams").without_key().to<std::size_t>() == 3);
+    EXPECT(v.at("streams").without_key().to<int>() == 3);
 
     migraphx::gpu::context g_ctx;
     g_ctx.from_value(v);

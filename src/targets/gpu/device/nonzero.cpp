@@ -36,7 +36,7 @@ argument nonzero(hipStream_t stream, const argument& result, const argument& arg
                                            return;
 
                                        auto index = si.multi(j);
-                                       for(size_t k = 0; k < index.size(); ++k)
+                                       for(int k = 0; k < index.size(); ++k)
                                        {
                                            ptr[k * elem_num + out_loc] = index[k];
                                        }
