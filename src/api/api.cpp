@@ -385,25 +385,25 @@ extern "C" migraphx_status migraphx_shape_destroy(migraphx_shape_t shape)
 
 extern "C" migraphx_status migraphx_shape_create(migraphx_shape_t* shape,
                                                  migraphx_shape_datatype_t type,
-                                                 size_t* lengths,
-                                                 int lengths_size)
+                                                 int* lengths,
+                                                 size_t lengths_size)
 {
     auto api_error_result = migraphx::try_([&] {
         if(lengths == nullptr and lengths_size != 0)
             MIGRAPHX_THROW(migraphx_status_bad_param, "Bad parameter lengths: Null pointer");
         *shape = object_cast<migraphx_shape_t>(
             allocate<migraphx::shape>((migraphx::to_shape_type(type)),
-                                      (std::vector<size_t>(lengths, lengths + lengths_size))));
+                                      (std::vector<int>(lengths, lengths + lengths_size))));
     });
     return api_error_result;
 }
 
 extern "C" migraphx_status migraphx_shape_create_with_strides(migraphx_shape_t* shape,
                                                               migraphx_shape_datatype_t type,
-                                                              size_t* lengths,
-                                                              int lengths_size,
-                                                              size_t* strides,
-                                                              int strides_size)
+                                                              int* lengths,
+                                                              size_t lengths_size,
+                                                              int* strides,
+                                                              size_t strides_size)
 {
     auto api_error_result = migraphx::try_([&] {
         if(lengths == nullptr and lengths_size != 0)
@@ -412,8 +412,8 @@ extern "C" migraphx_status migraphx_shape_create_with_strides(migraphx_shape_t* 
             MIGRAPHX_THROW(migraphx_status_bad_param, "Bad parameter strides: Null pointer");
         *shape = object_cast<migraphx_shape_t>(
             allocate<migraphx::shape>((migraphx::to_shape_type(type)),
-                                      (std::vector<size_t>(lengths, lengths + lengths_size)),
-                                      (std::vector<size_t>(strides, strides + strides_size))));
+                                      (std::vector<int>(lengths, lengths + lengths_size)),
+                                      (std::vector<int>(strides, strides + strides_size))));
     });
     return api_error_result;
 }
@@ -899,7 +899,7 @@ extern "C" migraphx_status migraphx_onnx_options_create(migraphx_onnx_options_t*
 }
 
 extern "C" migraphx_status migraphx_onnx_options_set_input_parameter_shape(
-    migraphx_onnx_options_t onnx_options, const char* name, size_t* dims, int dims_size)
+    migraphx_onnx_options_t onnx_options, const char* name, int* dims, size_t dims_size)
 {
     auto api_error_result = migraphx::try_([&] {
         if(onnx_options == nullptr)

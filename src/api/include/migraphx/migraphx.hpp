@@ -240,9 +240,9 @@ struct shape : MIGRAPHX_CONST_HANDLE_BASE(shape)
         this->make_handle(&migraphx_shape_create_with_strides,
                           type,
                           plengths.data(),
-                          plengths.size(),
+                          static_cast<int>(plengths.size()),
                           pstrides.data(),
-                          pstrides.size());
+                          static_cast<int>(pstrides.size()));
     }
 
     std::vector<int> lengths() const
@@ -268,9 +268,9 @@ struct shape : MIGRAPHX_CONST_HANDLE_BASE(shape)
         return pout;
     }
 
-    int bytes() const
+    size_t bytes() const
     {
-        int pout;
+        size_t pout;
         call(&migraphx_shape_bytes, &pout, this->get_handle_ptr());
         return pout;
     }
@@ -364,9 +364,9 @@ struct program_parameter_shapes : MIGRAPHX_HANDLE_BASE(program_parameter_shapes)
         this->set_handle(p, borrow{});
     }
 
-    int size() const
+    size_t size() const
     {
-        int pout;
+        size_t pout;
         call(&migraphx_program_parameter_shapes_size, &pout, this->get_handle_ptr());
         return pout;
     }
@@ -424,9 +424,9 @@ struct arguments : MIGRAPHX_HANDLE_BASE(arguments), array_base<arguments>
 
     arguments(migraphx_arguments* p, borrow) { this->set_handle(p, borrow{}); }
 
-    int size() const
+    size_t size() const
     {
-        int pout;
+        size_t pout;
         call(&migraphx_arguments_size, &pout, this->get_handle_ptr());
         return pout;
     }
@@ -457,9 +457,9 @@ struct shapes : MIGRAPHX_HANDLE_BASE(shapes), array_base<shapes>
 
     shapes(migraphx_shapes* p, borrow) { this->set_handle(p, borrow{}); }
 
-    int size() const
+    size_t size() const
     {
-        int pout;
+        size_t pout;
         call(&migraphx_shapes_size, &pout, this->get_handle_ptr());
         return pout;
     }

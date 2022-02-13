@@ -93,15 +93,15 @@ migraphx_status migraphx_shape_destroy(migraphx_shape_t shape);
 
 migraphx_status migraphx_shape_create(migraphx_shape_t* shape,
                                       migraphx_shape_datatype_t type,
-                                      size_t* lengths,
-                                      int lengths_size);
+                                      int* lengths,
+                                      size_t lengths_size);
 
 migraphx_status migraphx_shape_create_with_strides(migraphx_shape_t* shape,
                                                    migraphx_shape_datatype_t type,
-                                                   size_t* lengths,
-                                                   int lengths_size,
-                                                   size_t* strides,
-                                                   int strides_size);
+                                                   int* lengths,
+                                                   size_t lengths_size,
+                                                   int* strides,
+                                                   size_t strides_size);
 
 migraphx_status migraphx_shape_create_scalar(migraphx_shape_t* shape,
                                              migraphx_shape_datatype_t type);
@@ -225,7 +225,7 @@ migraphx_status migraphx_onnx_options_destroy(migraphx_onnx_options_t onnx_optio
 migraphx_status migraphx_onnx_options_create(migraphx_onnx_options_t* onnx_options);
 
 migraphx_status migraphx_onnx_options_set_input_parameter_shape(
-    migraphx_onnx_options_t onnx_options, const char* name, size_t* dims, int dims_size);
+    migraphx_onnx_options_t onnx_options, const char* name, int* dims, size_t dims_size);
 
 migraphx_status migraphx_onnx_options_set_default_dim_value(migraphx_onnx_options_t onnx_options,
                                                             size_t value);
