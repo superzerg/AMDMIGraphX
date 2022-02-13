@@ -15,8 +15,7 @@ struct file_options
 
 program load(const std::string& filename, const file_options& options = file_options{});
 program load_buffer(const std::vector<char>& buffer, const file_options& options = file_options{});
-program
-load_buffer(const char* buffer, int size, const file_options& options = file_options{});
+program load_buffer(const char* buffer, int size, const file_options& options = file_options{});
 
 void save(const program& p,
           const std::string& filename,

@@ -89,8 +89,8 @@ void gemm_impl(context& ctx,
             MIGRAPHX_THROW("ROCBLAS_GEMM: k size of int8 type input must be mutlple of 4!");
         }
 
-        auto num_matrices = std::accumulate(
-            out_lens.rbegin() + 2, out_lens.rend(), int{1}, std::multiplies<int>());
+        auto num_matrices =
+            std::accumulate(out_lens.rbegin() + 2, out_lens.rend(), int{1}, std::multiplies<int>());
         if(num_matrices == 1)
         {
             // the rocblas_gemm API handles inputs and output matrices as

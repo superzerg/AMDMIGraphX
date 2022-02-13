@@ -150,9 +150,9 @@ struct memory_coloring_impl
     // Priority queue for coloring.
     std::priority_queue<interval_ptr, std::vector<interval_ptr>, ordering> alloc_queue{};
 
-    int num_of_lives           = 0;
-    int max_value_number       = -1;
-    int required_bytes = 0;
+    int num_of_lives     = 0;
+    int max_value_number = -1;
+    int required_bytes   = 0;
     // The earliest program point where an live interval ends.
     int earliest_end_point = -1;
     // The latest program point where an live interval ends.

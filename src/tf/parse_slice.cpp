@@ -19,9 +19,9 @@ struct parse_slice : op_parser<parse_slice>
                           const tf_parser::node_info& info,
                           std::vector<instruction_ref> args) const
     {
-        auto starts     = args[1]->eval().get<int32_t>().to_vector();
-        auto size       = args[2]->eval().get<int32_t>().to_vector();
-        auto axes       = args[0]->get_shape().lens();
+        auto starts  = args[1]->eval().get<int32_t>().to_vector();
+        auto size    = args[2]->eval().get<int32_t>().to_vector();
+        auto axes    = args[0]->get_shape().lens();
         int num_axes = axes.size();
 
         std::vector<int64_t> axes_int64(axes.begin(), axes.end());

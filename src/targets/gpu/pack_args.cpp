@@ -10,7 +10,7 @@ std::vector<char> pack_args(const std::vector<kernel_argument>& args)
     std::vector<char> kernargs;
     for(auto&& arg : args)
     {
-        int n = arg.size;
+        int n         = arg.size;
         const auto* p = static_cast<const char*>(arg.data);
         // Insert padding
         int padding = (arg.align - (kernargs.size() % arg.align)) % arg.align;

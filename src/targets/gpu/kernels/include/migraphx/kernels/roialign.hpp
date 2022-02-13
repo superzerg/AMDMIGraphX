@@ -43,10 +43,8 @@ struct avg_pool
 };
 
 template <class T, class Op>
-MIGRAPHX_DEVICE_CONSTEXPR T bilinear_interpolate(const T* data,
-                                                 const array<int, 2>& dims,
-                                                 array<float, 2> xy,
-                                                 Op pooling)
+MIGRAPHX_DEVICE_CONSTEXPR T
+bilinear_interpolate(const T* data, const array<int, 2>& dims, array<float, 2> xy, Op pooling)
 {
     array<int, 2> low{};
     array<int, 2> high{};
@@ -66,9 +64,9 @@ MIGRAPHX_DEVICE_CONSTEXPR T bilinear_interpolate(const T* data,
         }
     }
     array<int, 4> locs = {low[0] * dims[1] + low[1],
-                                  low[0] * dims[1] + high[1],
-                                  high[0] * dims[1] + low[1],
-                                  high[0] * dims[1] + high[1]};
+                          low[0] * dims[1] + high[1],
+                          high[0] * dims[1] + low[1],
+                          high[0] * dims[1] + high[1]};
 
     float ly       = xy[0] - low[0];
     float lx       = xy[1] - low[1];
@@ -142,7 +140,7 @@ __device__ void roialign(const T& x_t, const U& rois_t, const V& ind_t, const W&
 
     // output dims of height and width, in all 2-dim arrays, the first dim
     // is for height and second dim is for width
-    const auto& out_lens           = out_s.lens;
+    const auto& out_lens   = out_s.lens;
     array<int, 2> out_dims = {out_lens[2], out_lens[3]};
 
     for(index_int i = index.global; i < out_s.elements(); i += stride)

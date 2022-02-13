@@ -61,8 +61,8 @@ void argument::assign_buffer(std::function<char*()> d)
     assert(offset == s.bytes());
 
     // cppcheck-suppress variableScope
-    int i = 0;
-    m_data        = fix<data_t>([&](auto self, auto ss) {
+    int i  = 0;
+    m_data = fix<data_t>([&](auto self, auto ss) {
         data_t result;
         if(ss.sub_shapes().empty())
         {

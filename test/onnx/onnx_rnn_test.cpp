@@ -33,12 +33,12 @@ migraphx::program optimize_onnx(const std::string& name, bool eliminate_deadcode
 
 TEST_CASE(rnn_test_bidirectional)
 {
-    int sl = 5;  // sequence len
-    int bs = 3;  // batch size
-    int hs = 20; // hidden size
-    int is = 10; // input size
-    int nd = 2;  // num directions
-    float clip     = 0.0f;
+    int sl     = 5;  // sequence len
+    int bs     = 3;  // batch size
+    int hs     = 20; // hidden size
+    int is     = 10; // input size
+    int nd     = 2;  // num directions
+    float clip = 0.0f;
     migraphx::shape seq_shape{migraphx::shape::float_type, {sl, bs, is}};
     migraphx::shape w_shape{migraphx::shape::float_type, {nd, hs, is}};
     migraphx::shape r_shape{migraphx::shape::float_type, {nd, hs, hs}};
@@ -79,12 +79,12 @@ TEST_CASE(rnn_test_bidirectional)
 
 TEST_CASE(rnn_test_one_direction)
 {
-    int sl = 5;  // sequence len
-    int bs = 3;  // batch size
-    int hs = 20; // hidden size
-    int is = 10; // input size
-    int nd = 1;  // num directions
-    float clip     = 0.0f;
+    int sl     = 5;  // sequence len
+    int bs     = 3;  // batch size
+    int hs     = 20; // hidden size
+    int is     = 10; // input size
+    int nd     = 1;  // num directions
+    float clip = 0.0f;
     migraphx::shape seq_shape{migraphx::shape::float_type, {sl, bs, is}};
     migraphx::shape w_shape{migraphx::shape::float_type, {nd, hs, is}};
     migraphx::shape r_shape{migraphx::shape::float_type, {nd, hs, hs}};
@@ -220,12 +220,12 @@ TEST_CASE(rnn_test_one_direction)
 
 TEST_CASE(gru_test)
 {
-    int sl = 5;  // sequence len
-    int bs = 3;  // batch size
-    int hs = 20; // hidden size
-    int is = 10; // input size
-    int nd = 2;  // num directions
-    float clip     = 0.0f;
+    int sl     = 5;  // sequence len
+    int bs     = 3;  // batch size
+    int hs     = 20; // hidden size
+    int is     = 10; // input size
+    int nd     = 2;  // num directions
+    float clip = 0.0f;
     // forward
     {
         nd = 1;
@@ -352,12 +352,12 @@ TEST_CASE(gru_test)
 
 TEST_CASE(gru_test_args)
 {
-    int sl = 5;  // sequence len
-    int bs = 3;  // batch size
-    int hs = 20; // hidden size
-    int is = 10; // input size
-    int nd = 2;  // num directions
-    float clip     = 0.0f;
+    int sl     = 5;  // sequence len
+    int bs     = 3;  // batch size
+    int hs     = 20; // hidden size
+    int is     = 10; // input size
+    int nd     = 2;  // num directions
+    float clip = 0.0f;
 
     // 3 arguments
     {
@@ -474,12 +474,12 @@ TEST_CASE(gru_test_args)
 
 TEST_CASE(gru_test_actv_funcs)
 {
-    int sl = 5;  // sequence len
-    int bs = 3;  // batch size
-    int hs = 20; // hidden size
-    int is = 10; // input size
-    int nd = 2;  // num directions
-    float clip     = 0.0f;
+    int sl     = 5;  // sequence len
+    int bs     = 3;  // batch size
+    int hs     = 20; // hidden size
+    int is     = 10; // input size
+    int nd     = 2;  // num directions
+    float clip = 0.0f;
     // bidirection, 0 actv function
     {
         nd = 2;
@@ -733,11 +733,11 @@ TEST_CASE(gru_test_actv_funcs)
 
 TEST_CASE(lstm_forward)
 {
-    int sl   = 5;  // sequence len
-    int bs   = 3;  // batch size
-    int hs   = 20; // hidden size
-    int is   = 10; // input size
-    int nd   = 1;  // num directions
+    int sl           = 5;  // sequence len
+    int bs           = 3;  // batch size
+    int hs           = 20; // hidden size
+    int is           = 10; // input size
+    int nd           = 1;  // num directions
     float clip       = 0.0f;
     int input_forget = 1;
     migraphx::shape seq_shape{migraphx::shape::float_type, {sl, bs, is}};
@@ -1072,11 +1072,11 @@ TEST_CASE(lstm_forward)
 // activation functions
 TEST_CASE(lstm_forward_actv_func)
 {
-    int sl   = 5;  // sequence len
-    int bs   = 3;  // batch size
-    int hs   = 20; // hidden size
-    int is   = 10; // input size
-    int nd   = 1;  // num directions
+    int sl           = 5;  // sequence len
+    int bs           = 3;  // batch size
+    int hs           = 20; // hidden size
+    int is           = 10; // input size
+    int nd           = 1;  // num directions
     float clip       = 0.0f;
     int input_forget = 1;
     migraphx::shape seq_shape{migraphx::shape::float_type, {sl, bs, is}};
@@ -1196,11 +1196,11 @@ TEST_CASE(lstm_forward_actv_func)
 
 TEST_CASE(lstm_reverse)
 {
-    int sl   = 5;  // sequence len
-    int bs   = 3;  // batch size
-    int hs   = 20; // hidden size
-    int is   = 10; // input size
-    int nd   = 1;  // num directions
+    int sl           = 5;  // sequence len
+    int bs           = 3;  // batch size
+    int hs           = 20; // hidden size
+    int is           = 10; // input size
+    int nd           = 1;  // num directions
     float clip       = 0.0f;
     int input_forget = 1;
     migraphx::shape seq_shape{migraphx::shape::float_type, {sl, bs, is}};
@@ -1321,11 +1321,11 @@ TEST_CASE(lstm_reverse)
 
 TEST_CASE(lstm_bidirectional)
 {
-    int sl   = 5;  // sequence len
-    int bs   = 3;  // batch size
-    int hs   = 20; // hidden size
-    int is   = 10; // input size
-    int nd   = 2;  // num directions
+    int sl           = 5;  // sequence len
+    int bs           = 3;  // batch size
+    int hs           = 20; // hidden size
+    int is           = 10; // input size
+    int nd           = 2;  // num directions
     float clip       = 0.0f;
     int input_forget = 1;
     migraphx::shape seq_shape{migraphx::shape::float_type, {sl, bs, is}};
@@ -1573,11 +1573,11 @@ TEST_CASE(lstm_bidirectional)
 
 TEST_CASE(lstm_bi_actv_funcs)
 {
-    int sl   = 5;  // sequence len
-    int bs   = 3;  // batch size
-    int hs   = 20; // hidden size
-    int is   = 10; // input size
-    int nd   = 2;  // num directions
+    int sl           = 5;  // sequence len
+    int bs           = 3;  // batch size
+    int hs           = 20; // hidden size
+    int is           = 10; // input size
+    int nd           = 2;  // num directions
     float clip       = 0.0f;
     int input_forget = 1;
     migraphx::shape seq_shape{migraphx::shape::float_type, {sl, bs, is}};

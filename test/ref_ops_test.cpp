@@ -622,10 +622,10 @@ TEST_CASE(batch_norm_inference_test)
 {
     migraphx::program p;
     auto* mm                 = p.get_main_module();
-    const int width       = 2;
-    const int height      = 2;
-    const int channels    = 4;
-    const int batches     = 2;
+    const int width          = 2;
+    const int height         = 2;
+    const int channels       = 4;
+    const int batches        = 2;
     const float x_val        = 8.0;
     const float mean_val     = 2.0;
     const float variance_val = 4.0;
@@ -749,8 +749,7 @@ TEST_CASE(concat_test)
         result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
         EXPECT(migraphx::verify_range(results_vector, gold));
         EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<int>({2, 6})));
-        EXPECT(
-            migraphx::verify_range(result.get_shape().strides(), std::vector<int>({6, 1})));
+        EXPECT(migraphx::verify_range(result.get_shape().strides(), std::vector<int>({6, 1})));
     }
 
     {
@@ -774,8 +773,7 @@ TEST_CASE(concat_test)
         result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
         EXPECT(migraphx::verify_range(results_vector, gold));
         EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<int>({2, 6})));
-        EXPECT(
-            migraphx::verify_range(result.get_shape().strides(), std::vector<int>({6, 1})));
+        EXPECT(migraphx::verify_range(result.get_shape().strides(), std::vector<int>({6, 1})));
     }
 
     {
@@ -799,8 +797,7 @@ TEST_CASE(concat_test)
         result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
         EXPECT(migraphx::verify_range(results_vector, gold));
         EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<int>({6, 2})));
-        EXPECT(
-            migraphx::verify_range(result.get_shape().strides(), std::vector<int>({2, 1})));
+        EXPECT(migraphx::verify_range(result.get_shape().strides(), std::vector<int>({2, 1})));
     }
 
     {
@@ -824,8 +821,7 @@ TEST_CASE(concat_test)
         result.visit([&](auto output) { results_vector.assign(output.begin(), output.end()); });
         EXPECT(migraphx::verify_range(results_vector, gold));
         EXPECT(migraphx::verify_range(result.get_shape().lens(), std::vector<int>({6, 2})));
-        EXPECT(
-            migraphx::verify_range(result.get_shape().strides(), std::vector<int>({2, 1})));
+        EXPECT(migraphx::verify_range(result.get_shape().strides(), std::vector<int>({2, 1})));
     }
 }
 
@@ -2718,7 +2714,7 @@ TEST_CASE(multinomial_test)
     auto* mm = p.get_main_module();
 
     int sample_size = 100000;
-    float seed         = 0.0f;
+    float seed      = 0.0f;
     std::mt19937 gen(seed);
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::vector<float> rand_samples(sample_size);

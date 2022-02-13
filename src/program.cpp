@@ -565,8 +565,8 @@ void program::from_value(const value& v)
 
 double common_average(const std::vector<double>& v)
 {
-    int n = v.size() / 4;
-    double total  = std::accumulate(v.begin() + n, v.end() - n, 0.0);
+    int n        = v.size() / 4;
+    double total = std::accumulate(v.begin() + n, v.end() - n, 0.0);
     return total / std::distance(v.begin() + n, v.end() - n);
 }
 
@@ -596,10 +596,7 @@ void program::mark(const parameter_map& params, marker&& m)
     m.mark_stop(*this);
 }
 
-void program::perf_report(std::ostream& os,
-                          int n,
-                          parameter_map params,
-                          int batch) const
+void program::perf_report(std::ostream& os, int n, parameter_map params, int batch) const
 {
     auto& ctx = this->impl->ctx;
     // Run once by itself

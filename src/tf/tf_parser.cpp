@@ -245,7 +245,7 @@ void tf_parser::parse_graph(const tensorflow::GraphDef& graph)
         const std::string& name   = input.name();
         attribute_map input_attrs = get_attributes(input);
         shape::type_t shape_type  = parse_type(input_attrs.at("dtype").type());
-        std::vector<int> dims  = parse_dims(input_attrs.at("shape").shape());
+        std::vector<int> dims     = parse_dims(input_attrs.at("shape").shape());
 
         if(contains(map_input_dims, name))
         {
@@ -424,7 +424,7 @@ shape::type_t tf_parser::parse_type(const tensorflow::DataType t) const
 literal tf_parser::parse_tensor(const tensorflow::TensorProto& t) const
 {
     std::vector<int> dims = parse_dims(t.tensor_shape());
-    int shape_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
+    int shape_size        = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
     if(!t.tensor_content().empty()) // has raw data
     {
         const std::string& s = t.tensor_content();

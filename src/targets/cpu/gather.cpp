@@ -29,10 +29,10 @@ struct cpu_gather : auto_register_op<cpu_gather>
     // cppcheck-suppress constParameter
     compute(context& ctx, const shape& output_shape, const std::vector<argument>& args) const
     {
-        int nelements = output_shape.elements();
-        auto lens             = args[0].get_shape().lens();
-        auto axis_dim_size    = lens[op.axis];
-        lens[op.axis]         = args[1].get_shape().elements();
+        int nelements      = output_shape.elements();
+        auto lens          = args[0].get_shape().lens();
+        auto axis_dim_size = lens[op.axis];
+        lens[op.axis]      = args[1].get_shape().elements();
         shape out_comp{output_shape.type(), lens};
 
         visit_all(args.back(), args[0])([&](auto output, auto input) {

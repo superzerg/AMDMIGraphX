@@ -10,11 +10,11 @@ inline namespace MIGRAPHX_INLINE_NS {
 /// struct to pass in tf options to parser
 struct tf_options
 {
-    bool is_nhwc            = false;
+    bool is_nhwc   = false;
     int batch_size = 1;
     /// Explicitly specify the dims of an input
     std::unordered_map<std::string, std::vector<int>> map_input_dims = {};
-    std::vector<std::string> output_node_names                               = {};
+    std::vector<std::string> output_node_names                       = {};
 };
 
 /// Create a program from a tf pb file (default is nhwc format)

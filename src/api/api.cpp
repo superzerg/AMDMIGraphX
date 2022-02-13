@@ -94,9 +94,7 @@ void set_nhwc(tf_options& options, bool is_nhwc) { options.is_nhwc = is_nhwc; }
 
 void set_default_dim_value(tf_options& options, size_t value) { options.batch_size = value; }
 
-void set_input_parameter_shape(onnx_options& options,
-                               const char* name,
-                               std::vector<int> dims)
+void set_input_parameter_shape(onnx_options& options, const char* name, std::vector<int> dims)
 {
     options.map_input_dims[std::string(name)] = std::move(dims);
 }
@@ -855,8 +853,9 @@ migraphx_operation_name(char* out, int out_size, migraphx_operation_t operation)
         if(operation == nullptr)
             MIGRAPHX_THROW(migraphx_status_bad_param, "Bad parameter operation: Null pointer");
         auto&& api_result = (operation->object).name();
-        auto* it = std::copy_n(api_result.begin(), std::min(static_cast<int>(api_result.size()), out_size - 1), out);
-        *it      = '\0';
+        auto* it          = std::copy_n(
+            api_result.begin(), std::min(static_cast<int>(api_result.size()), out_size - 1), out);
+        *it = '\0';
     });
     return api_error_result;
 }

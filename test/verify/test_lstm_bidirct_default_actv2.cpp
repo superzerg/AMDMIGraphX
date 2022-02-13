@@ -17,7 +17,7 @@ struct test_lstm_bidirct_default_actv2 : verify_program<test_lstm_bidirct_defaul
         int hidden_size = 5;
         int input_size  = 8;
         int num_dirct   = 2;
-        float clip              = 0.0f;
+        float clip      = 0.0f;
 
         migraphx::program p;
         auto* mm = p.get_main_module();

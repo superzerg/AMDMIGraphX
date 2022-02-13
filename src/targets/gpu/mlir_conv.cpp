@@ -225,7 +225,7 @@ struct mlir_apply
     void add_memref_descriptor(std::vector<instruction_ref>& refs, instruction_ref inst)
     {
         const int offset = 0;
-        auto inst_t         = inst->get_shape();
+        auto inst_t      = inst->get_shape();
         refs.push_back(inst);
         refs.push_back(inst);
         refs.push_back(get_literal(offset)); // offset

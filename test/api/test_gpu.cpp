@@ -48,11 +48,10 @@ TEST_CASE(if_pl_test)
         char ccond = cond;
         pp.add("cond", migraphx::argument(param_shapes["cond"], &ccond));
 
-        auto outputs = p.eval(pp);
-        auto output  = outputs[0];
-        auto lens    = output.get_shape().lengths();
-        auto elem_num =
-            std::accumulate(lens.begin(), lens.end(), 1, std::multiplies<int>());
+        auto outputs    = p.eval(pp);
+        auto output     = outputs[0];
+        auto lens       = output.get_shape().lengths();
+        auto elem_num   = std::accumulate(lens.begin(), lens.end(), 1, std::multiplies<int>());
         float* data_ptr = reinterpret_cast<float*>(output.data());
         std::vector<float> ret(data_ptr, data_ptr + elem_num);
 
@@ -97,11 +96,10 @@ TEST_CASE(loop_test)
         std::vector<float> yd = {2.0};
         pp.add("b", migraphx::argument(bbs, yd.data()));
 
-        auto outputs = p.eval(pp);
-        auto output  = outputs[0];
-        auto lens    = output.get_shape().lengths();
-        auto elem_num =
-            std::accumulate(lens.begin(), lens.end(), 1, std::multiplies<int>());
+        auto outputs    = p.eval(pp);
+        auto output     = outputs[0];
+        auto lens       = output.get_shape().lengths();
+        auto elem_num   = std::accumulate(lens.begin(), lens.end(), 1, std::multiplies<int>());
         float* data_ptr = reinterpret_cast<float*>(output.data());
         std::vector<std::vector<float>> ret;
         ret.push_back({data_ptr, data_ptr + elem_num});

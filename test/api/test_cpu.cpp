@@ -150,7 +150,7 @@ TEST_CASE(strided_shape)
 {
     std::vector<int> lens    = {2, 2};
     std::vector<int> strides = {1, 2};
-    auto s                           = migraphx::shape(migraphx_shape_float_type, lens, strides);
+    auto s                   = migraphx::shape(migraphx_shape_float_type, lens, strides);
     EXPECT(s.lengths() == lens);
     EXPECT(s.strides() == strides);
 }
@@ -167,8 +167,8 @@ TEST_CASE(set_loop_default_iter_num)
 {
     migraphx::onnx_options option;
     option.set_default_loop_iterations(15);
-    auto p                             = migraphx::parse_onnx("loop_default_test.onnx", option);
-    auto out_shapes                    = p.get_output_shapes();
+    auto p                     = migraphx::parse_onnx("loop_default_test.onnx", option);
+    auto out_shapes            = p.get_output_shapes();
     std::vector<int> out_lens0 = {1};
     EXPECT(out_shapes[0].lengths() == out_lens0);
     std::vector<int> out_lens1 = {15, 1};

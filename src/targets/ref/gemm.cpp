@@ -20,8 +20,14 @@ static auto make_mat(tensor_view<T> x)
     int dim_0  = n_dims - 2;
     int dim_1  = n_dims - 1;
     if(s.transposed())
-        return matrix<T>{x.data(), static_cast<std::size_t>(s.lens()[dim_1]), static_cast<std::size_t>(s.lens()[dim_0]), static_cast<std::size_t>(s.strides()[dim_1])};
-    return matrix<T>{x.data(), static_cast<std::size_t>(s.lens()[dim_0]), static_cast<std::size_t>(s.lens()[dim_1]), static_cast<std::size_t>(s.strides()[dim_0])};
+        return matrix<T>{x.data(),
+                         static_cast<std::size_t>(s.lens()[dim_1]),
+                         static_cast<std::size_t>(s.lens()[dim_0]),
+                         static_cast<std::size_t>(s.strides()[dim_1])};
+    return matrix<T>{x.data(),
+                     static_cast<std::size_t>(s.lens()[dim_0]),
+                     static_cast<std::size_t>(s.lens()[dim_1]),
+                     static_cast<std::size_t>(s.strides()[dim_0])};
 }
 
 template <class T, class F>

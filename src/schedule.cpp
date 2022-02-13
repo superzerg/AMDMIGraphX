@@ -50,7 +50,7 @@ struct stream_info
             if(not contains(weights, ins))
             {
                 int weight = 0;
-                auto&& op          = ins->get_operator();
+                auto&& op  = ins->get_operator();
                 if(not is_context_free(op) and op.name()[0] != '@')
                     weight = model.weight(op);
                 // This will ensure a stream will be assigned to return

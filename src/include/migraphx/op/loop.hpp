@@ -83,9 +83,9 @@ struct loop
                 const auto& iter_stat = iter_state.at(i);
                 const auto& scan_out  = concatenated_outputs.at(i);
 
-                auto* in_data        = iter_stat.data();
-                auto* out_data       = scan_out.data();
-                int out_size = iter_stat.get_shape().bytes();
+                auto* in_data  = iter_stat.data();
+                auto* out_data = scan_out.data();
+                int out_size   = iter_stat.get_shape().bytes();
                 assert((iter + 1) * out_size <= scan_out.get_shape().bytes());
                 std::copy(in_data, in_data + out_size, out_data + iter * out_size);
             }

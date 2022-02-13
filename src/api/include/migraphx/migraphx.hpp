@@ -235,9 +235,7 @@ struct shape : MIGRAPHX_CONST_HANDLE_BASE(shape)
         this->make_handle(&migraphx_shape_create, type, plengths.data(), plengths.size());
     }
 
-    shape(migraphx_shape_datatype_t type,
-          std::vector<int> plengths,
-          std::vector<int> pstrides)
+    shape(migraphx_shape_datatype_t type, std::vector<int> plengths, std::vector<int> pstrides)
     {
         this->make_handle(&migraphx_shape_create_with_strides,
                           type,
@@ -699,8 +697,7 @@ inline program parse_onnx(const char* filename)
 }
 
 /// Parse a buffer of memory as an onnx file
-inline program
-parse_onnx_buffer(const void* data, int size, const migraphx::onnx_options& options)
+inline program parse_onnx_buffer(const void* data, int size, const migraphx::onnx_options& options)
 {
     return program(
         make<migraphx_program>(&migraphx_parse_onnx_buffer, data, size, options.get_handle_ptr()),

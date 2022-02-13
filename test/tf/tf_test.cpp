@@ -20,11 +20,10 @@
 
 #include "test.hpp"
 
-migraphx::program
-parse_tf(const std::string& name,
-         bool is_nhwc,
-         const std::unordered_map<std::string, std::vector<int>>& dim_params = {},
-         const std::vector<std::string>& output_node_names                           = {})
+migraphx::program parse_tf(const std::string& name,
+                           bool is_nhwc,
+                           const std::unordered_map<std::string, std::vector<int>>& dim_params = {},
+                           const std::vector<std::string>& output_node_names                   = {})
 {
     return migraphx::parse_tf(name,
                               migraphx::tf_options{is_nhwc, 1, dim_params, output_node_names});
@@ -750,9 +749,9 @@ TEST_CASE(slice_test)
 {
     migraphx::program p;
 
-    auto* mm             = p.get_main_module();
+    auto* mm     = p.get_main_module();
     int num_axes = 2;
-    auto l0 = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {5, 10}});
+    auto l0      = mm->add_parameter("0", migraphx::shape{migraphx::shape::float_type, {5, 10}});
     migraphx::shape s0{migraphx::shape::int32_type, {num_axes}};
     mm->add_literal(migraphx::literal{s0, {1, 0}});
     mm->add_literal(migraphx::literal{s0, {2, -1}});

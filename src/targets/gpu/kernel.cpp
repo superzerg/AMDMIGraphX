@@ -52,12 +52,8 @@ kernel::kernel(const char* image, const std::string& name) : impl(std::make_shar
         MIGRAPHX_THROW("Failed to get function: " + name + ": " + hip_error(status));
 }
 
-void launch_kernel(hipFunction_t fun,
-                   hipStream_t stream,
-                   int global,
-                   int local,
-                   void* kernargs,
-                   int size)
+void launch_kernel(
+    hipFunction_t fun, hipStream_t stream, int global, int local, void* kernargs, int size)
 {
     void* config[] = {
 // HIP_LAUNCH_PARAM_* are macros that do horrible things
@@ -78,14 +74,11 @@ void launch_kernel(hipFunction_t fun,
         MIGRAPHX_THROW("Failed to launch kernel: " + hip_error(status));
 }
 
-void kernel::launch(hipStream_t stream,
-                    int global,
-                    int local,
-                    std::vector<void*> args) const
+void kernel::launch(hipStream_t stream, int global, int local, std::vector<void*> args) const
 {
     assert(impl != nullptr);
-    void* kernargs   = args.data();
-    int size = args.size() * sizeof(void*);
+    void* kernargs = args.data();
+    int size       = args.size() * sizeof(void*);
 
     launch_kernel(impl->fun, stream, global, local, kernargs, size);
 }
@@ -97,7 +90,7 @@ void kernel::launch(hipStream_t stream,
 {
     assert(impl != nullptr);
     std::vector<char> kernargs = pack_args(args);
-    int size           = kernargs.size();
+    int size                   = kernargs.size();
 
     launch_kernel(impl->fun, stream, global, local, kernargs.data(), size);
 }

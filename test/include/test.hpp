@@ -615,7 +615,7 @@ struct driver
         [](const std::string& name) -> std::vector<std::string> { return {name}; };
     std::vector<argument> arguments = {};
     std::vector<std::string> failed = {};
-    int ran                 = 0;
+    int ran                         = 0;
     bool quiet                      = false;
 };
 

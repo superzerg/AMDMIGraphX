@@ -29,10 +29,7 @@ struct kernel
                 int local,
                 const std::vector<kernel_argument>& args) const;
 
-    void launch(hipStream_t stream,
-                int global,
-                int local,
-                std::vector<void*> args) const;
+    void launch(hipStream_t stream, int global, int local, std::vector<void*> args) const;
 
     auto launch(hipStream_t stream, int global, int local) const
     {

@@ -578,8 +578,8 @@ std::vector<instruction_ref> rewrite_rnn::gru_cell(bool is_forward,
     auto trh = prog.insert_instruction(ins, make_op("transpose", {{"permutation", perm}}), rh);
 
     // initial states
-    auto sih  = prog.insert_instruction(ins, make_op("squeeze", {{"axes", {0}}}), ih);
-    int bs = ih->get_shape().lens()[1];
+    auto sih = prog.insert_instruction(ins, make_op("squeeze", {{"axes", {0}}}), ih);
+    int bs   = ih->get_shape().lens()[1];
 
     // bias
     instruction_ref bwb{};

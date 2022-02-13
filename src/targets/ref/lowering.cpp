@@ -317,9 +317,7 @@ struct ref_im2col
                     // compute linear index for output
                     int ldx = ioutput * col_width + joutput;
                     int p   = 0;
-                    dfor(channels,
-                         kernel_h,
-                         kernel_w)([&](int c, int koffset, int loffset) {
+                    dfor(channels, kernel_h, kernel_w)([&](int c, int koffset, int loffset) {
                         auto idx    = iinput + long(koffset) - kdiv2_h;
                         auto jdx    = jinput + long(loffset) - kdiv2_w;
                         col(ldx, p) = ((idx >= 0) && (idx < height) && (jdx >= 0) && (jdx < width))
@@ -650,7 +648,7 @@ struct ref_softmax : auto_register_op<ref_softmax<Op>>
         argument result{output_shape};
         auto batch_lens        = output_shape.lens();
         int64_t tuned_axis     = tune_axis(args[0].get_shape().lens().size(), op.axis, op.name());
-        int n_dims     = batch_lens[tuned_axis];
+        int n_dims             = batch_lens[tuned_axis];
         batch_lens[tuned_axis] = 1;
         shape batch_shape{shape::int32_type, batch_lens};
 
@@ -670,9 +668,9 @@ struct ref_softmax : auto_register_op<ref_softmax<Op>>
 
                 for(int j = 0; j < n_dims; ++j)
                 {
-                    idx[tuned_axis]   = j;
-                    int index = output_shape.index(idx);
-                    output[index]     = std::exp(input[index] - batch_max[i]);
+                    idx[tuned_axis] = j;
+                    int index       = output_shape.index(idx);
+                    output[index]   = std::exp(input[index] - batch_max[i]);
                 }
 
                 for(int j = 0; j < n_dims; ++j)

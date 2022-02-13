@@ -22,8 +22,8 @@ struct reflectable_type
         class3
     };
     std::vector<int> ints = {};
-    std::string name              = "";
-    float fvalue                  = 0.0;
+    std::string name      = "";
+    float fvalue          = 0.0;
     empty_type et{};
     simple_enum se = simple1;
     class_enum ce  = class_enum::class1;
@@ -74,7 +74,7 @@ TEST_CASE(serialize_reflectable_type)
 TEST_CASE(serialize_empty_array)
 {
     std::vector<int> ints = {};
-    migraphx::value v             = migraphx::to_value(ints);
+    migraphx::value v     = migraphx::to_value(ints);
     EXPECT(v.is_array());
     EXPECT(v.empty());
     v.push_back(1);

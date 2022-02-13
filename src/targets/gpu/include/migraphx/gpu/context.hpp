@@ -124,7 +124,7 @@ struct hip_device
         }
 
         private:
-        int id                      = 0;
+        int id                              = 0;
         shared<hip_stream_ptr> s            = nullptr;
         shared<miopen_handle> mihandle      = nullptr;
         shared<rocblas_handle_ptr> rbhandle = nullptr;
@@ -187,10 +187,7 @@ struct context
     hip_device::stream& get_stream(int n) { return get_current_device().get_stream(n); }
 
     const hip_device::stream& get_stream() const { return get_current_device().get_stream(); }
-    const hip_device::stream& get_stream(int n) const
-    {
-        return get_current_device().get_stream(n);
-    }
+    const hip_device::stream& get_stream(int n) const { return get_current_device().get_stream(n); }
 
     void set_stream(int n) { get_current_device().set_stream(n); }
 
@@ -225,12 +222,12 @@ struct context
 
     void from_value(const value& v)
     {
-        auto v_events        = v.at("events");
-        int n_events = v_events.without_key().to<int>();
+        auto v_events = v.at("events");
+        int n_events  = v_events.without_key().to<int>();
         this->create_events(n_events - 1);
 
-        auto v_streams        = v.at("streams");
-        int n_streams = v_streams.without_key().to<int>();
+        auto v_streams = v.at("streams");
+        int n_streams  = v_streams.without_key().to<int>();
 
         this->current_device = std::make_shared<hip_device>(0, n_streams);
     }

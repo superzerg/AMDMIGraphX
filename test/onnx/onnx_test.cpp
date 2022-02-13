@@ -2552,9 +2552,9 @@ TEST_CASE(min_test)
 TEST_CASE(multinomial_test)
 {
     migraphx::program p;
-    auto* mm           = p.get_main_module();
+    auto* mm        = p.get_main_module();
     int sample_size = 10;
-    float seed         = 0.0f;
+    float seed      = 0.0f;
 
     auto input = mm->add_parameter("input", migraphx::shape{migraphx::shape::float_type, {1, 10}});
     auto maxes = mm->add_instruction(migraphx::make_op("reduce_max", {{"axes", {1}}}), input);
@@ -2596,7 +2596,7 @@ TEST_CASE(multinomial_int64_test)
 {
     migraphx::program p;
     auto* mm                      = p.get_main_module();
-    int sample_size            = 10;
+    int sample_size               = 10;
     float seed                    = 1.0f;
     migraphx::shape::type_t dtype = migraphx::shape::type_t::int64_type;
 
@@ -3973,7 +3973,7 @@ TEST_CASE(scatter_test)
 TEST_CASE(selu_test)
 {
     migraphx::program p;
-    auto* mm                      = p.get_main_module();
+    auto* mm              = p.get_main_module();
     std::vector<int> lens = {2, 3};
     migraphx::shape s{migraphx::shape::double_type, lens};
     auto x = mm->add_parameter("x", s);

@@ -597,7 +597,7 @@ struct miopen_fusion
         // Compensate for allocation
         inputs.pop_back();
         int i = 0;
-        f             = fusion(inputs[i]);
+        f     = fusion(inputs[i]);
         i++;
         std::vector<std::function<void(const fused_operator_args&, const std::vector<argument>&)>>
             invokers;

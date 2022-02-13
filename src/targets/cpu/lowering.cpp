@@ -103,9 +103,7 @@ struct cpu_im2col
                     // compute linear index for output
                     int ldx = ioutput * col_width + joutput;
                     int p   = 0;
-                    dfor(channels,
-                         kernel_h,
-                         kernel_w)([&](int c, int koffset, int loffset) {
+                    dfor(channels, kernel_h, kernel_w)([&](int c, int koffset, int loffset) {
                         auto idx    = iinput + long(koffset) - kdiv2_h;
                         auto jdx    = jinput + long(loffset) - kdiv2_w;
                         col(ldx, p) = ((idx >= 0) && (idx < height) && (jdx >= 0) && (jdx < width))

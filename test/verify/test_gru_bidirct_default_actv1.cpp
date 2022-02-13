@@ -17,7 +17,7 @@ struct test_gru_bidirct_default_actv1 : verify_program<test_gru_bidirct_default_
         int hidden_size = 5;
         int input_size  = 8;
         int num_dirct   = 2;
-        float clip              = 0.0f;
+        float clip      = 0.0f;
 
         migraphx::program p;
         auto* mm = p.get_main_module();

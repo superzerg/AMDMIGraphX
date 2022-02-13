@@ -45,10 +45,7 @@ const auto& get_original_idx_op(const std::string& mode)
 {
     using original_idx_op = std::function<double(int, int, int, double)>;
     static std::unordered_map<std::string, original_idx_op> const idx_ops = {
-        {"half_pixel",
-         [=](int, int, int idx, double scale) {
-             return (idx + 0.5) / scale - 0.5;
-         }},
+        {"half_pixel", [=](int, int, int idx, double scale) { return (idx + 0.5) / scale - 0.5; }},
         {"pytorch_half_pixel",
          [=](int, int l_out, int idx, double scale) {
              return l_out > 1 ? (idx + 0.5) / scale - 0.5 : 0.0;
@@ -57,11 +54,9 @@ const auto& get_original_idx_op(const std::string& mode)
          [=](int l_in, int l_out, int idx, double) {
              return (l_out == 1) ? 0.0 : (1.0 * idx * (l_in - 1.0) / (l_out - 1.0));
          }},
-        {"asymmetric",
-         [=](int, int, int idx, double scale) { return idx / scale; }},
-        {"tf_half_pixel_for_nn", [=](int, int, int idx, double scale) {
-             return (idx + 0.5) / scale;
-         }}};
+        {"asymmetric", [=](int, int, int idx, double scale) { return idx / scale; }},
+        {"tf_half_pixel_for_nn",
+         [=](int, int, int idx, double scale) { return (idx + 0.5) / scale; }}};
 
     if(!contains(idx_ops, mode))
     {
@@ -251,20 +246,19 @@ struct parse_resize : op_parser<parse_resize>
                                        ": ranks of input and scale are different!");
                     }
 
-                    std::transform(in_lens.begin(),
-                                   in_lens.end(),
-                                   vec_scale.begin(),
-                                   out_lens.begin(),
-                                   [&](auto idx, auto scale) {
-                                       return static_cast<int>(idx * scale);
-                                   });
+                    std::transform(
+                        in_lens.begin(),
+                        in_lens.end(),
+                        vec_scale.begin(),
+                        out_lens.begin(),
+                        [&](auto idx, auto scale) { return static_cast<int>(idx * scale); });
                 }
             }
         }
 
         shape out_s{in_s.type(), out_lens};
         int out_elements = out_s.elements();
-        auto idx_op              = get_original_idx_op(coord_trans_mode);
+        auto idx_op      = get_original_idx_op(coord_trans_mode);
 
         // reshape input to one-dimension
         std::vector<int64_t> rsp_lens = {static_cast<int64_t>(in_s.elements())};

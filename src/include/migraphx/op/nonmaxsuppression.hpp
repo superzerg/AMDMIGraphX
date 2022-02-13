@@ -135,8 +135,8 @@ struct nonmaxsuppression
         result.visit([&](auto out) { std::fill(out.begin(), out.end(), 0); });
 
         int max_output_boxes_per_class = 0;
-        float iou_threshold                    = 0.0f;
-        float score_threshold                  = 0.0f;
+        float iou_threshold            = 0.0f;
+        float score_threshold          = 0.0f;
 
         if(args.size() > 2)
         {
@@ -174,7 +174,7 @@ struct nonmaxsuppression
             auto bidx = idx[0];
             auto cidx = idx[1];
 
-            int score_offset = (bidx * class_num + cidx) * box_num;
+            int score_offset         = (bidx * class_num + cidx) * box_num;
             const float* batch_boxes = boxes + bidx * box_num * 4;
             std::priority_queue<std::pair<float, int64_t>> sorted_boxes;
             auto insert_to_sorted_boxes =

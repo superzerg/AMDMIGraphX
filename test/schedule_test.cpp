@@ -82,8 +82,7 @@ struct stream_free_op
 
 struct wait_event
 {
-    std::shared_ptr<std::vector<int>> wait_for =
-        std::make_shared<std::vector<int>>();
+    std::shared_ptr<std::vector<int>> wait_for = std::make_shared<std::vector<int>>();
     template <class Self, class F>
     static auto reflect(Self& self, F f)
     {
@@ -104,8 +103,7 @@ struct wait_event
 
 using instruction_map = std::unordered_map<migraphx::instruction_ref, int>;
 using int_map         = std::unordered_map<int, int>;
-using wait_map =
-    std::unordered_map<migraphx::instruction_ref, std::shared_ptr<std::vector<int>>>;
+using wait_map = std::unordered_map<migraphx::instruction_ref, std::shared_ptr<std::vector<int>>>;
 
 struct schedule_model_test
 {
@@ -211,10 +209,7 @@ std::vector<T> unique(std::vector<T> x)
     return x;
 }
 
-std::vector<int> get_wait_for(std::vector<int> wait_for)
-{
-    return unique(std::move(wait_for));
-}
+std::vector<int> get_wait_for(std::vector<int> wait_for) { return unique(std::move(wait_for)); }
 
 std::vector<int> get_wait_for(int wait_on, std::vector<int> wait_for)
 {

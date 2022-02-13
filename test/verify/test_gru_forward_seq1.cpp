@@ -17,7 +17,7 @@ struct test_gru_forward_seq1 : verify_program<test_gru_forward_seq1>
         int hidden_size = 5;
         int input_size  = 8;
         int num_dirct   = 1;
-        float clip              = 0.0f;
+        float clip      = 0.0f;
 
         migraphx::program p;
         auto* mm = p.get_main_module();

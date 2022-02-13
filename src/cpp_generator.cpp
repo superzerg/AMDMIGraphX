@@ -86,7 +86,7 @@ cpp_generator::function& cpp_generator::function::set_generic_types(const module
 struct cpp_generator_impl
 {
     std::stringstream fs{};
-    int function_count                                = 0;
+    int function_count                                        = 0;
     std::function<std::string(std::string)> fmap              = nullptr;
     std::function<std::string(shape)> fresult                 = nullptr;
     std::unordered_map<std::string, std::string> point_op_map = {};

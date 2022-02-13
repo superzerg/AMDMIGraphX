@@ -9,10 +9,10 @@ struct test_multinomial : verify_program<test_multinomial>
     migraphx::program create_program() const
     {
         migraphx::program p;
-        auto* mm           = p.get_main_module();
+        auto* mm        = p.get_main_module();
         int sample_size = 10;
         int batch_size  = 2;
-        float seed         = 0.0f;
+        float seed      = 0.0f;
         std::mt19937 gen(seed);
         std::uniform_real_distribution<> dis(0.0, 1.0);
         std::vector<float> rand_samples(batch_size * sample_size);

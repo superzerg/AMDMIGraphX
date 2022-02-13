@@ -17,7 +17,7 @@ struct test_rnn_4args : verify_program<test_rnn_4args>
         int hidden_size = 4;
         int input_size  = 3;
         int num_dirct   = 1;
-        float clip              = 0.0f;
+        float clip      = 0.0f;
 
         migraphx::program p;
         auto* mm = p.get_main_module();

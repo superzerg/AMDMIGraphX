@@ -37,7 +37,7 @@ struct loader
     std::string model;
     std::string file;
     std::string file_type;
-    int batch              = 1;
+    int batch                   = 1;
     bool is_nhwc                = true;
     unsigned trim               = 0;
     bool optimize               = false;

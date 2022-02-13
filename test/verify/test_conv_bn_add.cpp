@@ -6,10 +6,8 @@
 
 struct test_conv_bn_add : verify_program<test_conv_bn_add>
 {
-    static migraphx::instruction_ref add_bn(migraphx::module& m,
-                                            migraphx::instruction_ref x,
-                                            int channels,
-                                            int seed = 1)
+    static migraphx::instruction_ref
+    add_bn(migraphx::module& m, migraphx::instruction_ref x, int channels, int seed = 1)
     {
         migraphx::shape vars{migraphx::shape::float_type, {channels}};
         auto scale    = m.add_literal(migraphx::abs(migraphx::generate_literal(vars, 1 + seed)));
@@ -23,7 +21,7 @@ struct test_conv_bn_add : verify_program<test_conv_bn_add>
     migraphx::program create_program() const
     {
         migraphx::program p;
-        auto* mm              = p.get_main_module();
+        auto* mm      = p.get_main_module();
         int ichannels = 64;
         int ochannels = 256;
         auto x     = mm->add_parameter("x", {migraphx::shape::float_type, {1, ichannels, 56, 56}});

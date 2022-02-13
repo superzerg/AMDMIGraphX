@@ -36,13 +36,13 @@ void memory_coloring_impl::run()
 
 bool memory_coloring_impl::allocate(interval_ptr interval)
 {
-    shape s          = interval->result;
+    shape s  = interval->result;
     int size = s.bytes();
     if(size == 0)
         return false;
-    int element_size = (s.elements() == 0 ? 4 : (size / s.elements()));
-    live_range& segment      = interval->segment;
-    int vn                   = segment.vn;
+    int element_size    = (s.elements() == 0 ? 4 : (size / s.elements()));
+    live_range& segment = interval->segment;
+    int vn              = segment.vn;
     std::priority_queue<live_range*, std::vector<live_range*>, ordering> conflict_queue;
     std::unordered_map<long long, live_range*> offset2_live;
     offset2_live.clear();
@@ -75,8 +75,8 @@ bool memory_coloring_impl::allocate(interval_ptr interval)
     int offset = 0;
     while(!conflict_queue.empty())
     {
-        live_range* range       = conflict_queue.top();
-        int iter_offset = range->offset;
+        live_range* range = conflict_queue.top();
+        int iter_offset   = range->offset;
         if(offset > iter_offset)
         {
             offset = std::max(offset, iter_offset + range->size);
