@@ -12,7 +12,7 @@ extern hipError_t hipExtModuleLaunchKernel(hipFunction_t, // NOLINT
                                            uint32_t,
                                            uint32_t,
                                            uint32_t,
-                                           int,
+                                           size_t,
                                            hipStream_t,
                                            void**,
                                            void**,

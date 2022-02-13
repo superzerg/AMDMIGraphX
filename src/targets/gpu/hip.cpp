@@ -46,7 +46,7 @@ void* get_device_ptr(void* hptr)
     return result;
 }
 
-hip_ptr allocate_gpu(int sz, bool host = false)
+hip_ptr allocate_gpu(std::size_t sz, bool host = false)
 {
     if(sz > get_available_gpu_memory())
         MIGRAPHX_THROW("Memory not available to allocate buffer: " + std::to_string(sz));
@@ -62,7 +62,7 @@ hip_ptr allocate_gpu(int sz, bool host = false)
     return hip_ptr{result};
 }
 
-hip_host_ptr register_on_gpu(void* ptr, int sz)
+hip_host_ptr register_on_gpu(void* ptr, std::size_t sz)
 {
     auto status = hipHostRegister(ptr, sz, hipHostRegisterMapped);
     if(status != hipSuccess)
@@ -71,7 +71,7 @@ hip_host_ptr register_on_gpu(void* ptr, int sz)
 }
 
 template <class T>
-std::vector<T> read_from_gpu(const void* x, int sz)
+std::vector<T> read_from_gpu(const void* x, std::size_t sz)
 {
     gpu_sync();
     std::vector<T> result(sz);
@@ -81,7 +81,7 @@ std::vector<T> read_from_gpu(const void* x, int sz)
     return result;
 }
 
-hip_ptr write_to_gpu(const void* x, int sz, bool host = false)
+hip_ptr write_to_gpu(const void* x, std::size_t sz, bool host = false)
 {
     gpu_sync();
     auto result = allocate_gpu(sz, host);

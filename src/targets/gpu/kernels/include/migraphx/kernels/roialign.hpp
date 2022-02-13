@@ -132,7 +132,7 @@ __device__ void roialign(const T& x_t, const U& rois_t, const V& ind_t, const W&
     auto channel_num = x_lens[1];
     // input dims of height and width, in all 2-dim arrays, the first dim
     // is for height and second dim is for width
-    array<int, 2> in_dims = {x_lens[2], x_lens[3]};
+    array<int, 2> in_dims = {static_cast<int>(x_lens[2]), static_cast<int>(x_lens[3])};
 
     const auto stride   = index.nglobal();
     auto out_s          = y_t.get_shape();
@@ -141,7 +141,7 @@ __device__ void roialign(const T& x_t, const U& rois_t, const V& ind_t, const W&
     // output dims of height and width, in all 2-dim arrays, the first dim
     // is for height and second dim is for width
     const auto& out_lens   = out_s.lens;
-    array<int, 2> out_dims = {out_lens[2], out_lens[3]};
+    array<int, 2> out_dims = {static_cast<int>(out_lens[2]), static_cast<int>(out_lens[3])};
 
     for(index_int i = index.global; i < out_s.elements(); i += stride)
     {

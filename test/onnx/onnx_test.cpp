@@ -3586,7 +3586,7 @@ TEST_CASE(resize_downsample_linear_test)
     EXPECT(p == prog);
 }
 
-TEST_CASE(resize_outintest)
+TEST_CASE(resize_outsize_test)
 {
     migraphx::program p;
     auto* mm = p.get_main_module();
@@ -3608,7 +3608,7 @@ TEST_CASE(resize_outintest)
     auto r    = mm->add_instruction(migraphx::make_op("gather", {{"axis", 0}}), lrsp, li);
     mm->add_return({r});
 
-    auto prog = migraphx::parse_onnx("resize_outintest.onnx");
+    auto prog = migraphx::parse_onnx("resize_outsize_test.onnx");
 
     EXPECT(p == prog);
 }
