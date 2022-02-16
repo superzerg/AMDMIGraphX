@@ -19,14 +19,19 @@ struct parse_shape : op_parser<parse_shape>
                           std::vector<instruction_ref> args) const
     {
         if(args.size() != 1)
+        {
             MIGRAPHX_THROW("Shape: operator should have 1 operand");
-        std::vector<std::size_t> arg_shape = args[0]->get_shape().lens();
-        std::vector<int64_t> vec_shape(arg_shape.size());
-        migraphx::shape s(migraphx::shape::int64_type, {arg_shape.size()});
-        std::transform(arg_shape.begin(), arg_shape.end(), vec_shape.begin(), [](auto i) {
-            return int64_t(i);
-        });
-        return info.add_literal(migraphx::literal{s, vec_shape});
+        }
+
+        return info.add_instruction(make_op("shape"), args);
+
+        // std::vector<std::size_t> arg_shape = args[0]->get_shape().lens();
+        // std::vector<int64_t> vec_shape(arg_shape.size());
+        // migraphx::shape s(migraphx::shape::int64_type, {arg_shape.size()});
+        // std::transform(arg_shape.begin(), arg_shape.end(), vec_shape.begin(), [](auto i) {
+        //     return int64_t(i);
+        // });
+        // return info.add_literal(migraphx::literal{s, vec_shape});
     }
 };
 
