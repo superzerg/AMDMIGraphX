@@ -246,9 +246,9 @@ bool shape::transposed() const
 
 bool shape::broadcasted() const
 {
-    assert(this->lens().size() == this->strides().size());
-    return std::accumulate(
-               this->strides().begin(), this->strides().end(), int{1}, std::multiplies<int>()) == 0;
+    const auto& strides = this->strides();
+    assert(this->lens().size() == strides.size());
+    return std::any_of(strides.begin(), strides.end(), [](auto i) { return i == 0; });
 }
 
 bool shape::scalar() const
