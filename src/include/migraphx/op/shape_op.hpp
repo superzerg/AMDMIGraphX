@@ -20,7 +20,7 @@ struct shape_op
         return {shape::int64_type, lens};
     }
 
-    argument compute(context&, const shape& output_shape, std::vector<argument> args) const
+    argument compute(const shape& output_shape, std::vector<argument> args) const
     {
         argument result{output_shape};
         auto lens = args.front().get_shape().lens();

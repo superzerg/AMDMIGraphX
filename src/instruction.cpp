@@ -280,7 +280,7 @@ void instruction::replace_mod_argument(module_ref old, module_ref new_mod)
 
 bool instruction::can_eval() const
 {
-    if(op.name() == "@literal")
+    if(op.name() == "@literal" or op.name() == "shape")
     {
         return true;
     }
@@ -301,10 +301,18 @@ argument instruction::eval(bool check_eval) const
     {
         return this->get_literal().get_argument();
     }
+    else if (op.name() == "shape")
+    {
+        argument arg{this->inputs().front()->get_shape()};
+        return normalized_operator().compute(result, {arg});
+    }
+
     if(is_context_free(op))
     {
         if(check_eval and not this->can_eval())
+        {
             return {};
+        }
         std::vector<argument> args;
         std::transform(this->inputs().begin(),
                        this->inputs().end(),

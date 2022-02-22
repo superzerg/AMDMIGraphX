@@ -248,10 +248,10 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
             }
 
             std::vector<std::size_t> dims;
-            if(map_input_dims.count(name) > 0)
-            {
-                dims = map_input_dims.at(name);
-            }
+            // if(map_input_dims.count(name) > 0)
+            // {
+            //     dims = map_input_dims.at(name);
+            // }
 
             shape s         = parse_type(input.type(), dims);
             mod_insts[name] = mod->add_parameter(name, s);
@@ -262,6 +262,7 @@ void onnx_parser::parse_graph(module* mod, const onnx::GraphProto& graph)
 
     for(auto&& node : graph.node())
     {
+        std::cout << "node_op_type = " << node.op_type() << std::endl;
         std::vector<instruction_ref> args;
         for(auto&& input : node.input())
         {
@@ -404,10 +405,10 @@ shape onnx_parser::parse_type(const onnx::TypeProto& t,
                               const std::vector<std::size_t>& input_dims) const
 {
     shape::type_t shape_type = get_type(t.tensor_type().elem_type());
-    if(!input_dims.empty())
-    {
-        return {shape_type, input_dims};
-    }
+    // if(!input_dims.empty())
+    // {
+    //     return {shape_type, input_dims};
+    // }
 
     std::vector<std::size_t> dims;
     auto&& tensor_dims = t.tensor_type().shape().dim();
@@ -419,13 +420,15 @@ shape onnx_parser::parse_type(const onnx::TypeProto& t,
                        {
                            if(static_cast<int>(d.dim_value()) <= 0)
                            {
-                               return default_dim_value;
+                            //    return default_dim_value;
+                               return 0;
                            }
                            return d.dim_value();
                        }
                        else
                        {
-                           return default_dim_value;
+                        //    return default_dim_value;
+                           return 0;
                        }
                    });
 

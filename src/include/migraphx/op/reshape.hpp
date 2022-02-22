@@ -11,6 +11,7 @@
 #include <migraphx/lifetime.hpp>
 #include <cmath>
 #include <utility>
+#include <iostream>
 
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
@@ -30,6 +31,13 @@ struct reshape
     shape compute_shape(std::vector<shape> inputs) const
     {
         check_shapes{inputs, *this}.has(1).standard();
+        // input shape is dynamic, return dim directly
+        if (inputs.front().dynamic())
+        {
+            std::vector<std::size_t> rdims(dims.begin(), dims.end());
+            return {inputs.front().type(), rdims};
+        }
+
         auto&& idims = inputs.front().lens();
         std::vector<std::size_t> rdims(dims.begin(), dims.end());
         auto n_neg_dims = std::count(dims.begin(), dims.end(), -1);

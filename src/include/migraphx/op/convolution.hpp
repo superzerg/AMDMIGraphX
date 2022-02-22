@@ -55,7 +55,8 @@ struct convolution
         check_shapes{inputs, *this}.has(2).same_type().same_ndims().min_ndims(3);
         check_attribute_size();
         // dim num of input and attribute should match
-        auto input_size   = inputs[0].lens().size();
+        auto in_lens = inputs[0].lens();
+        auto input_size   = in_lens.size();
         auto padding_size = padding.size();
         if(not(input_size == padding_size / 2 + 2 or input_size == padding_size + 2))
         {
@@ -73,7 +74,7 @@ struct convolution
         if(input.lens().at(1) != (weights.lens().at(1) * group))
             MIGRAPHX_THROW("CONVOLUTION: Mismatch channel numbers");
 
-        std::vector<size_t> output_lens{input.lens()[0], weights.lens()[0]};
+        std::vector<size_t> output_lens{in_lens[0], weights.lens()[0]};
 
         for(size_t i = 0; i < kdims; i++)
         {
@@ -82,7 +83,7 @@ struct convolution
                 padding_factor = padding[i] + padding[i + kdims];
             output_lens.push_back(std::size_t(std::max<std::ptrdiff_t>(
                 1,
-                (input.lens()[i + 2] - (1 + dilation[i] * (weights.lens()[i + 2] - 1)) +
+                (in_lens[i + 2] - (1 + dilation[i] * (weights.lens()[i + 2] - 1)) +
                  padding_factor) /
                         stride[i] +
                     1)));

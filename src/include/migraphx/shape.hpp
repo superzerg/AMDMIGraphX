@@ -125,6 +125,8 @@ struct shape
     bool standard() const;
     /// Returns true if all strides are equal to 0 (scalar tensor)
     bool scalar() const;
+    /// Return true if any dim is 0
+    bool dynamic() const;
 
     shape normalize_standard() const;
 

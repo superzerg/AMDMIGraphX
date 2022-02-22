@@ -59,8 +59,8 @@ struct broadcast
         std::copy(input.strides().begin(), input.strides().end(), bcast_strides.begin() + axis);
 
         shape output{t, broadcast_lens, std::move(bcast_strides)};
-        if(output.elements() < input.elements())
-            MIGRAPHX_THROW("BROADCAST: output size must be greater than or equal to input size");
+        // if(output.elements() < input.elements())
+        //     MIGRAPHX_THROW("BROADCAST: output size must be greater than or equal to input size");
         return output;
     }
     argument compute(shape output_shape, std::vector<argument> args) const

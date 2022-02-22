@@ -272,6 +272,13 @@ bool shape::scalar() const
            std::accumulate(this->strides().begin(), this->strides().end(), std::size_t(0)) == 0;
 }
 
+bool shape::dynamic() const
+{
+    if (scalar()) return false;
+    const auto& lens = this->lens();
+    return std::find(lens.begin(), lens.end(), 0) != lens.end();
+}
+
 bool shape::standard() const { return impl->m_standard; }
 
 shape shape::normalize_standard() const
