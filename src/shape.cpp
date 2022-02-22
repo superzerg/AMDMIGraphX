@@ -274,7 +274,8 @@ bool shape::scalar() const
 
 bool shape::dynamic() const
 {
-    if (scalar()) return false;
+    if(scalar())
+        return false;
     const auto& lens = this->lens();
     return std::find(lens.begin(), lens.end(), 0) != lens.end();
 }

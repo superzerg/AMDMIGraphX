@@ -32,7 +32,7 @@ struct reshape
     {
         check_shapes{inputs, *this}.has(1).standard();
         // input shape is dynamic, return dim directly
-        if (inputs.front().dynamic())
+        if(inputs.front().dynamic())
         {
             std::vector<std::size_t> rdims(dims.begin(), dims.end());
             return {inputs.front().type(), rdims};

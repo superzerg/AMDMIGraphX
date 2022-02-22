@@ -301,7 +301,7 @@ argument instruction::eval(bool check_eval) const
     {
         return this->get_literal().get_argument();
     }
-    else if (op.name() == "shape")
+    else if(op.name() == "shape")
     {
         argument arg{this->inputs().front()->get_shape()};
         return normalized_operator().compute(result, {arg});

@@ -55,7 +55,7 @@ struct convolution
         check_shapes{inputs, *this}.has(2).same_type().same_ndims().min_ndims(3);
         check_attribute_size();
         // dim num of input and attribute should match
-        auto in_lens = inputs[0].lens();
+        auto in_lens      = inputs[0].lens();
         auto input_size   = in_lens.size();
         auto padding_size = padding.size();
         if(not(input_size == padding_size / 2 + 2 or input_size == padding_size + 2))

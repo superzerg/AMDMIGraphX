@@ -420,14 +420,14 @@ shape onnx_parser::parse_type(const onnx::TypeProto& t,
                        {
                            if(static_cast<int>(d.dim_value()) <= 0)
                            {
-                            //    return default_dim_value;
+                               //    return default_dim_value;
                                return 0;
                            }
                            return d.dim_value();
                        }
                        else
                        {
-                        //    return default_dim_value;
+                           //    return default_dim_value;
                            return 0;
                        }
                    });
