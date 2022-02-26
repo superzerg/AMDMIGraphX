@@ -19,7 +19,7 @@ jobs:
     # In this step, this action saves a list of existing images,
     # the cache is created without them in the post run.
     # It also restores the cache if it exists.
-    - uses: satackey/action-docker-layer-caching@v0.0.8
+    - uses: satackey/action-docker-layer-caching@v0.0.11
       # Ignore the failure of a step and avoid terminating the job.
       continue-on-error: true
 
@@ -65,7 +65,7 @@ jobs:
     # In this step, this action saves a list of existing images,
     # the cache is created without them in the post run.
     # It also restores the cache if it exists.
-    - uses: satackey/action-docker-layer-caching@v0.0.8
+    - uses: satackey/action-docker-layer-caching@v0.0.11
       # Ignore the failure of a step and avoid terminating the job.
       continue-on-error: true
 
@@ -108,7 +108,7 @@ jobs:
     # In this step, this action saves a list of existing images,
     # the cache is created without them in the post run.
     # It also restores the cache if it exists.
-    - uses: satackey/action-docker-layer-caching@v0.0.8
+    - uses: satackey/action-docker-layer-caching@v0.0.11
       # Ignore the failure of a step and avoid terminating the job.
       continue-on-error: true
 
@@ -142,10 +142,12 @@ jobs:
       with:
         python-version: 3.6
     - name: Install pyflakes
-      run: pip install pyflakes==2.3.1
+      run: pip install pyflakes==2.3.1 mypy==0.931
 
     - name: Run pyflakes
-      run: pyflakes examples/ tools/ src/ test/ doc/
+      run: |
+        pyflakes examples/ tools/ src/ test/ doc/
+        mypy tools/api.py
 
   linux:
 
@@ -218,7 +220,7 @@ jobs:
       run: |
         echo "leak:dnnl::impl::malloc" > suppressions.txt
         export LSAN_OPTIONS="suppressions=$(pwd)/suppressions.txt"
-        rbuild build -d cget -s gh -t check \
+        rbuild build -d cget -s gh -T check \
           -DCMAKE_BUILD_TYPE=${{matrix.configuration}} \
           -DMIGRAPHX_ENABLE_PYTHON=${{matrix.configuration == 'release' && 'On' || 'Off'}} \
           -DCMAKE_CXX_FLAGS_DEBUG="-g1 -Os -fdebug-prefix-map=$PWD=. -fdebug-types-section -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=undefined" \

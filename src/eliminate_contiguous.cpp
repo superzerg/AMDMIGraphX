@@ -11,11 +11,13 @@
 namespace migraphx {
 inline namespace MIGRAPHX_INLINE_NS {
 
-static bool try_compute_shape(instruction_ref ins, const std::vector<shape>& inputs)
+static bool try_compute_shape(instruction_ref ins,
+                              const std::vector<shape>& inputs,
+                              const std::vector<module_ref>& mods)
 {
     try
     {
-        shape new_shape = ins->get_operator().compute_shape(inputs);
+        shape new_shape = ins->get_operator().compute_shape(inputs, mods);
         // If the output shape is a standard shape, no need to try its output
         if(new_shape.standard())
         {
@@ -45,7 +47,7 @@ static bool try_compute_shape(instruction_ref ins, const std::vector<shape>& inp
                 return (arg == ins) ? new_shape : arg->get_shape();
             });
 
-            if(!try_compute_shape(output, input_shapes))
+            if(!try_compute_shape(output, input_shapes, mods))
             {
                 return false;
             }
@@ -59,10 +61,12 @@ static bool try_compute_shape(instruction_ref ins, const std::vector<shape>& inp
     return true;
 }
 
-static bool try_compute_shape(instruction_ref ins, const std::vector<instruction_ref>& args)
+static bool try_compute_shape(instruction_ref ins,
+                              const std::vector<instruction_ref>& args,
+                              const std::vector<module_ref>& mods)
 {
     auto inputs = to_shapes(args);
-    return try_compute_shape(ins, inputs);
+    return try_compute_shape(ins, inputs, mods);
 }
 
 void eliminate_contiguous::apply(module& p) const
@@ -74,15 +78,16 @@ void eliminate_contiguous::apply(module& p) const
             continue;
 
         // Make a copy so we can modify it while we iterate
-        auto args = ins->inputs();
+        auto args     = ins->inputs();
+        auto new_args = args;
+        auto mod_args = ins->module_inputs();
         for(auto arg : ins->inputs())
         {
             if(arg->name() == op_name)
             {
-                auto new_args = args;
-                auto prev     = arg->inputs().front();
+                auto prev = arg->inputs().front();
                 replace(new_args, arg, prev);
-                if(try_compute_shape(ins, new_args))
+                if(try_compute_shape(ins, new_args, mod_args))
                 {
                     instruction::replace_argument(ins, arg, prev);
                 }

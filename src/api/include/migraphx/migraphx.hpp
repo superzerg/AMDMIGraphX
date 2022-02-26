@@ -152,6 +152,35 @@ struct array_base
     }
 };
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnon-template-friend"
+#endif
+
+template <class T>
+struct holder
+{
+    // Friend injection
+    friend auto migraphx_adl_handle_lookup(holder<T>);
+    // Function left unimplemented since its only used in non-evaluated
+    // context
+    T get() const;
+};
+
+template <class C, class T>
+struct handle_lookup
+{
+    friend auto migraphx_adl_handle_lookup(holder<T>) { return holder<C>{}; }
+};
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+template <class T>
+using as_handle = decltype(
+    migraphx_adl_handle_lookup(holder<std::remove_cv_t<std::remove_pointer_t<T>>>{}).get());
+
 struct own
 {
 };
@@ -159,8 +188,8 @@ struct borrow
 {
 };
 
-template <class T, class D, D Deleter>
-struct handle_base
+template <class Derived, class T, class D, D Deleter, class A, A Assigner>
+struct handle_base : handle_lookup<Derived, std::remove_cv_t<T>>
 {
     handle_base() : m_handle(nullptr) {}
     template <class F, class... Ts>
@@ -190,6 +219,12 @@ struct handle_base
         m_handle = std::shared_ptr<U>{ptr, [](U*) {}};
     }
 
+    template <class U>
+    void assign_to_handle(U* x)
+    {
+        Assigner(x, this->get_handle_ptr());
+    }
+
     protected:
     std::shared_ptr<T> m_handle;
 };
@@ -197,10 +232,13 @@ struct handle_base
 #ifdef DOXYGEN
 #define MIGRAPHX_DETAIL_HANDLE_BASE(name, const_) handle_base<>
 #else
-#define MIGRAPHX_DETAIL_HANDLE_BASE(name, const_)     \
-    handle_base<const_ migraphx_##name,               \
-                decltype(&migraphx_##name##_destroy), \
-                migraphx_##name##_destroy>
+#define MIGRAPHX_DETAIL_HANDLE_BASE(name, const_)       \
+    handle_base<name,                                   \
+                const_ migraphx_##name,                 \
+                decltype(&migraphx_##name##_destroy),   \
+                migraphx_##name##_destroy,              \
+                decltype(&migraphx_##name##_assign_to), \
+                migraphx_##name##_assign_to>
 #endif
 // NOLINTNEXTLINE
 #define MIGRAPHX_HANDLE_BASE(name) MIGRAPHX_DETAIL_HANDLE_BASE(name, )
@@ -252,7 +290,7 @@ struct shape : MIGRAPHX_CONST_HANDLE_BASE(shape)
         const size_t* pout;
         size_t pout_size;
         call(&migraphx_shape_lengths, &pout, &pout_size, this->get_handle_ptr());
-        return std::vector<size_t>(pout, pout + pout_size);
+        return {pout, pout + pout_size};
     }
 
     std::vector<size_t> strides() const
@@ -260,7 +298,7 @@ struct shape : MIGRAPHX_CONST_HANDLE_BASE(shape)
         const size_t* pout;
         size_t pout_size;
         call(&migraphx_shape_strides, &pout, &pout_size, this->get_handle_ptr());
-        return std::vector<size_t>(pout, pout + pout_size);
+        return {pout, pout + pout_size};
     }
 
     migraphx_shape_datatype_t type() const
@@ -312,7 +350,7 @@ struct argument : MIGRAPHX_CONST_HANDLE_BASE(argument)
     {
         const_migraphx_shape_t pout;
         call(&migraphx_argument_shape, &pout, this->get_handle_ptr());
-        return shape(pout);
+        return {pout};
     }
 
     char* data() const
@@ -325,9 +363,8 @@ struct argument : MIGRAPHX_CONST_HANDLE_BASE(argument)
     /// Generate an argument using random data
     static argument generate(shape ps, size_t pseed = 0)
     {
-        return argument(
-            make<migraphx_argument>(&migraphx_argument_generate, ps.get_handle_ptr(), pseed),
-            own{});
+        return {make<migraphx_argument>(&migraphx_argument_generate, ps.get_handle_ptr(), pseed),
+                own{}};
     }
 
     friend bool operator==(const argument& px, const argument& py)
@@ -378,7 +415,7 @@ struct program_parameter_shapes : MIGRAPHX_HANDLE_BASE(program_parameter_shapes)
     {
         const_migraphx_shape_t pout;
         call(&migraphx_program_parameter_shapes_get, &pout, this->get_handle_ptr(), pname);
-        return shape(pout);
+        return {pout};
     }
 
     std::vector<const char*> names() const
@@ -438,7 +475,7 @@ struct arguments : MIGRAPHX_HANDLE_BASE(arguments), array_base<arguments>
     {
         const_migraphx_argument_t pout;
         call(&migraphx_arguments_get, &pout, this->get_handle_ptr(), pidx);
-        return argument(pout);
+        return {pout};
     }
 
     struct iterator_read
@@ -449,7 +486,7 @@ struct arguments : MIGRAPHX_HANDLE_BASE(arguments), array_base<arguments>
             const_migraphx_argument_t pout;
             call(&migraphx_arguments_get, &pout, self, pidx);
 
-            return argument(pout);
+            return {pout};
         }
     };
 };
@@ -471,7 +508,7 @@ struct shapes : MIGRAPHX_HANDLE_BASE(shapes), array_base<shapes>
     {
         const_migraphx_shape_t pout;
         call(&migraphx_shapes_get, &pout, this->get_handle_ptr(), pidx);
-        return shape(pout);
+        return {pout};
     }
 
     struct iterator_read
@@ -481,7 +518,7 @@ struct shapes : MIGRAPHX_HANDLE_BASE(shapes), array_base<shapes>
         {
             const_migraphx_shape_t pout;
             call(&migraphx_shapes_get, &pout, self, pidx);
-            return shape(pout);
+            return {pout};
         }
     };
 };
@@ -609,7 +646,7 @@ struct operation : MIGRAPHX_HANDLE_BASE(operation)
     {
         std::array<char, 1024> out_name;
         call(&migraphx_operation_name, out_name.data(), 1024, this->get_handle_ptr());
-        return std::string(out_name.data());
+        return {out_name.data()};
     }
 };
 
