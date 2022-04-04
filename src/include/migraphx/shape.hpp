@@ -54,6 +54,20 @@ struct shape
     MIGRAPHX_SHAPE_VISIT_TYPES(MIGRAPHX_SHAPE_GENERATE_GET_TYPE)
 #undef MIGRAPHX_SHAPE_GENERATE_GET_TYPE
 
+    // dynamic dimension to support dynamic shape
+    struct dynamic_dimension
+    {
+        std::size_t min = 0;
+        std::size_t max = 0;
+        std::size_t opt = 0;
+        
+        // is the dimension fixed
+        bool is_fixed() const;
+
+        // does the dimension have an optimal size
+        bool has_optimal() const;
+    };
+
     template <class T>
     struct get_type<const T> : get_type<T>
     {
@@ -83,6 +97,9 @@ struct shape
     }
 
     shape(const std::vector<shape>& subs);
+
+    // constructor for dynamic shape
+    shape(type_t t, std::vector<dynamic_dimension> dims);
 
     static shape
     from_permutation(type_t t, const std::vector<std::size_t>& l, const std::vector<int64_t>& perm);

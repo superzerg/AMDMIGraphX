@@ -50,6 +50,7 @@ struct shape_impl
     std::vector<std::size_t> m_strides = {};
     std::vector<shape> m_shapes        = {};
     bool m_standard                    = false;
+    std::vector<shape::dynamic_dimension> dynamic_dims = {};
 
     void calculate_strides()
     {
