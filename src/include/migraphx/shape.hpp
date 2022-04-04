@@ -60,7 +60,7 @@ struct shape
         std::size_t min = 0;
         std::size_t max = 0;
         std::size_t opt = 0;
-        
+
         // is the dimension fixed
         bool is_fixed() const;
 

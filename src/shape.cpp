@@ -46,10 +46,10 @@ struct shape_impl
 
     shape_impl(const std::vector<shape>& subs) : m_type(shape::tuple_type), m_shapes(subs) {}
     shape::type_t m_type;
-    std::vector<std::size_t> m_lens    = {};
-    std::vector<std::size_t> m_strides = {};
-    std::vector<shape> m_shapes        = {};
-    bool m_standard                    = false;
+    std::vector<std::size_t> m_lens                    = {};
+    std::vector<std::size_t> m_strides                 = {};
+    std::vector<shape> m_shapes                        = {};
+    bool m_standard                                    = false;
     std::vector<shape::dynamic_dimension> dynamic_dims = {};
 
     void calculate_strides()
